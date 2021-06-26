@@ -22,3 +22,5 @@ https://github.com/talij85/game_of_stones
 Server setup instructions included in admin/setup.txt
 Several directories uploaded zipped to simplify upload/download process. Extract all .zip files after pulling.
 
+
+There is a good chance this won't always be updated to the latest version, so feel free to message me if you need an update. 
