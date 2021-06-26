@@ -15,7 +15,7 @@ Some changes:
 - Slightly clearer debug messages
 
  
-Built using this repository as a starting point:
+Built off of talij85's repositoriy which is built off an even older repository. 
 https://github.com/talij85/game_of_stones
 
 Server setup instructions included in admin/setup.txt
