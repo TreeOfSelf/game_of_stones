@@ -13,6 +13,7 @@ Some changes:
 - Quick travel buttons
 - Updated flags and sigils
 - Slightly clearer debug messages
+- Reset password functionality
 
  
 Built off of talij85's repositoriy which is built off an even older repository. 
