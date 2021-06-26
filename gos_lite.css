@@ -1,15 +1,15 @@
 body {
   margin: 0;
-  background-image:url('images/excel.gif');
-  color: #000000; 
-  padding-top: 60px; 
+  background-image:url('images/skulll.png');
+  color: #fff; 
+  padding-top: 25px; 
 }  
 
-  .solid-back { background-color: #FFFFFF;  }
+  .solid-back { background-color: #000;  }
   
-  .abox { border: 1px solid #333333; 	
-        border-spacing: 0px; 
-        padding: 15px 3px 3px 3px;
+  .abox { border: 5px solid #fff; 	
+        border-spacing: 1px; 
+        padding: 15px 15px 15px 15px;
         }
   .gos-form { font-family: Verdana; font-size: 10px; color: #222222; background: #EEEEEE; border: #333333 solid 1px; }
 
@@ -50,11 +50,11 @@ background-size: 100%;
 background-position:center;
 }
 
-.battletext { font-family: Verdana; font-size: 12px; color: #222222; background-color: #FFFFFF;}
-.battledtext { font-family: Verdana; font-size: 12px; color: #000000; background-color: #F5F2EB;}
+.battletext { font-family: Verdana; font-size: 12px; color: #fff; background-color: #000;}
+.battledtext { font-family: Verdana; font-size: 12px; color: #fff; background-color: #000;}
 
 .estate_t { font-family: Verdana; font-size: 9px; color: #EEEEEE; background-color: #111111; font-weight:bold;}
 .estate_r { font-family: Verdana; font-size: 9px; color: #E14545; background-color: #111111; font-weight:bold;}
 
-.img-optional { visibility:hidden; }
+.img-optional { visibility:; }
 .img-optional-nodisplay { display: none;}

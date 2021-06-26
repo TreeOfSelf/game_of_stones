@@ -1,0 +1,4 @@
+[12-Oct-2020 15:50:39 UTC] PHP Warning:  mysqli_query() expects parameter 1 to be mysqli, null given in /home/gameofstonestrlc/public_html/map/places/banker.php on line 6
+[12-Oct-2020 15:50:39 UTC] PHP Warning:  mysqli_fetch_array() expects parameter 1 to be mysqli_result, null given in /home/gameofstonestrlc/public_html/map/places/banker.php on line 6
+[12-Oct-2020 15:50:46 UTC] PHP Warning:  mysqli_query() expects parameter 1 to be mysqli, null given in /home/gameofstonestrlc/public_html/map/places/banker.php on line 6
+[12-Oct-2020 15:50:46 UTC] PHP Warning:  mysqli_fetch_array() expects parameter 1 to be mysqli_result, null given in /home/gameofstonestrlc/public_html/map/places/banker.php on line 6

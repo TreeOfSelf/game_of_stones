@@ -1,7 +1,7 @@
  <?php
-$message=mysql_real_escape_string($_GET['message']);
-$note=mysql_real_escape_string($_POST['note']);
-$submitted=mysql_real_escape_string($_REQUEST[submitted]);
+$message=mysqli_real_escape_string($db,$_GET['message']);
+$note=mysqli_real_escape_string($db,$_POST['note']);
+$submitted=mysqli_real_escape_string($db,$_REQUEST['submitted']);
 $wait_post = 30;
 
 $id=$char['id'];
@@ -12,25 +12,25 @@ $loc_query = $char['location'];
 $surrounding_area = $map_data[$loc];
 
 // LOAD LOCATION TABLE
-$location = mysql_fetch_array(mysql_query("SELECT * FROM Locations WHERE name='$loc_query'"));
+$location = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Locations WHERE name='$loc_query'"));
 
-$upgrades = unserialize($location[upgrades]);
+$upgrades = unserialize($location['upgrades']);
 
 // UPDATE NUMBER OF MEMEBERS
 $query = "SELECT COUNT(*) FROM Users WHERE location='$loc_query' ";
-$resultf = mysql_fetch_array(mysql_query($query));
-$numchar = $resultf[0];
+$resultf = mysqli_fetch_array(mysqli_query($db,$query));
+$numchar = $resultf['0'];
 
 // CHECK FOR LOCAL BUSINESSES
-  $myLocBiz[999] = '';
+  $myLocBiz['999'] = '';
   $query1 = "SELECT COUNT(*) FROM Profs WHERE owner='$id' AND location='$loc_query'";
-  $resultf1 = mysql_fetch_array(mysql_query($query));
+  $resultf1 = mysqli_fetch_array(mysqli_query($db,$query));
   if ($resultf1)
   {
-    $result = mysql_query("SELECT id, type FROM Profs WHERE owner='$id' AND location='$loc_query'");  
-    while ($bq = mysql_fetch_array( $result ) )
+    $result = mysqli_query($db,"SELECT id, type FROM Profs WHERE owner='$id' AND location='$loc_query'");  
+    while ($bq = mysqli_fetch_array( $result ) )
     {
-      $myLocBiz[$bq[type]]=1;
+      $myLocBiz[$bq['type']]=1;
     }
   }
 ?>
@@ -38,10 +38,10 @@ $numchar = $resultf[0];
 <div class='row'>
 
   <?php
-    if ($location['ruler'] != 'No One' && !$location[isDestroyed])
+    if ($location['ruler'] != 'No One' && !$location['isDestroyed'])
     {
-      $rulersoc = mysql_fetch_array(mysql_query("SELECT id, flag, sigil FROM Soc WHERE name='$location[ruler]' "));
-      echo "<div class='col-sm-3 col-lg-2 hidden-xs'><div class='img-optional' style=\"background-image: url('images/Flags/".$rulersoc[flag]."'); background-repeat: no-repeat;\"><img src=\"images/Sigils/".$rulersoc['sigil']."\" align='top' width=160 height=197 class='img-optional'></div></div>";
+      $rulersoc = mysqli_fetch_array(mysqli_query($db,"SELECT id, flag, sigil FROM Soc WHERE name='$location[ruler]' "));
+      echo "<div class='col-sm-3 col-lg-2 hidden-xs'><div class='img-optional' style=\"background-image: url('images/Flags/".$rulersoc['flag']."'); background-repeat: no-repeat;\"><img src=\"images/Sigils/".$rulersoc['sigil']."\" align='top' width=160 height=197 class='img-optional'></div></div>";
     } 
     else 
     { 
@@ -50,12 +50,12 @@ $numchar = $resultf[0];
       echo "<div class='col-sm-3 col-lg-2 hidden-xs'><img class='img-optional' src=\"images/Flags/".$town_img_name.".gif\" align='top' width=160/></div>";
     }
 
-    $sealid = $location[id]+50000;
-    $hasSeal = mysql_num_rows(mysql_query("SELECT id FROM Items WHERE type=0 && owner='$sealid'"));
+    $sealid = $location['id']+50000;
+    $hasSeal = mysqli_num_rows(mysqli_query($db,"SELECT id FROM Items WHERE type=0 && owner='$sealid'"));
   ?>
   <div class='col-sm-6 col-lg-8'>
       <?php
-      if (!$location[isDestroyed])
+      if (!$location['isDestroyed'])
       {
       ?>
         <?php
@@ -74,54 +74,54 @@ $numchar = $resultf[0];
         ?></b></p> 
 
         <div class='row'>
-              <div class="city-btn col-sm-4 col-md-3">
+              <div class="city-btn col-sm-3 col-md-3">
                 <button class='btn btn-default btn-sm btn-block' onClick="parent.document.location='shop.php'">Shop</button>
               </div>
-              <div class="city-btn col-sm-4 col-md-3">
+              <div class="city-btn col-sm-3 col-md-3">
                 <button class='btn btn-default btn-sm btn-block' onClick="parent.document.location='blacksmith.php'">Blacksmith</button>
               </div>          
-              <div class="city-btn col-sm-4 col-md-3">
+              <div class="city-btn col-sm-3 col-md-3">
                 <button class='btn btn-default btn-sm btn-block' onClick="parent.document.location='market.php'">Market</button>
               </div> 
-              <div class="city-btn col-sm-4 col-md-3">
+              <div class="city-btn col-sm-3 col-md-3">
                 <button class='btn btn-default btn-sm btn-block' onClick="parent.document.location='business.php?shop=4'">Outfitter</button>
               </div>
-              <div class="city-btn col-sm-4 col-md-3">
+              <div class="city-btn col-sm-3 col-md-3">
                 <button class='btn btn-default btn-sm btn-block' onClick="parent.document.location='business.php?shop=1'">Inn</button>
               </div>
-              <div class="city-btn col-sm-4 col-md-3">
+              <div class="city-btn col-sm-3 col-md-3">
                 <button class='btn btn-default btn-sm btn-block' onClick="parent.document.location='business.php?shop=2'">Wise Woman</button>
               </div>     
-              <div class="city-btn col-sm-4 col-md-3">
+              <div class="city-btn col-sm-3 col-md-3">
                 <button class='btn btn-default btn-sm btn-block' onClick="parent.document.location='business.php?shop=3'">Tavern</button>
               </div>
-              <div class="city-btn col-sm-4 col-md-3">
+              <div class="city-btn col-sm-3 col-md-3">
                 <button class='btn btn-default btn-sm btn-block' onClick="parent.document.location='quests.php'">Quests</button>
               </div>                            
-              <div class="city-btn col-sm-4 col-md-3">
+              <div class="city-btn col-sm-3 col-md-3">
                 <button class='btn btn-default btn-sm btn-block' onClick="parent.document.location='rumors.php'">Rumors</button>
               </div>
-              <div class="city-btn col-sm-4 col-md-3">
+              <div class="city-btn col-sm-3 col-md-3">
                 <button class='btn btn-default btn-sm btn-block' onClick="parent.document.location='townhall.php'">City Hall</button>
               </div>              
           <?php 
             if (count($myLocBiz) >1)
             {
           ?>
-              <div class="city-btn col-sm-4 col-md-3">
+              <div class="city-btn col-sm-3 col-md-3">
                 <button class='btn btn-default btn-sm btn-block' onClick="parent.document.location='mybusinesses.php'">Businesses</button>
               </div>
           <?php
             }        
-            $society = mysql_fetch_array(mysql_query("SELECT id, subleaders, subs, offices, area_score, leader, leaderlast FROM Soc WHERE name='$soc_name' "));
+            $society = mysqli_fetch_array(mysqli_query($db,"SELECT id, subleaders, subs, offices, area_score, leader, leaderlast FROM Soc WHERE name='$soc_name' "));
             $subleaders = unserialize($society['subleaders']);
             $subs = $society['subs'];
             $offices = unserialize($society['offices']);
             $areascore = unserialize($society['area_score']);
-            $locscore = $areascore[$location[id]];
-            $b = 0; 
+            $locscore = $areascore[$location['id']];
+            $b = 0;  
   
-            if (strtolower($name) == strtolower($society[leader]) && strtolower($lastname) == strtolower($society[leaderlast]) ) 
+            if (strtolower($name) == strtolower($society['leader']) && strtolower($lastname) == strtolower($society['leaderlast']) ) 
             {
               $b=1;
             }
@@ -129,25 +129,25 @@ $numchar = $resultf[0];
             {
               foreach ($subleaders as $c_n => $c_s)
               {
-                if (strtolower($name) == strtolower($c_s[0]) && strtolower($lastname) == strtolower($c_s[1]) )
+                if (strtolower($name) == strtolower($c_s['0']) && strtolower($lastname) == strtolower($c_s['1']) )
                 {
                   $b=1;
                 }
               }
             }    
-            if ($offices[$location[id]][0] != '1')
+            if ($offices[$location['id']]['0'] != '1')
             {
-              if (strtolower($name) == strtolower($offices[$location[id]][0]) && strtolower($lastname) == strtolower($offices[$location[id]][1]) ) 
+              if (strtolower($name) == strtolower($offices[$location['id']]['0']) && strtolower($lastname) == strtolower($offices[$location['id']]['1']) ) 
               {
                 $b=1;  
               }
             }    
             if ($b==1)
             {
-              if ($locscore >=100 || $offices[$location[id]][0])
+              if ($locscore >=100 || $offices[$location['id']]['0'])
               {
           ?>
-              <div class="city-btn col-sm-4 col-md-3">
+              <div class="city-btn col-sm-3 col-md-3">
                 <button class='btn btn-default btn-sm btn-block' onClick="parent.document.location='clanoffice.php'">Clan Office</button>
               </div>
           <?php
@@ -156,30 +156,30 @@ $numchar = $resultf[0];
           ?>
           </div>
           <div class='row'>
-            <p><i><?php echo nl2br($location[info]); ?></i></p>
+            <p><i><?php echo nl2br($location['info']); ?></i></p>
           </div>
             <?php
               $myTourney = 0;
-              if ($location[last_tourney])
+              if ($location['last_tourney'])
               {
-                $myTourney = mysql_fetch_array(mysql_query("SELECT id, starts, ends, winner FROM Contests WHERE id='$location[last_tourney]' "));
+                $myTourney = mysqli_fetch_array(mysqli_query($db,"SELECT id, starts, ends, winner FROM Contests WHERE id='$location[last_tourney]' "));
               }
               if ($myTourney != 0) // Previous tournament
               {
                 echo "<div class='row'><p><a href='townhall.php?tab=2' class='text-primary'>";
-                if ($myTourney[starts] > intval(time()/3600))
+                if ($myTourney['starts'] > intval(time()/3600))
                 {
-                  $tminus = intval(($myTourney[starts]*3600-time())/60);
+                  $tminus = intval(($myTourney['starts']*3600-time())/60);
                   echo "New Tournament starts in: ".displayTime($tminus,0,1);
                 }
-                else if ($myTourney[ends] > intval(time()/3600))
+                else if ($myTourney['ends'] > intval(time()/3600))
                 {
-                  $tminus = intval(($myTourney[ends]*3600-time())/60);
+                  $tminus = intval(($myTourney['ends']*3600-time())/60);
                   echo "Tournament ends in: ".displayTime($tminus,0,1);
                 }
                 else
                 {
-                  echo "Last Tournament won by: ".$myTourney[winner];
+                  echo "Last Tournament won by: ".$myTourney['winner'];
                 }
                 echo "</a></p></div>";
               }
@@ -189,29 +189,29 @@ $numchar = $resultf[0];
               $myWar = 0;
               
               // Check if it's Last Battle Time. :)
-              $lastBattle = mysql_fetch_array(mysql_query("SELECT id, starts, ends, winner FROM Contests WHERE type='99' "));
+              $lastBattle = mysqli_fetch_array(mysqli_query($db,"SELECT id, starts, ends, winner FROM Contests WHERE type='99' "));
               if ($lastBattle == 0) // if not, look for clan battles
               {
-                if ($location[last_war])
+                if ($location['last_war'])
                 {
-                  $myWar = mysql_fetch_array(mysql_query("SELECT id, starts, ends, winner FROM Contests WHERE id='$location[last_war]' "));
+                  $myWar = mysqli_fetch_array(mysqli_query($db,"SELECT id, starts, ends, winner FROM Contests WHERE id='$location[last_war]' "));
                 }
                 if ($myWar != 0) // Previous tournament
                 { 
                   echo "<div class='row'><p><a href='townhall.php?tab=3' class='text-warning'>";
-                  if ($myWar[starts] > intval(time()/3600))
+                  if ($myWar['starts'] > intval(time()/3600))
                   {
-                    $tminus = intval(($myWar[starts]*3600-time())/60);
+                    $tminus = intval(($myWar['starts']*3600-time())/60);
                     echo "Clan Battle Declared! Battle starts in: ".displayTime($tminus,0)."!";
                   }
-                  else if ($myWar[ends] > intval(time()/3600))
+                  else if ($myWar['ends'] > intval(time()/3600))
                   {
-                    $tminus = intval(($myWar[ends]*3600-time())/60);
+                    $tminus = intval(($myWar['ends']*3600-time())/60);
                     echo "Clan Battle in Progress! Ends in: ".displayTime($tminus,0,1);
                   }
                   else
                   {
-                    echo "Last Clan Battle won by: ".$myWar[winner];
+                    echo "Last Clan Battle won by: ".$myWar['winner'];
                   }
                   echo "</a></p></div>";
                 }
@@ -219,49 +219,56 @@ $numchar = $resultf[0];
               else // If so, let the fun begin...
               {
                 echo "<div class='row'><p><a href='townhall.php?tab=3' class='text-warning'>";
-                if ($lastBattle[starts] > intval(time()/3600))
+				//eror_log("LAST BATTLE");
+				//eror_log(json_encode($lastBattle));
+				
+				
+                if ($lastBattle['starts'] > intval(time()/3600))
                 {
-                  $tminus = intval(($lastBattle[starts]*3600-time())/60);
+                  $tminus = intval(($lastBattle['starts']*3600-time())/60);
                   echo "The Last Battle is upon us! Battle starts in: ".displayTime($tminus,0)."!";
                 }
-                else if ($lastBattle[ends] > intval(time()/3600))
+                else if ($lastBattle['ends'] > intval(time()/3600))
                 {
-                  $tminus = intval(($lastBattle[ends]*3600-time())/60);
+                  $tminus = intval(($lastBattle['ends']*3600-time())/60);
                   echo "The Last Battle in Progress! Ends in: ".displayTime($tminus,0,1);
                 }
                 else
                 {
-                  echo "The Last battle is over. The ".$lastBattle[winner]." has prevailed!";
+                  echo "The Last battle is over. The ".$lastBattle['winner']." has prevailed!";
                 }
                 echo "</a></p></div>";
               }
 
-              $result3 = mysql_query("SELECT id, npcs, done, ends, location FROM Hordes WHERE target='$location[name]' ORDER BY ends DESC LIMIT 1");
-              while ($myHorde = mysql_fetch_array( $result3 ) )
+              $result3 = mysqli_query($db,"SELECT id, npcs, done, ends, location FROM Hordes WHERE target='$location[name]' ORDER BY ends DESC LIMIT 1");
+              
+			  
+			  
+			  while ($myHorde = mysqli_fetch_array( $result3 ) )
               {
-                $npc_info = unserialize($myHorde[npcs]);
+                $npc_info = unserialize($myHorde['npcs']);
                 $hordemsg = "";
                 for ($n=0; $n < 1; $n++)
                 {
                   if ($n==0) $hordemsg .= "A "; else $hordemsg.= " and a ";
-                  $hordemsg .= $horde_types[$npc_info[$n][0]]." of ".$npc_info[$n][0]."s";
+                  $hordemsg .= $horde_types[$npc_info[$n]['0']]." of ".$npc_info[$n]['0']."s";
                 }
-                if ($myHorde[done]==1 || $myHorde[done]==2)
+                if ($myHorde['done']==1 || $myHorde['done']==2)
                 {
                   if (count($npc_info)==1) $hordemsg .= " was "; else $hordemsg.= " were ";              
-                  $hordemsg .= "defeated in ".str_replace('-ap-','&#39;',$myHorde[location]).". Attack averted!"; 
+                  $hordemsg .= "defeated in ".str_replace('-ap-','&#39;',$myHorde['location']).". Attack averted!"; 
                 }
-                elseif ($myHorde[done]==0)
+                elseif ($myHorde['done']==0)
                 {
-                  $tminus = intval(($myHorde[ends]*3600-time())/60);
+                  $tminus = intval(($myHorde['ends']*3600-time())/60);
                   if (count($npc_info)==1) $hordemsg .= " is "; else $hordemsg.= " are ";              
-                  $hordemsg .= "gathering in ".str_replace('-ap-','&#39;',$myHorde[location]).". Attack in ".displayTime($tminus,0,1)."!";
+                  $hordemsg .= "gathering in ".str_replace('-ap-','&#39;',$myHorde['location']).". Attack in ".displayTime($tminus,0,1)."!";
                 }
-                elseif ($myHorde[done]==3)
+                elseif ($myHorde['done']==3)
                 {
                   $hordemsg .= " was left unchecked and attacked the city! ";
                 }
-                if ($myHorde[done]<2) $hclass = 'text-danger';
+                if ($myHorde['done']<2) $hclass = 'text-danger';
                 else $hclass = 'text-info';
                 echo "<div class='row'><p><a href='hordeinfo.php' class='".$hclass."'>".$hordemsg."</a></p></div>";
                 
@@ -314,14 +321,14 @@ function getXMLHttpRequestObject(){
 }  
 </script>  
   <?php 
-    if (!$location[isDestroyed])
+    if (!$location['isDestroyed'])
     {
       include "bank.php";
     }
     $font_size="class='medtext' style='$classn'";
   ?>  
   <div class='row'>
-    <div class="col-sm-4">
+    <div class="col-sm-3">
       <div class="panel panel-warning">
         <div class="panel-heading">
           <h3 class="panel-title" onClick="parent.document.location='viewtowns.php'">City Info</h3>
@@ -334,11 +341,11 @@ function getXMLHttpRequestObject(){
       
           $loco = $location['id'];
           updateSocScores();
-          $location = mysql_fetch_array(mysql_query("SELECT * FROM Locations WHERE name='$loc_query'"));
-          $clanscores = unserialize($location[clan_scores]);
-          $supporting = unserialize($location[clan_support]);
+          $location = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Locations WHERE name='$loc_query'"));
+          $clanscores = unserialize($location['clan_scores']);
+          $supporting = unserialize($location['clan_support']);
 
-          $topclans='';
+          $topclans=[''];
           $x=0;
           
           if ($clanscores)
@@ -351,11 +358,11 @@ function getXMLHttpRequestObject(){
           
           $h=0;
 
-          $result =mysql_query("SELECT * FROM Users LEFT JOIN Users_stats ON Users.id=Users_stats.id WHERE 1 ORDER BY loc_ji".$loco." DESC, exp DESC LIMIT 0,5");
-          while ( $listchar = mysql_fetch_array( $result ) )
+          $result =mysqli_query($db,"SELECT * FROM Users LEFT JOIN Users_stats ON Users.id=Users_stats.id WHERE 1 ORDER BY loc_ji".$loco." DESC, exp DESC LIMIT 0,5");
+          while ( $listchar = mysqli_fetch_array( $result ) )
           {
-            $topheroes[$h][0]=$listchar[name]." ".$listchar[lastname];
-            $topheroes[$h][1]=$listchar['loc_ji'.$loco];
+            $topheroes[$h]['0']=$listchar['name']." ".$listchar['lastname'];
+            $topheroes[$h]['1']=$listchar['loc_ji'.$loco];
             $h++;
           }
           $town_pop = getTownPop($upgrades,$numchar,$build_pop);
@@ -364,7 +371,7 @@ function getXMLHttpRequestObject(){
           <table cellpadding='2' width='100%' class="table-clear">
             <tr><td align='left'>Players in City:</td><td align='left'><?php echo $numchar; ?></td></tr>
             <?php 
-              if (!$location[isDestroyed])
+              if (!$location['isDestroyed'])
               {
             ?>
             <tr><td align='left'>Population:</td><td align='left'><?php echo $town_pop; ?></td></tr>
@@ -381,7 +388,7 @@ function getXMLHttpRequestObject(){
         </div>
       </div>
     </div> 
-    <div class="col-sm-4">
+    <div class="col-sm-3">
       <div class="panel panel-info">
         <div class="panel-heading">
           <h3 class="panel-title" onClick="parent.document.location='viewclans.php'">Top Clans</h3>
@@ -395,8 +402,8 @@ function getXMLHttpRequestObject(){
               {
                 if ($topclans[$x])
                 {
-                  $soc = mysql_fetch_array(mysql_query("SELECT id, name FROM `Soc` WHERE id = '$topclans[$x]'"));
-                  echo "<tr><td align='left'>".$soc[name].":</td>";
+                  $soc = mysqli_fetch_array(mysqli_query($db,"SELECT id, name FROM `Soc` WHERE id = '$topclans[$x]'"));
+                  echo "<tr><td align='left'>".$soc['name'].":</td>";
                   if ($supporting[$topclans[$x]]==0) echo "<td align='left'>". number_format($clanscores[$topclans[$x]])."</td>";
                   else echo "<td align='left'>Supporting</td>";
                   echo "</tr>";
@@ -408,7 +415,7 @@ function getXMLHttpRequestObject(){
         </div>
       </div>
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-3">
       <div class="panel panel-success">
         <div class="panel-heading">
           <h3 class="panel-title" onClick="parent.document.location='horn.php'">Heroes of <?php echo "$loc_name"; ?></h3>
@@ -420,8 +427,8 @@ function getXMLHttpRequestObject(){
             {
               if ($topheroes[$x])
               {
-                echo "<tr><td align='left'>".$topheroes[$x][0].":</td>";
-                echo "<td align='left'>". number_format($topheroes[$x][1])."</td>";
+                echo "<tr><td align='left'>".$topheroes[$x]['0'].":</td>";
+                echo "<td align='left'>". number_format($topheroes[$x]['1'])."</td>";
                 echo "</tr>";
               }
             }
@@ -430,4 +437,23 @@ function getXMLHttpRequestObject(){
         </div>
       </div>
     </div>
+
+	
+    <div class="col-sm-3" >
+		<div class="panel panel-travel">
+			<div class="panel-heading">
+			  <h3 class="panel-title" >Travel</h3>
+			</div>
+			<div class="panel-body abox">
+			  <table style="background-color:transparent;">
+			  <tr ><td><a style="cursor: pointer;" onClick='submitTravelForm(0);'><img src="map/places/imgs/w.gif"></img> <?php echo $surrounding_area[0]?></a></td></tr>
+			  <tr ><td><a style="cursor: pointer;" onClick='submitTravelForm(1);'><img src="map/places/imgs/w.gif"></img> <?php echo $surrounding_area[1]?></a></td></tr>
+			  <tr ><td><a style="cursor: pointer;" onClick='submitTravelForm(2);'><img src="map/places/imgs/w.gif"></img> <?php echo $surrounding_area[2]?></a></td></tr>
+			  <tr ><td><a style="cursor: pointer;" onClick='submitTravelForm(3);'><img src="map/places/imgs/w.gif"></img> <?php echo $surrounding_area[3]?></a></td></tr>
+			  </table>
+			</div>
+		</div>
+    </div>
+
+
   </div>

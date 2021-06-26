@@ -9,10 +9,10 @@ include("connect.php");
 // if check to prevent others from using this accidentally. Best to remove drop
 // permissions from database user after a reset just to be safe
 //if (strtolower($name) != "the" || strtolower($lastname) != "creator" )
-if (0)
+if (strtolower($name) != "the" || strtolower($lastname) != "creator" )
 {
   echo $name." ".$lastname;
-  echo "Only the Creator has such powers!";
+  echo "  Only the Creator has such powers!";
 }
 else
 {
@@ -29,15 +29,16 @@ include("resetcontests.php");
 include("resetloc.php");
 include("resetnotes.php");
   
-if (mysql_num_rows(mysql_query("SELECT id FROM Quests WHERE 1")) ==0)
+if (mysqli_num_rows(mysqli_query($db,"SELECT id FROM Quests WHERE 1")) ==0)
 {
   // Setup Quests
+  echo "ran this";
   include("create_tut_quests.php");
 }
 } 
 
 // Close Database
-mysql_close($db);
+mysqli_close();
 ?>
 
 </body>

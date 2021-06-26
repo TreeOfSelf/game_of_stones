@@ -8,7 +8,7 @@ class MySQL{
 	var $database; // MySQL database
 	var $result; // MySQL result set
 	// constructor
-	function MySQL($options=array()){
+	function __construct($options=array()){
 		// validate incoming parameters
 		if(count($options)<1){
             trigger_error('No connection parameters were provided');
@@ -37,18 +37,18 @@ class MySQL{
 	}
 	// perform query
 	function query($query){
-		if(!$this->result=mysql_query($query,$this->conId)){
+		if(!$this->result=mysqli_query($db,$query,$this->conId)){
 			trigger_error('Error performing query '.$query.' '.mysql_error());
 			exit();
 		}
 	}
 	// fetch row
 	function fetchRow(){
-		return mysql_fetch_array($this->result,MYSQL_ASSOC);
+		return mysqli_fetch_array($this->result,MYSQL_ASSOC);
 	}
 	// count rows
 	function countRows(){
-		if(!$rows=mysql_num_rows($this->result)){
+		if(!$rows=mysqli_num_rows($this->result)){
 			trigger_error('Error counting rows');
 			exit();
 		}

@@ -860,7 +860,7 @@ function weaveStats ($sname, $skills)
 function getWeaves ($item_list,$item_base,$skills)
 {
   $c_skills = cparse($skills,0);
-  $weaves[0] = '';
+  $weaves[0] = [];
   $wcount = 0;
   
   for ($i=0; $i< count($item_list['8']); $i++)
@@ -943,10 +943,10 @@ function calcWeaveParts($stat, $p, $def=0)
 // ITEM NAME GENERATOR FUNCTION
 function iname($item)
 {
-  $name = ucwords($item[prefix]);
+  $name = ucwords($item['prefix']);
   if ($name) $name .= " ";
-  $name .= ucwords($item[base]);
-  if ($item[suffix]) $name .= " ".str_replace("Of","of",ucwords($item[suffix]));
+  $name .= ucwords($item['base']);
+  if ($item['suffix']) $name .= " ".str_replace("Of","of",ucwords($item['suffix']));
   return $name;
 }
 
@@ -994,9 +994,9 @@ function getTerMod($ter_bonuses,$type,$prefix,$suffix,$base="")
 
 function iparse($itm, $item_base, $item_ix, $ter_bonuses)
 {
-  $string = $item_base[$itm[base]][0]." ".$item_ix[$itm[prefix]]." ".$item_ix[$itm[suffix]];
-  $string .= getConditionMod($itm[type], $itm[cond]);
-  $string .= getTerMod($ter_bonuses,$itm[type],$itm[prefix],$itm[suffix],$item_base[$itm[base]][2]);
+  $string = $item_base[$itm['base']][0]." ".$item_ix[$itm['prefix']]." ".$item_ix[$itm['suffix']];
+  $string .= getConditionMod($itm['type'], $itm['cond']);
+  $string .= getTerMod($ter_bonuses,$itm['type'],$itm['prefix'],$itm['suffix'],$item_base[$itm['base']][2]);
 
   return $string;
 }
@@ -1026,13 +1026,14 @@ function clbc($string)
 function item_val($string)
 {
   $worth = round(pow(lvl_req($string,100),2)/3);
-
   if ($worth < 0) $worth = 0;
   return $worth;
 }
 
 function lvl_req($string, $mod) 
 {
+	if(!empty($string)){
+		
   $char_stat = cparse($string,0);
   $num = (($char_stat['A']+$char_stat['B']+$char_stat['D']+$char_stat['E']+$char_stat['X']+$char_stat['W'])*3 + ($char_stat['P'])*2 + 
             ($char_stat['T']+$char_stat['L']+$char_stat['C'])*5 + ($char_stat['O']+$char_stat['N'])/3 +
@@ -1042,17 +1043,21 @@ function lvl_req($string, $mod)
   $lvl = $num*$per;
   $lvl = round(($lvl * $mod)/100);
   return $lvl < 1 ? 1 : $lvl;
+	}else{
+		return 0;
+	}
 }
 
 function getIstats($myitm, $skills)
 {
-  $estats="";
-  if ($myitm != "")
+
+  $estats=[];
+  if (!empty($myitm))
   {
-    if ($myitm[type] == 8)
-      $estats = weaveStats($myitm[base],$skills);
+    if ($myitm['type'] == 8)
+      $estats = weaveStats($myitm['base'],$skills);
     else
-      $estats = $myitm[stats]." ".getConditionMod($myitm[type],$myitm[cond]);
+      $estats = $myitm['stats']." ".getConditionMod($myitm['type'],$myitm['cond']);
   }
   
   return $estats;
@@ -1060,24 +1065,24 @@ function getIstats($myitm, $skills)
 
 function getstats($myitm1,$myitm2,$myitm3,$myitm4,$myitm5,$skills='')
 {
-  $estats = "";
-  $estats[0] = "";
-  $estats[1] = "";
-  $estats[2] = "";
-  $estats[3] = "";
-  $estats[4] = "";
-  $estats[5] = "";
+  $estats = [];
+  $estats[0] = [];
+  $estats[1] = [];
+  $estats[2] = [];
+  $estats[3] = [];
+  $estats[4] = [];
+  $estats[5] = [];
   
   $estats[1] = getIstats($myitm1,$skills);
-  $estats[0].= " ".$estats[1];
+  $estats[0] = $estats[0]." ".$estats[1];
   $estats[2] = getIstats($myitm2,$skills);
-  $estats[0].= " ".$estats[2];
+  $estats[0] = $estats[0]." ".$estats[2];
   $estats[3] = getIstats($myitm3,$skills);
-  $estats[0].= " ".$estats[3];
+  $estats[0] = $estats[0]." ".$estats[3];
   $estats[4] = getIstats($myitm4,$skills);
-  $estats[0].= " ".$estats[4];
+  $estats[0] = $estats[0]." ".$estats[4];
   $estats[5] = getIstats($myitm5,$skills);
-  $estats[0].= " ".$estats[5];
+  $estats[0] = $estats[0]." ".$estats[5];
 
   
   return $estats;

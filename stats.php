@@ -22,12 +22,13 @@ function draw_skill($name,$lvl,$cost,$colnum,$act=0,$gender=0,$next=1)
 
 function arrayToJSObject($array, $varname, $sub = false ) 
 {
-  $jsarray = $sub ? $varname . "{" : $varname . " = {\n";
+   $jsarray = $sub ? $varname . "{" : $varname . " = {\n";
   $varname = "\t$varname";
   reset ($array);
 
   // Loop through each element of the array
-  while (list($key, $value) = each($array)) 
+  foreach($array as $key => $value)
+  //while (list($key, $value) = each($array)) 
   {
     $jskey = "'" . $key . "' : ";
      
@@ -65,23 +66,27 @@ function arrayToJSObject($array, $varname, $sub = false )
   return $jsarray;
 }
 
-$message=mysql_real_escape_string($_GET['message']);
+$message=mysqli_real_escape_string($db,$_GET['message']);
 $show=intval($_GET['show']);
-$skillup=mysql_real_escape_string($_POST['skillup']);
-$classup=mysql_real_escape_string($_POST['classup']);
-$activate=mysql_real_escape_string($_POST['activate']);
-$deactivate=mysql_real_escape_string($_POST['deactivate']);
-$doUneq = mysql_real_escape_string($_POST['doUneq']);
-$tab = mysql_real_escape_string($_POST['tab']);
+$skillup=mysqli_real_escape_string($db,$_POST['skillup']);
+$classup=mysqli_real_escape_string($db,$_POST['classup']);
+$activate=mysqli_real_escape_string($db,$_POST['activate']);
+$deactivate=mysqli_real_escape_string($db,$_POST['deactivate']);
+$doUneq = mysqli_real_escape_string($db,$_POST['doUneq']);
+$tab = mysqli_real_escape_string($db,$_POST['tab']);
 
 $col='#090909';
 $types = unserialize($char['type']);
-$maxactive= floor(($char[level])/15)+3;
-$askills = unserialize($char[active]);
+$maxactive= floor(($char['level'])/15)+3;
+$askills = unserialize($char['active']);
+
+if(is_null($askills) || !is_array($askills)){
+	$askills=array();
+}
 $divtext[0] = '';
 
 // Check active skills for invalid alignment
-$myAlign = getAlignment($char[align])+3;
+$myAlign = getAlignment($char['align'])+3;
 $typeSkills=typeSkills(900);
 for ($x = 0; $x < 7; $x++)
 {
@@ -98,10 +103,10 @@ for ($x = 0; $x < 7; $x++)
 }
 
 $tskills = $stomach_bonuses1." ".$stamina_effect1." ".$clan_bonus1." ".$skill_bonuses1;
-$stats = mysql_fetch_array(mysql_query("SELECT * FROM Users_stats WHERE id='$char[id]'"));
+$stats = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Users_stats WHERE id='$char[id]'"));
 
 
-$itmlist="";
+$itmlist=[];
 $listsize=0;
 $a = -1;
 $b = -1;
@@ -115,46 +120,46 @@ $pts_tot = 0;
 
 if (isChanneler($types))
 {
-  $iresult=mysql_query("SELECT * FROM Items WHERE owner='$id' AND type<15 ".$invSort);
-  while ($qitem = mysql_fetch_array($iresult))
+  $iresult=mysqli_query($db,"SELECT * FROM Items WHERE owner='$id' AND type<15 ".$invSort);
+  while ($qitem = mysqli_fetch_array($iresult))
   {
     $itmlist[$listsize++] = $qitem;
   
-    if ($qitem[istatus]==1) $a = $listsize-1;
-    else if ($qitem[istatus]==2) $b = $listsize-1;
-    else if ($qitem[istatus]==3) $c = $listsize-1;
-    else if ($qitem[istatus]==4) $d = $listsize-1;
-    else if ($qitem[istatus]==5) $e = $listsize-1;
+    if ($qitem['istatus']==1) $a = $listsize-1;
+    else if ($qitem['istatus']==2) $b = $listsize-1;
+    else if ($qitem['istatus']==3) $c = $listsize-1;
+    else if ($qitem['istatus']==4) $d = $listsize-1;
+    else if ($qitem['istatus']==5) $e = $listsize-1;
     
-    if ($qitem[type]==8)
+    if ($qitem['type']==8)
     {
       $currw = $listsize-1;
-      if ($qitem[istatus] > 0) $wEq = 1;
+      if ($qitem['istatus'] > 0) $wEq = 1;
     }
   }
 
   $estats = getstats($itmlist[$a],$itmlist[$b],$itmlist[$c],$itmlist[$d],$itmlist[$e],$tskills);
   $tskills = $tskills." ".$estats[0];
 
-  if ($a >=0 && $itmlist[$a][type]!=8) $pts_tot += (lvl_req($estats[1], getTypeMod($tskills,$itmlist[$a][type])));
-  if ($b >=0 && $itmlist[$b][type]!=8) $pts_tot += (lvl_req($estats[2], getTypeMod($tskills,$itmlist[$b][type])));
-  if ($c >=0 && $itmlist[$c][type]!=8) $pts_tot += (lvl_req($estats[3], getTypeMod($tskills,$itmlist[$c][type])));
-  if ($d >=0 && $itmlist[$d][type]!=8) $pts_tot += (lvl_req($estats[4], getTypeMod($tskills,$itmlist[$d][type])));      
-  if ($e >=0 && $itmlist[$e][type]!=8) $pts_tot += (lvl_req($estats[5], getTypeMod($tskills,$itmlist[$e][type])));
+  if ($a >=0 && $itmlist[$a]['type']!=8) $pts_tot += (lvl_req($estats[1], getTypeMod($tskills,$itmlist[$a]['type'])));
+  if ($b >=0 && $itmlist[$b]['type']!=8) $pts_tot += (lvl_req($estats[2], getTypeMod($tskills,$itmlist[$b]['type'])));
+  if ($c >=0 && $itmlist[$c]['type']!=8) $pts_tot += (lvl_req($estats[3], getTypeMod($tskills,$itmlist[$c]['type'])));
+  if ($d >=0 && $itmlist[$d]['type']!=8) $pts_tot += (lvl_req($estats[4], getTypeMod($tskills,$itmlist[$d]['type'])));      
+  if ($e >=0 && $itmlist[$e]['type']!=8) $pts_tot += (lvl_req($estats[5], getTypeMod($tskills,$itmlist[$e]['type'])));
 
   $myWeaves = getWeaves($item_list,$item_base,$tskills);
 
   for ($w=0; $w<count($myWeaves); $w++)
   {
-    if ($itmlist[$currw][base]==$myWeaves[$w][0]) $wid=$w;
+    if ($itmlist[$currw]['base']==$myWeaves[$w][0]) $wid=$w;
   }
 }
 
-$noclass = '';
+$noclass = [];
 $nofocus = '';
 
 // setup divtext
-if (floor($char[level]/20)+2>count($types))
+if (is_array($types) && floor($char['level']/20)+2>count($types))
 {
   // Set all classes that are restricted to true, then come back and unset them as needed.
   for ($i=0; $i<count($restricted_classes); $i++)
@@ -163,9 +168,11 @@ if (floor($char[level]/20)+2>count($types))
   }        
   
   // Turn on national classes
-  for ($i=0; $i<count($nat_classes[$char[nation]]); $i++)
-  {
-    $noclass[$nat_classes[$char[nation]][$i]] = 0;
+  if(is_array($nat_classes[$char['nation']])){
+	  for ($i=0; $i<count($nat_classes[$char['nation']]); $i++)
+	  {
+		$noclass[$nat_classes[$char['nation']][$i]] = 0;
+	  }
   }
   
   // check for channeler classes  
@@ -187,7 +194,7 @@ if (floor($char[level]/20)+2>count($types))
     
   
   // Turn opposite gender classes off.
-  if ($char[sex] == 0 ) { $gender_classes = $female_classes; }
+  if ($char['sex'] == 0 ) { $gender_classes = $female_classes; }
   else { $gender_classes = $male_classes; }
   for ($i=0; $i<count($gender_classes); $i++)
   {
@@ -195,29 +202,31 @@ if (floor($char[level]/20)+2>count($types))
   }
     
   // Aiel can't use Swords
-  if ($char[nation] == 1) { $noclass[101]=1; }  
+  if ($char['nation'] == 1) { $noclass[101]=1; }  
   
   // Check for Noble Rank. If so, turn on Noble class.
-  $stats = mysql_fetch_array(mysql_query("SELECT id, net_worth FROM Users_stats WHERE id='$char[id]'"));
+  $stats = mysqli_fetch_array(mysqli_query($db,"SELECT id, net_worth FROM Users_stats WHERE id='$char[id]'"));
   $w=0;
   for ($y=1; $y < count($worth_ranks); $y++)
   {
-    if ($stats[net_worth] >= $worth_ranks[$y][0]) $w = $y;
+    if ($stats['net_worth'] >= $worth_ranks[$y][0]) $w = $y;
   }
   if ($w >= 4) // I'm noble or above
   { $noclass[33]=0; } 
 
-  for ($a=1; $a < count($types); $a++)
-  {
-    $noclass[$types[$a]] = 1;    
-    
-    // thiefcatcher/bandit check
-    if ($types[$a] == 17) $noclass[18] = 1;
-    elseif ($types[$a] == 18) $noclass[17] = 1;
-        
-    // whitecloak/wolfbrother check
-    if ($types[$a] == 21) $noclass[22] = 1;
-    elseif ($types[$a] == 22) $noclass[21] = 1;        
+  if(is_array($types)){
+	  for ($a=1; $a < count($types); $a++)
+	  {
+		$noclass[$types[$a]] = 1;    
+		
+		// thiefcatcher/bandit check
+		if ($types[$a] == 17) $noclass[18] = 1;
+		elseif ($types[$a] == 18) $noclass[17] = 1;
+			
+		// whitecloak/wolfbrother check
+		if ($types[$a] == 21) $noclass[22] = 1;
+		elseif ($types[$a] == 22) $noclass[21] = 1;        
+	  }
   }
   
   foreach ($char_class as $cl => $cname) 
@@ -249,7 +258,7 @@ if (floor($char[level]/20)+2>count($types))
   }
 }
 
-mysql_query("UPDATE Users SET newskills=0 WHERE id=$id");
+mysqli_query($db,"UPDATE Users SET newskills=0 WHERE id=$id");
 
 // FIGURE OUT BATTLE SKILL PROGRESSION
 if ($skillup != '' && $skillup != '-1')
@@ -278,38 +287,38 @@ if ($skillup != '' && $skillup != '-1')
       $message = $skill_name[$skillup]." has been upgraded!";
       $skills[$skillup] = $skills[$skillup] + 1;
       $char['points'] = $char['points']-($costup*$skills[$skillup]);
-      $stats[skill_pts_used]= $stats[skill_pts_used]+($costup*$skills[$skillup]);
-      if ($skills[$skillup] > $stats[highest_skill]) $stats[highest_skill] = $skills[$skillup];
+      $stats['skill_pts_used']= $stats['skill_pts_used']+($costup*$skills[$skillup]);
+      if ($skills[$skillup] > $stats['highest_skill']) $stats['highest_skill'] = $skills[$skillup];
       $newskills = serialize($skills);
-      $char[skills] = $newskills;
+      $char['skills'] = $newskills;
 
-      mysql_query("UPDATE Users_data SET skills='".$newskills."' WHERE id='".$char[id]."'");
-      mysql_query("UPDATE Users SET points='".$char[points]."' WHERE id='".$char[id]."'");
-      mysql_query("UPDATE Users_stats SET skill_pts_used='".$stats[skill_pts_used]."', highest_skill='".$stats[highest_skill]."' WHERE id='".$char[id]."'");
+      mysqli_query($db,"UPDATE Users_data SET skills='".$newskills."' WHERE id='".$char['id']."'");
+      mysqli_query($db,"UPDATE Users SET points='".$char['points']."' WHERE id='".$char['id']."'");
+      mysqli_query($db,"UPDATE Users_stats SET skill_pts_used='".$stats['skill_pts_used']."', highest_skill='".$stats['highest_skill']."' WHERE id='".$char['id']."'");
       if ($doUneq)
       {
-        $itmlist[$currw][istatus]=-2;
-        mysql_query("UPDATE Items SET istatus='-2' WHERE id='".$itmlist[$currw][id]."'");
+        $itmlist[$currw]['istatus']=-2;
+        mysqli_query($db,"UPDATE Items SET istatus='-2' WHERE id='".$itmlist[$currw]['id']."'");
       }
       $skills = unserialize($char['skills']);
       include("admin/equipped.php"); 
       if (isChanneler($types))
       {
-        $iresult=mysql_query("SELECT * FROM Items WHERE owner='$id' AND type<15 ".$invSort);
-        while ($qitem = mysql_fetch_array($iresult))
+        $iresult=mysqli_query($db,"SELECT * FROM Items WHERE owner='$id' AND type<15 ".$invSort);
+        while ($qitem = mysqli_fetch_array($iresult))
         {
           $itmlist[$listsize++] = $qitem;
       
-          if ($qitem[istatus]==1) $a = $listsize-1;
-          else if ($qitem[istatus]==2) $b = $listsize-1;
-          else if ($qitem[istatus]==3) $c = $listsize-1;
-          else if ($qitem[istatus]==4) $d = $listsize-1;  
-          else if ($qitem[istatus]==5) $e = $listsize-1;  
+          if ($qitem['istatus']==1) $a = $listsize-1;
+          else if ($qitem['istatus']==2) $b = $listsize-1;
+          else if ($qitem['istatus']==3) $c = $listsize-1;
+          else if ($qitem['istatus']==4) $d = $listsize-1;  
+          else if ($qitem['istatus']==5) $e = $listsize-1;  
         
-          if ($qitem[type]==8)
+          if ($qitem['type']==8)
           {
             $currw = $listsize-1;
-            if ($qitem[istatus] > 0) $wEq = 1;
+            if ($qitem['istatus'] > 0) $wEq = 1;
           }
         }
       
@@ -317,17 +326,17 @@ if ($skillup != '' && $skillup != '-1')
         $estats = getstats($itmlist[$a],$itmlist[$b],$itmlist[$c],$itmlist[$d],$itmlist[$e],$tskills);
         $tskills = $tskills." ".$estats[0];
 
-        if ($a >=0 && $itmlist[$a][type]!=8) $pts_tot += (lvl_req($estats[1], getTypeMod($tskills,$itmlist[$a][type])));
-        if ($b >=0 && $itmlist[$b][type]!=8) $pts_tot += (lvl_req($estats[2], getTypeMod($tskills,$itmlist[$b][type])));
-        if ($c >=0 && $itmlist[$c][type]!=8) $pts_tot += (lvl_req($estats[3], getTypeMod($tskills,$itmlist[$c][type])));
-        if ($d >=0 && $itmlist[$d][type]!=8) $pts_tot += (lvl_req($estats[4], getTypeMod($tskills,$itmlist[$d][type])));      
-        if ($e >=0 && $itmlist[$e][type]!=8) $pts_tot += (lvl_req($estats[5], getTypeMod($tskills,$itmlist[$e][type])));
+        if ($a >=0 && $itmlist[$a]['type']!=8) $pts_tot += (lvl_req($estats[1], getTypeMod($tskills,$itmlist[$a]['type'])));
+        if ($b >=0 && $itmlist[$b]['type']!=8) $pts_tot += (lvl_req($estats[2], getTypeMod($tskills,$itmlist[$b]['type'])));
+        if ($c >=0 && $itmlist[$c]['type']!=8) $pts_tot += (lvl_req($estats[3], getTypeMod($tskills,$itmlist[$c]['type'])));
+        if ($d >=0 && $itmlist[$d]['type']!=8) $pts_tot += (lvl_req($estats[4], getTypeMod($tskills,$itmlist[$d]['type'])));      
+        if ($e >=0 && $itmlist[$e]['type']!=8) $pts_tot += (lvl_req($estats[5], getTypeMod($tskills,$itmlist[$e]['type'])));
 
         $myWeaves = getWeaves($item_list,$item_base,$tskills);
 
         for ($w=0; $w<count($myWeaves); $w++)
         {
-          if ($itmlist[$currw][base]==$myWeaves[$w][0]) $wid=$w;
+          if ($itmlist[$currw]['base']==$myWeaves[$w][0]) $wid=$w;
         }
       }
     }
@@ -349,10 +358,10 @@ if ($activate != '' && $activate != '-1')
     {
       $message = $skill_name[$activate]." has been activated!";  
       $askills[count($askills)] = $activate;
-      $stats[num_active_skills]=count($askills);
+      $stats['num_active_skills']=count($askills);
       $reactive=serialize($askills);
-      mysql_query("UPDATE Users_data SET active='".$reactive."' WHERE id='".$char[id]."'");    
-      mysql_query("UPDATE Users_stats SET num_active_skills='".$stats[num_active_skills]."' WHERE id='".$char[id]."'");
+      mysqli_query($db,"UPDATE Users_data SET active='".$reactive."' WHERE id='".$char['id']."'");    
+      mysqli_query($db,"UPDATE Users_stats SET num_active_skills='".$stats['num_active_skills']."' WHERE id='".$char['id']."'");
     }
     else
     {
@@ -365,30 +374,36 @@ if ($activate != '' && $activate != '-1')
   }
 }
 
-if ($deactivate != '' && $deactivate != '-1')
+if ($deactivate != '' && $deactivate != '-1' && !is_null($askills))
 {
+  $newactive = array();
   for ($a=0; $a < count($askills); $a++)
   {
-    if ($askills[$a] != $deactivate) $newactive[count($newactive)]=$askills[$a];
+    if ($askills[$a] != $deactivate ) {
+		$newactive[count($newactive)]=$askills[$a];
+	}
   }
   $message = $skill_name[$deactivate]." has been deactivated!";  
   $askills=$newactive;
-  $stats[num_active_skills]=count($askills);
+  if(is_null($askills)){
+	  $askills = array();
+  }
+  $stats['num_active_skills']=count($askills);
   $reactive=serialize($newactive);
-  mysql_query("UPDATE Users_data SET active='".$reactive."' WHERE id='".$char[id]."'");
-  mysql_query("UPDATE Users_stats SET num_active_skills='".$stats[num_active_skills]."' WHERE id='".$char[id]."'");   
+  mysqli_query($db,"UPDATE Users_data SET active='".$reactive."' WHERE id='".$char['id']."'");
+  mysqli_query($db,"UPDATE Users_stats SET num_active_skills='".$stats['num_active_skills']."' WHERE id='".$char['id']."'");   
 }
 
 if ($classup != '' && $classup != '-1')
 {
-  if (floor($char[level]/20)+2>count($types))
+  if (floor($char['level']/20)+2>count($types))
   {
     $types[count($types)]=$classup;
     $message = "Congratulations! You are now a ".$char_class[$classup]."!";
     $newtypes = serialize($types);
-    $stats[num_classes]=count($types)-1;
-    mysql_query("UPDATE Users SET type='".$newtypes."' WHERE id='".$char[id]."'");
-    mysql_query("UPDATE Users_stats SET num_classes='".$stats[num_classes]."' WHERE id='".$char[id]."'");
+    $stats['num_classes']=count($types)-1;
+    mysqli_query($db,"UPDATE Users SET type='".$newtypes."' WHERE id='".$char['id']."'");
+    mysqli_query($db,"UPDATE Users_stats SET num_classes='".$stats['num_classes']."' WHERE id='".$char['id']."'");
   }
   else 
     $message = "You already have the max number of classes for your level!";
@@ -409,8 +424,19 @@ if ($classup != '' && $classup != '-1')
   function classUp ()
   {
     var nc = document.getElementById("newclass");
+	var classTabs = document.getElementById("classtabs");
     var ncv = nc.options[nc.selectedIndex].value;
-    if (ncv >0)
+    var innerText = nc.options[nc.selectedIndex].innerText;
+	
+	dontGo=false;
+	//Make sure this tab isn't already up 
+	for(var k=0;k<classTabs.children.length;k++){
+		if(classTabs.children[k].innerText == innerText){
+			dontGo=true;
+		}
+	}
+	
+    if (ncv >0 && !dontGo)
     {
       document.statform2.classup.value=ncv;
       document.statform2.submit();
@@ -436,7 +462,7 @@ if ($classup != '' && $classup != '-1')
     var ncv = nc.options[nc.selectedIndex].value;
 
     <?php
-      echo arrayToJSObject($divtext,text);
+      echo arrayToJSObject($divtext,'text');
     ?>
     document.getElementById('ncinfo').innerHTML=text[ncv];
   }
@@ -448,7 +474,7 @@ include('header.htm');
 
 $color = array("000000","171717","AAAAAA");
 $cell_size = 75;
-$alignLevel=floor($char[level]/10)+1;
+$alignLevel=floor($char['level']/10)+1;
 ?>
   <div class="row solid-back">
     <div class="col-sm-12">
@@ -465,7 +491,7 @@ $alignLevel=floor($char[level]/10)+1;
           <li <?php if ($tab == $curr) echo "class='active'";?>><a href="#<?php echo str_replace("'",'_',str_replace(' ','_',$cname)); ?>_tab" data-toggle="tab"><?php echo $cname;?></a></li>      
         <?php
           }
-          if (floor($char[level]/20)+2>count($types))
+          if (floor($char['level']/20)+2>count($types))
           {
         ?>
           <li <?php if ($tab == -3) echo "class='active'";?>><a href="#new_tab" data-toggle="tab">New Class</a></li>
@@ -513,7 +539,7 @@ $alignLevel=floor($char[level]/10)+1;
               if ($upAlignSkill)
               {
                 $newskills = serialize($skills);
-                mysql_query("UPDATE Users_data SET skills='".$newskills."' WHERE id='".$char[id]."'");
+                mysqli_query($db,"UPDATE Users_data SET skills='".$newskills."' WHERE id='".$char['id']."'");
               }
             ?>
             <div class='row hidden-xs'>
@@ -636,7 +662,7 @@ $alignLevel=floor($char[level]/10)+1;
         ?>
           <div class="tab-pane <?php if ($tab == $types[$t]) echo 'active';?>" id="<?php echo str_replace("'",'_',str_replace(' ','_',$cname));?>_tab">
             <div class='row'>
-              <p><b>Skill Points: <?php echo $char[points];?></b></p>
+              <p><b>Skill Points: <?php echo $char['points'];?></b></p>
             </div>  
             <?php
               if ($curr != 108)
@@ -699,7 +725,7 @@ $alignLevel=floor($char[level]/10)+1;
               }
               else
               {
-                $gen=$char[sex];
+                $gen=$char['sex'];
                 if ($gen == 0)
                 {
                   $r1=array(0,4);
@@ -800,7 +826,7 @@ $alignLevel=floor($char[level]/10)+1;
           </div>         
         <?php
           }
-          if (floor($char[level]/20)+2>count($types))
+          if (floor($char['level']/20)+2>count($types))
           {
         ?>
           <div class="tab-pane <?php if ($tab == -3) echo 'active';?>" id="new_tab">                         

@@ -219,7 +219,7 @@ class AYAH {
 			$http_request .= "\r\n";
 			$http_request .= $fields_string ."\r\n";
 
-			$result = '';
+			$result = [];
 			$errno = $errstr = "";
 			$fs = fsockopen("ssl://" . $hostname, 443, $errno, $errstr, 10);
 			if( false == $fs ) {
@@ -227,7 +227,7 @@ class AYAH {
 			} else {
 				fwrite($fs, $http_request);
 				while (!feof($fs)) {
-					$result .= fgets($fs, 4096);
+					$result = fgets($fs, 4096);
 				}
 
 				$result = explode("\r\n\r\n", $result, 2);

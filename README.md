@@ -1,23 +1,17 @@
 # game_of_stones
 
-
-Updated to PHP 7.4.20
-
-
-Browser-based MMORPG set in the Wheel of Time universe. 
-
-A live version can be played at https://gameofstones.app
-
-Some changes:
-- Global map no longer in deprecated .swf format and displays information about towns and wilderness
-- Quick travel buttons
-- Updated flags and sigils
-- Slightly clearer debug messages
-
+ Browser-based MMORPG set in the Wheel of Time universe. Developed and managed in my free time off and on for over 12 years.
  
-Built off of talij85's repositoriy which is built off an even older repository. 
-https://github.com/talij85/game_of_stones
+ Built using this repository as a starting point:
+https://github.com/cragcraig/game-of-stones
 
 Server setup instructions included in admin/setup.txt
 Several directories uploaded zipped to simplify upload/download process. Extract all .zip files after pulling.
 
+Server resource statistics:
+- Total DB size per game instance: ~50MB
+- Average Bandwidth usage: < 2.5MB/min
+- Peek Bandwidth usage: < 5MB/min
+- Max monthly bandwidth usage (in last 2 years): 63.52 GB 
+
+NOTE: Game currently written to be compatible with PHP 5.3. Upgrading to newer PHP versions will require significant code changes to replace depricated mysql calls.

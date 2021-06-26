@@ -7,38 +7,38 @@ include_once("admin/duelFuncs.php");
 include_once("admin/locFuncs.php");
 include_once("admin/equipped.php"); 
 
-$fP=mysql_real_escape_string($_POST[fp]);
-$wP=mysql_real_escape_string($_POST[wp]);
-$sP=mysql_real_escape_string($_POST[sp]);
-$aP=mysql_real_escape_string($_POST[ap]);
-$eP=mysql_real_escape_string($_POST[ep]);
+$fP=mysqli_real_escape_string($db,$_POST['fp']);
+$wP=mysqli_real_escape_string($db,$_POST['wp']);
+$sP=mysqli_real_escape_string($db,$_POST['sp']);
+$aP=mysqli_real_escape_string($db,$_POST['ap']);
+$eP=mysqli_real_escape_string($db,$_POST['ep']);
 
 $tskills = $stomach_bonuses1." ".$stamina_effect1." ".$clan_bonus1." ".$skill_bonuses1." ".$clan_building_bonuses;
 $wid=0;
 $wEq=0;
-$a = "";
-$b = "";
-$c = "";
-$d = "";
-$e = "";
-$currw = "";
-$a = mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE owner='$char[id]' AND istatus='1' AND type<15"));
-$b = mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE owner='$char[id]' AND istatus='2' AND type<15"));
-$c = mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE owner='$char[id]' AND istatus='3' AND type<15"));
-$d = mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE owner='$char[id]' AND istatus='4' AND type<15"));
-$e = mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE owner='$char[id]' AND istatus='5' AND type<15"));
-$currw = mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE owner='$char[id]' AND type='8'"));
+$a = [];
+$b = [];
+$c = [];
+$d = [];
+$e = [];
+$currw = [];
+$a = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE owner='$char[id]' AND istatus='1' AND type<15"));
+$b = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE owner='$char[id]' AND istatus='2' AND type<15"));
+$c = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE owner='$char[id]' AND istatus='3' AND type<15"));
+$d = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE owner='$char[id]' AND istatus='4' AND type<15"));
+$e = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE owner='$char[id]' AND istatus='5' AND type<15"));
+$currw = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE owner='$char[id]' AND type='8'"));
 $estats = getstats($a,$b,$c,$d,$e,$tskills);
 $tskills = $tskills." ".$estats[0];
-$invWeave=$currw[base];
-if ($currw[istatus] > 0) $wEq = 1;
+$invWeave=$currw['base'];
+if ($currw['istatus'] > 0) $wEq = 1;
 
   $ms = cparse($tskills);
-  if ($ms[fP]== "") $ms[fP]=0;
-  if ($ms[wP]== "") $ms[wP]=0;
-  if ($ms[sP]== "") $ms[sP]=0;
-  if ($ms[aP]== "") $ms[aP]=0;
-  if ($ms[eP]== "") $ms[eP]=0;
+  if ($ms['fP']== "") $ms['fP']=0;
+  if ($ms['wP']== "") $ms['wP']=0;
+  if ($ms['sP']== "") $ms['sP']=0;
+  if ($ms['aP']== "") $ms['aP']=0;
+  if ($ms['eP']== "") $ms['eP']=0;
   
   if ($fP != "")
   {
@@ -84,11 +84,11 @@ function weaveSwapinfo(myitm)
         <div class="panel-body abox" id='currstats'>    
           <form name="itemForm" action="weaveStats.php" method="post">
           <?php
-            echo "Fire: ".$ms[fP]." + <input type='text' class='gos-form' name='fp' value='".$fP."' size='2'/><br/>";
-            echo "Water: ".$ms[wP]." + <input type='text' class='gos-form' name='wp' value='".$wP."' size='2'/><br/>";
-            echo "Spirit: ".$ms[sP]." + <input type='text' class='gos-form' name='sp' value='".$sP."' size='2'/><br/>";
-            echo "Air: ".$ms[aP]." + <input type='text' class='gos-form' name='ap' value='".$aP."' size='2'/><br/>";
-            echo "Earth: ".$ms[eP]." + <input type='text' class='gos-form' name='ep' value='".$eP."' size='2'/><br/>";
+            echo "Fire: ".$ms['fP']." + <input type='text' class='gos-form' name='fp' value='".$fP."' size='2'/><br/>";
+            echo "Water: ".$ms['wP']." + <input type='text' class='gos-form' name='wp' value='".$wP."' size='2'/><br/>";
+            echo "Spirit: ".$ms['sP']." + <input type='text' class='gos-form' name='sp' value='".$sP."' size='2'/><br/>";
+            echo "Air: ".$ms['aP']." + <input type='text' class='gos-form' name='ap' value='".$aP."' size='2'/><br/>";
+            echo "Earth: ".$ms['eP']." + <input type='text' class='gos-form' name='ep' value='".$eP."' size='2'/><br/>";
             echo "<input type='submit' value='Update' class='btn btn-sm btn-primary btn-block'>";
           ?>
           </form>                            

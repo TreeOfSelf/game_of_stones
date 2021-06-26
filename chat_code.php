@@ -5,7 +5,7 @@
 include_once ("admin/connect.php");
 include_once ("admin/userdata.php");
 
-$user = $char[name]." ".$char[lastname];
+$user = $char['name']." ".$char['lastname'];
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -204,3 +204,4 @@ function stopRKey(evt) {
 
  
 </script>
+

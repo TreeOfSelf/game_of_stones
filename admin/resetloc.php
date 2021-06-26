@@ -22,7 +22,7 @@ else
 {
   // Drop Old Table
   $query  = 'DROP TABLE IF EXISTS Locations';
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<b>Results</b><br><br>Drop Old Table: $result";
 
   // Create New Table
@@ -41,13 +41,13 @@ else
   `last_update` int(11) DEFAULT NULL,
   `curr_dice` text,
   `prev_dice` text,
-  `wager` int(11) DEFAULT NULL,
-  `old_wager` int(11) DEFAULT NULL,
+  `wager` int(11) DEFAULT '10',
+  `old_wager` int(11) DEFAULT '10',
   `gtype` char(5) DEFAULT NULL,
   `lastdice` int(11) DEFAULT NULL,
   `minw` int(11) NOT NULL,
   `maxw` int(11) NOT NULL,
-  `num_ups` int(11) NOT NULL,
+  `num_ups` int(11) NOT NULL DEFAULT '0',
   `grain` int(11) NOT NULL DEFAULT '1000',
   `livestock` int(11) NOT NULL DEFAULT '1000',
   `lumber` int(11) NOT NULL DEFAULT '1000',
@@ -59,17 +59,17 @@ else
   `shipg` text,
   `shopg` text,
   `upgrades` text NOT NULL,
-  `clan_scores` text NOT NULL,
-  `clan_support` text NOT NULL,
-  `estate_support` text NOT NULL,
+  `clan_scores` text NOT NULL DEFAULT '0',
+  `clan_support` text NOT NULL DEFAULT '0',
+  `estate_support` text NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `name` (`name`(3))
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1"; 
 
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<br>Create New Table: $result";
 
-  if (mysql_num_rows(mysql_query("SELECT id FROM Locations WHERE 1")) ==0)
+  if (mysqli_num_rows(mysqli_query($db,"SELECT id FROM Locations WHERE 1")) ==0)
   {
     // Create New Table
     for ($loc_id=0; $loc_id < 24; ++$loc_id)
@@ -86,9 +86,10 @@ else
       $last_update= floor(time()/3600)-1;
       if ($loc_id%2==1) { $gtype = 'd';} else $gtype='';
       $upgrades=serialize(array(0,0,0,0,0,0,0,0));
-      mysql_query("INSERT INTO Locations (name,    id,          shoplvls,   ruler,   bank,pop, last_war,last_tourney,last_update,   wager,   gtype,   lastdice,minw,maxw,shopg,   shipg,    upgrades) 
+      mysqli_query($db,"INSERT INTO Locations (name,    id,          shoplvls,   ruler,   bank,pop, last_war,last_tourney,last_update,   wager,   gtype,   lastdice,minw,maxw,shopg,   shipg,    upgrades) 
                                   VALUES ('$tname','$insert_id','$shoplvls','$ruler','0', '10','0',     '0',         '$last_update','$wager','$gtype','0',     '1', '4', '$shopg','$shipgs','$upgrades')");
-    }
+	  echo mysqli_error($db);
+	}
   }
 }
 ?>

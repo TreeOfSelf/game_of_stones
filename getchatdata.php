@@ -3,9 +3,9 @@
 require_once ("mysql_class.php");
 include_once ("admin/connect.php");
 
-$id=mysql_real_escape_string($_GET['id']);
-$msgs = mysql_fetch_array(mysql_query("SELECT * FROM messages WHERE id='".$id."'"));
-$msg = unserialize($msgs[message]);
+$id=mysqli_real_escape_string($db,$_GET['id']);
+$msgs = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM messages WHERE id='".$id."'"));
+$msg = unserialize($msgs['message']);
 // send messages to the client
 for ($i = 0; $i < count($msg); $i++)
 {

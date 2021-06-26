@@ -30,21 +30,21 @@ if (!$char['society']) header("Location: $server_name/viewclans.php?autologin=$t
 
 // LOAD SOCIETY TABLE
 $query = "SELECT * FROM Soc WHERE name='$soc_name'";
-$result = mysql_query($query);
-$society = mysql_fetch_array($result);
+$result = mysqli_query($db,$query);
+$society = mysqli_fetch_array($result);
 
-$action = mysql_real_escape_string($_POST['action']);
-$sortBy=  mysql_real_escape_string($_POST['sort']);
+$action = mysqli_real_escape_string($db,$_POST['action']);
+$sortBy=  mysqli_real_escape_string($db,$_POST['sort']);
 
-$upgrades= unserialize($society[upgrades]);
+$upgrades= unserialize($society['upgrades']);
 $maxsize = 50+10*$upgrades[0];
-if ($sortBy != "") {  mysql_query("UPDATE Users SET sort_vault='".$sortBy."' WHERE id=$id"); $char[sort_vault]= $sortBy;}
-$invSort = sortItems($char[sort_vault]);
+if ($sortBy != "") {  mysqli_query($db,"UPDATE Users SET sort_vault='".$sortBy."' WHERE id=$id"); $char['sort_vault']= $sortBy;}
+$invSort = sortItems($char['sort_vault']);
 
-$vid = 10000+$society[id];
+$vid = 10000+$society['id'];
 $listsize = 0;
-$iresult=mysql_query("SELECT * FROM Items WHERE society='".$society[id]."' ".$invSort);
-while ($qitem = mysql_fetch_array($iresult))
+$iresult=mysqli_query($db,"SELECT * FROM Items WHERE society='".$society['id']."' ".$invSort);
+while ($qitem = mysqli_fetch_array($iresult))
 {
   $itmlist[$listsize++] = $qitem;
 }
@@ -53,7 +53,7 @@ $subleaders = unserialize($society['subleaders']);
 $subs = $society['subs'];
 
 $b = 0; 
-if (strtolower($name) == strtolower($society[leader]) && strtolower($lastname) == strtolower($society[leaderlast]) ) 
+if (strtolower($name) == strtolower($society['leader']) && strtolower($lastname) == strtolower($society['leaderlast']) ) 
 {
   $b=1;
 }
@@ -73,22 +73,22 @@ $good = 1;
 if ($action==1) // withdraw
 {
   $num_itmso=0;
-  $iresult=mysql_query("SELECT * FROM Items WHERE owner='$id' AND type<15");
-  while ($qitem = mysql_fetch_array($iresult))
+  $iresult=mysqli_query($db,"SELECT * FROM Items WHERE owner='$id' AND type<15");
+  while ($qitem = mysqli_fetch_array($iresult))
   {
     $itmlistchar[$num_itmso++] = $qitem;
   }
 
   $x=0;
   $q=0;
-  $dlist = "";
+  $dlist = [];
   while ($x < $listsize)
   {
-    $tmpItm = mysql_real_escape_string($_POST[$x]);
+    $tmpItm = mysqli_real_escape_string($db,$_POST[$x]);
     if ($tmpItm)
     {
-      $sitem=mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE id='$tmpItm'"));
-      if ($sitem[owner] == $vid)
+      $sitem=mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE id='$tmpItm'"));
+      if ($sitem['owner'] == $vid)
       {
         $dlist[$q]=$sitem; 
         $q++;     
@@ -108,10 +108,10 @@ if ($action==1) // withdraw
   }  
   if ($good && $q > 0)
   {
-    $nowner= $char[id];
+    $nowner= $char['id'];
     for ($x=0; $x<$q; $x++)
     {
-      $result = mysql_query("UPDATE Items SET society='".$society[id]."', owner='$nowner', last_moved='".time()."' WHERE id='".$dlist[$x][id]."'");
+      $result = mysqli_query($db,"UPDATE Items SET society='".$society['id']."', owner='$nowner', last_moved='".time()."' WHERE id='".$dlist[$x]['id']."'");
     }
     $s = "";
     if ($q > 1) $s ="s";    
@@ -125,14 +125,14 @@ elseif ($action==2) // return
   $cheat=0;
   while ($x < $listsize)
   {
-    $tmpItm =mysql_real_escape_string($_POST[$x]);
+    $tmpItm =mysqli_real_escape_string($db,$_POST[$x]);
     if ($tmpItm)
     {
-      $sitem=mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE id='$tmpItm'"));
-      if ($b || ($sitem[owner] == $char['id']))
+      $sitem=mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE id='$tmpItm'"));
+      if ($b || ($sitem['owner'] == $char['id']))
       {
         $q++;
-        $result = mysql_query("UPDATE Items SET owner='".$vid."', last_moved='".time()."', istatus='0' WHERE id='".$tmpItm."'");
+        $result = mysqli_query($db,"UPDATE Items SET owner='".$vid."', last_moved='".time()."', istatus='0' WHERE id='".$tmpItm."'");
       }
       else $cheat++;
     }
@@ -162,15 +162,15 @@ elseif ($action==3) // sell
     $q=0;
     while ($x < $listsize)
     {
-      $tmpItm = mysql_real_escape_string($_POST[$x]);
+      $tmpItm = mysqli_real_escape_string($db,$_POST[$x]);
       if ($tmpItm)
       {
-        $sitem=mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE id='$tmpItm'"));
+        $sitem=mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE id='$tmpItm'"));
         if ($sitem['owner']== $vid)
         {
           if ($sitem['type'] > 13) $value += intval(0.25*$item_base[$sitem['name']][2]);
           else $value += intval(0.25*item_val(iparse($sitem,$item_base, $item_ix,$ter_bonuses)));
-          $result5 = mysql_query("DELETE FROM Items WHERE id='$sitem[id]'");
+          $result5 = mysqli_query($db,"DELETE FROM Items WHERE id='$sitem[id]'");
           $q++;
         }
         else 
@@ -186,8 +186,8 @@ elseif ($action==3) // sell
     {
       $s = "";
       if ($q >1) $s ="s";
-      $clangold = $value + $society[bank];
-      mysql_query("UPDATE Soc SET bank='$clangold' WHERE name='$soc_name'");
+      $clangold = $value + $society['bank'];
+      mysqli_query($db,"UPDATE Soc SET bank='$clangold' WHERE name='$soc_name'");
       if (!$z) $message="Item$s sold for ".displayGold($value);
       else $message="Non-used item$s sold for ".displayGold($value);
     }
@@ -197,17 +197,17 @@ elseif ($action==3) // sell
 }
 
 // update item list
-$itmlist='';
+$itmlist=[];
 $listsize = 0;
-$iresult=mysql_query("SELECT * FROM Items WHERE society='".$society[id]."' ".$invSort);
-while ($qitem = mysql_fetch_array($iresult))
+$iresult=mysqli_query($db,"SELECT * FROM Items WHERE society='".$society['id']."' ".$invSort);
+while ($qitem = mysqli_fetch_array($iresult))
 {
   $itmlist[$listsize++] = $qitem;
 }
 
 for ($i=0; $i<$listsize; ++$i)
 {
-  $vaultinfo[$i] = "<div class='panel panel-danger' style='width: 150px;'><div class='panel-heading'><h3 class='panel-title'>".ucwords($itmlist[$i][prefix]." ".$itmlist[$i][base])." ".str_replace("Of","of",ucwords($itmlist[$i][suffix]))."</h3></div><div class='panel-body abox' align='center'><img class='img-responsive hidden-xs img-optional-nodisplay' border='0' bordercolor='black' src='items/".str_replace(' ','',$itmlist[$i][base]).".gif'/>";
+  $vaultinfo[$i] = "<div class='panel panel-danger' style='width: 150px;'><div class='panel-heading'><h3 class='panel-title'>".ucwords($itmlist[$i]['prefix']." ".$itmlist[$i]['base'])." ".str_replace("Of","of",ucwords($itmlist[$i]['suffix']))."</h3></div><div class='panel-body abox' align='center'><img class='img-responsive hidden-xs img-optional-nodisplay' border='0' bordercolor='black' src='items/".str_replace(' ','',$itmlist[$i]['base']).".gif'/>";
   $vaultinfo[$i] .= itm_info(cparse(iparse($itmlist[$i],$item_base, $item_ix, $ter_bonuses)));
 
   $vaultinfo[$i] .= "</div></div>";
@@ -246,10 +246,10 @@ include('header.htm');
 ?>
             <tr>
 <?php
-          if ($b || ($itmlist[$itemtoblit][owner] == $vid) || ($itmlist[$itemtoblit][owner] == $char['id']))
+          if ($b || ($itmlist[$itemtoblit]['owner'] == $vid) || ($itmlist[$itemtoblit]['owner'] == $char['id']))
           {
 ?>
-              <td width="20" align="left"><input type="checkbox" name="<?php echo"$itemtoblit"; ?>" value="<?php echo $itmlist[$itemtoblit][id];?>"></td>
+              <td width="20" align="left"><input type="checkbox" name="<?php echo"$itemtoblit"; ?>" value="<?php echo $itmlist[$itemtoblit]['id'];?>"></td>
 <?php            
           }
           else
@@ -259,11 +259,11 @@ include('header.htm');
 <?php
           }
           $itmStyle = "primary";
-          if (!(($itmlist[$itemtoblit][owner] == $vid) || ($itmlist[$itemtoblit][owner] == $char['id'])))
+          if (!(($itmlist[$itemtoblit]['owner'] == $vid) || ($itmlist[$itemtoblit]['owner'] == $char['id'])))
           {
             $itmStyle = "danger";
           }
-          else if ($itmlist[$itemtoblit][owner] == $char['id'])
+          else if ($itmlist[$itemtoblit]['owner'] == $char['id'])
           {
             $itmStyle = "info";
           }
@@ -275,18 +275,18 @@ include('header.htm');
 <!-- DISPLAY ITEM TYPE -->
               <td width="100" align='center'>
 <?php
-              echo ucwords($item_type[$itmlist[$itemtoblit][type]]);
+              echo ucwords($item_type[$itmlist[$itemtoblit]['type']]);
 ?>
               </td>
 <!-- DISPLAY ITEM CONDITION -->
               <td width="100" align='center'>
 <?php
-              echo $itmlist[$itemtoblit][cond]."%";
+              echo $itmlist[$itemtoblit]['cond']."%";
 ?>
               </td>            
               <td width="75" align='center'> 
             <?php 
-              $weapon = itp($itmlist[$itemtoblit][stats],$itmlist[$itemtoblit][type],$itmlist[$itemtoblit][cond]);
+              $weapon = itp($itmlist[$itemtoblit]['stats'],$itmlist[$itemtoblit]['type'],$itmlist[$itemtoblit]['cond']);
               $points = lvl_req($weapon, 100);
               //$points = lvl_req(iparse($itmlist[$itemtoblit],$item_base, $item_ix,$ter_bonuses),getTypeMod($skills,$itmlist[$itemtoblit][type]));
               echo $points."pts"; 
@@ -295,14 +295,14 @@ include('header.htm');
               <td width="200" align="left">
 <!-- DIFFERENT ACTIONS -->
 <?php 
-                if ($itmlist[$itemtoblit][owner] == $vid) 
+                if ($itmlist[$itemtoblit]['owner'] == $vid) 
                 { 
                    echo "Item is currently in vault";
                 }
                 else 
                 {
-                  $iown=mysql_fetch_array(mysql_query("SELECT id, name, lastname FROM Users WHERE id='".$itmlist[$itemtoblit][owner]."'"));
-                   echo "Used by ".ucwords($iown[name])." ".ucwords($iown[lastname]);
+                  $iown=mysqli_fetch_array(mysqli_query($db,"SELECT id, name, lastname FROM Users WHERE id='".$itmlist[$itemtoblit]['owner']."'"));
+                   echo "Used by ".ucwords($iown['name'])." ".ucwords($iown['lastname']);
                 }
 ?>
               </td>

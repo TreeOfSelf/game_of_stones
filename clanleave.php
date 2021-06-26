@@ -13,7 +13,7 @@ function array_delel($array,$del)
 
 function delete_blank($array)
 {
-  $new_array='';
+  $new_array=[];
   foreach ($array as $key => $value)
   {
     if ($value[0]) $new_array[$key]=$value;
@@ -24,16 +24,16 @@ function delete_blank($array)
 /* establish a connection with the database */
 include_once("admin/connect.php");
 include_once("admin/userdata.php");
-$doit=mysql_real_escape_string($_GET['doit']);
-$id=$char[id];
+$doit=mysqli_real_escape_string($db,$_GET['doit']);
+$id=$char['id'];
 
 
 $soc_name = $char['society'];
-$society = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='$soc_name' "));
+$society = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='$soc_name' "));
 
-$inCB = inClanBattle($society[id]);
+$inCB = inClanBattle($society['id']);
 // LEAVE CLAN
-if ($doit == 1 && $society[id] && $inCB == 0)
+if ($doit == 1 && $society['id'] && $inCB == 0)
 {
   removeFromClan($char);
   header("Location: $server_name/viewclans.php");

@@ -22,7 +22,7 @@ for ($loc_id=0; $loc_id < 15; ++$loc_id)
     $forum = serialize($forum);
     //echo "id: ".$loc_id." name:".$tname;
     $ruler= "No One";
-    mysql_query("INSERT INTO Locations (name,ruler,nextwins,bank,forum) VALUES ('$tname','$ruler','100','0','$forum')");
+    mysqli_query($db,"INSERT INTO Locations (name,ruler,nextwins,bank,forum) VALUES ('$tname','$ruler','100','0','$forum')");
 }
 ?>
 </body>

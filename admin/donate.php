@@ -5,8 +5,6 @@
 </head>
 <body>
 <br><br>
-
-<center>
 <b>Donations Script</b><br><br><br>
 
 <?php
@@ -18,26 +16,26 @@ if ($_POST[admin] == $admin_username && $_POST[pass] == $admin_password && $_POS
   $email = $_POST[email];
   $amount = intval($_POST[amount]);
   $query = "SELECT * FROM donate WHERE email='$email'";
-  $result = mysql_query($query, $db);
-  $result = mysql_fetch_array($result);
+  $result = mysqli_query($db, $query);
+  $result = mysqli_fetch_array($result);
   if ($result[id]) {
-    mysql_query("UPDATE donate SET amount='".($result[amount]+$amount)."' WHERE email='$email'");
+    mysqli_query($db,"UPDATE donate SET amount='".($result[amount]+$amount)."' WHERE email='$email'");
   }
   else {
-    mysql_query("INSERT INTO donate (email, amount) VALUES ('$email', '$amount')");
+    mysqli_query($db,"INSERT INTO donate (email, amount) VALUES ('$email', '$amount')");
   }
   echo "<b>Added \$".$amount." to $email - total $".($result[amount]+$amount)."</b><br><br>";
   
   if ($result[amount]+$amount >= 5)
   {
-    $resulte = mysql_query("SELECT id, donor, battlestoday FROM Users WHERE email='$email'");
-    while ($chare = mysql_fetch_array($resulte)) 
+    $resulte = mysqli_query($db,"SELECT id, donor, battlestoday FROM Users WHERE email='$email'");
+    while ($chare = mysqli_fetch_array($resulte))
     {
       echo $chare[id]."_".$chare[donor];
       if ($chare[donor] == 0)
       {
         $chare[battlestoday] +=100;	
-        mysql_query("UPDATE Users SET donor='1', battlestoday='$chare[battlestoday]' WHERE id='$chare[id]'");
+        mysqli_query($db,"UPDATE Users SET donor='1', battlestoday='$chare[battlestoday]' WHERE id='$chare[id]'");
       }
     }
   }
@@ -59,7 +57,7 @@ admin name: <input type="text" name="admin" value="<?php echo $_POST[admin]; ?>"
 <br>
 admin pass: <input type="password" name="pass" value="<?php echo $_POST[pass]; ?>" id="pass" maxlength="30" size="7">
 </td></tr></table>
-
+</center>
 <br>
 <input type="submit" name="submit" value="Add">
 </form>

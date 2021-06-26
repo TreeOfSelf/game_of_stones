@@ -1,5 +1,4 @@
 <?php
-
 /* establish a connection with the database */
 include_once("admin/connect.php");
 include_once("admin/userdata.php");
@@ -12,25 +11,25 @@ $cell_size = 75;
 $id=$char['id'];
 $loc_query = $char['location'];
 
-$bizinfo = array('','','','','','','','','','','','','');
-$bizstats = array('','','','','','','','','','','','','');
-$ustats = mysql_fetch_array(mysql_query("SELECT * FROM Users_stats WHERE id='$id'"));
-$jobs = unserialize($char[jobs]);
-$jobs[99] = getOfficeLevel($ustats['loc_ji'.$location[id]]);
-$biznum=mysql_real_escape_string($_POST['biznum']);
-$bizact=mysql_real_escape_string($_POST['bizact']);
-$bizval=mysql_real_escape_string($_POST['bizval']);
-$bizsub=mysql_real_escape_string($_POST['bizsub']);
+$bizinfo = array();
+$bizstats = array();
+$ustats = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Users_stats WHERE id='$id'"));
+$jobs = unserialize($char['jobs']);
+$jobs['99'] = getOfficeLevel($ustats['loc_ji'.$location['id']]);
+$biznum=mysqli_real_escape_string($db,$_POST['biznum']);
+$bizact=mysqli_real_escape_string($db,$_POST['bizact']);
+$bizval=mysqli_real_escape_string($db,$_POST['bizval']);
+$bizsub=mysqli_real_escape_string($db,$_POST['bizsub']);
 
-$soc_name = $char[society];
-$society = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='$soc_name' "));
+$soc_name = $char['society'];
+$society = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='$soc_name' "));
 
 // Check for businesses to update BEFORE we do anything with the display
 $pquery = "SELECT * FROM Profs WHERE owner='".$id."'";
-$presult = mysql_query($pquery);  
+$presult = mysqli_query($db,$pquery);  
 $bsubs = array(0,0,0);
-$ajobs = unserialize($listchar[jobs]);
-while ($bq = mysql_fetch_array( $presult ) )
+$ajobs = unserialize($listchar['jobs']);
+while ($bq = mysqli_fetch_array( $presult ) )
 {
   $bstatus = unserialize($bq['status']);
   $bupgrades = unserialize($bq['upgrades']);
@@ -39,18 +38,18 @@ while ($bq = mysql_fetch_array( $presult ) )
     if ($bstatus[$i][0]==1)
     {
       $timeleft = ($bstatus[$i][2][1] - time());
-      if ($timeleft <0 && $bq[type] != 0)
+      if ($timeleft <0 && $bq['type'] != 0)
       {
         $bstatus[$i][0]=2;
-        if ($bq[type]<7)
+        if ($bq['type']<7)
         {
           $bstatus[$i][4]=5;
           $qualbonus = $bupgrades[1][1]*5 + $bupgrades[1][2]*3;
-          $qualnum=$ajobs[$bq[type]]*5+$qualbonus+rand(1,50);
+          $qualnum=$ajobs[$bq['type']]*5+$qualbonus+rand(1,50);
           $bstatus[$i][5]=floor($qualnum/25);
         }
         $sstatus = serialize($bstatus);
-        mysql_query("UPDATE Profs SET status='".$sstatus."' WHERE id='".$bq[id]."'");          
+        mysqli_query($db,"UPDATE Profs SET status='".$sstatus."' WHERE id='".$bq['id']."'");          
       }
     }
     $bsubs[$bstatus[$i][0]]++;
@@ -63,27 +62,27 @@ for ($x=0; $x<9; $x++)
   for ($t=0; $t<11; $t++)
   {
     if ($t == 10) $t = 99;
-    $bizprod[$t][$x]=mysql_real_escape_string($_POST['product'.$x.'b'.$t]);
-    $bizprod2[$t][$x]=mysql_real_escape_string($_POST['producto'.$x.'b'.$t]);
+    $bizprod[$t][$x]=mysqli_real_escape_string($db,$_POST['product'.$x.'b'.$t]);
+    $bizprod2[$t][$x]=mysqli_real_escape_string($db,$_POST['producto'.$x.'b'.$t]);
   }
-  $bizdest[$x]=mysql_real_escape_string($_POST['dest'.$x]);
-  $bizship[$x]=mysql_real_escape_string($_POST['shipt'.$x]);
-  $biziname[$x]=mysql_real_escape_string($_POST['itmname'.$x]);
-  $bizag[$x]=mysql_real_escape_string($_POST['askgold'.$x]);
-  $bizas[$x]=mysql_real_escape_string($_POST['asksilver'.$x]);
-  $bizac[$x]=mysql_real_escape_string($_POST['askcopper'.$x]);
+  $bizdest[$x]=mysqli_real_escape_string($db,$_POST['dest'.$x]);
+  $bizship[$x]=mysqli_real_escape_string($db,$_POST['shipt'.$x]);
+  $biziname[$x]=mysqli_real_escape_string($db,$_POST['itmname'.$x]);
+  $bizag[$x]=mysqli_real_escape_string($db,$_POST['askgold'.$x]);
+  $bizas[$x]=mysqli_real_escape_string($db,$_POST['asksilver'.$x]);
+  $bizac[$x]=mysqli_real_escape_string($db,$_POST['askcopper'.$x]);
 }
 
 $base_good_val = 60;
-$shipg = unserialize($location[shipg]);
+$shipg = unserialize($location['shipg']);
 
-$bu=(100+$town_bonuses[bU])/100;
+$bu=(100+$town_bonuses['bU'])/100;
 $bx = 0;
 
 // if local war, slow businesses by 50%
-if ($location[last_war])
+if ($location['last_war'])
 {
-  $myWar = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE id='$location[last_war]' "));
+  $myWar = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE id='$location[last_war]' "));
 }
 else
 {
@@ -91,32 +90,32 @@ else
 }
 if ($myWar != 0) // Previous clan battle
 {
-  if ($myWar[starts] <= intval(time()/3600) && $myWar[ends] > intval(time()/3600))
+  if ($myWar['starts'] <= intval(time()/3600) && $myWar['ends'] > intval(time()/3600))
   {
     $bx += 50;
   }
 }
 
 $listsize=0;
-$iresult=mysql_query("SELECT * FROM Items WHERE owner='$id' AND type<15 AND type>0 AND istatus <=0");
-while ($qitem = mysql_fetch_array($iresult))
+$iresult=mysqli_query($db,"SELECT * FROM Items WHERE owner='$id' AND type<15 AND type>0 AND istatus <=0");
+while ($qitem = mysqli_fetch_array($iresult))
 {
   $itmlist[$listsize++] = $qitem;
 }  
 
-if (!$location[shopg])
+if (!$location['shopg'])
 {
-  $location[shopg]=serialize($base_town_consumes[$loc_query]);
-  mysql_query("UPDATE Locations SET shopg='".$location[shopg]."' WHERE name='$loc_query'");
+  $location['shopg']=serialize($base_town_consumes[$loc_query]);
+  mysqli_query($db,"UPDATE Locations SET shopg='".$location['shopg']."' WHERE name='$loc_query'");
 }
-$shopg = unserialize($location[shopg]);
+$shopg = unserialize($location['shopg']);
 
 $myLocBiz[0] = '';
 $query = "SELECT * FROM Profs WHERE owner='$id' AND location='$loc_query'";
-$result = mysql_query($query);  
-while ($bq = mysql_fetch_array( $result ) )
+$result = mysqli_query($db,$query);
+while ($bq = mysqli_fetch_array( $result ) )
 {
-  $myLocBiz[$bq[type]]=1;
+  $myLocBiz[$bq['type']]=1;
 }
 
 $firstbiz=-1;
@@ -128,7 +127,7 @@ for ($t=0; $t<11; $t++)
   {
     if ($firstbiz==-1) $firstbiz=$t;  
     $query = "SELECT * FROM Profs WHERE owner='$id' AND location='$loc_query' AND type='$t'";
-    $biz = mysql_fetch_array(mysql_query($query));  
+    $biz = mysqli_fetch_array(mysqli_query($db,$query));
     $upgrades[$t] = unserialize($biz['upgrades']);
     $status[$t] = unserialize($biz['status']);
     
@@ -150,19 +149,19 @@ for ($t=0; $t<11; $t++)
       {
         if ($upgrades[$t][1][$bizval]==0) // check that you don't already own it
         {
-          if ($char[gold] >= intval($tool_stats[$biz_tools[$t][$bizval]][1]*$bu)) // can you afford it?
+          if ($char['gold'] >= intval($tool_stats[$biz_tools[$t][$bizval]]['1']*$bu)) // can you afford it?
           {
             $upgrades[$t][1][$bizval] = 1;
-            $char[gold] -= intval($tool_stats[$biz_tools[$t][$bizval]][1]*$bu);
-            $location[bank]+= intval($tool_stats[$biz_tools[$t][$bizval]][1]*$bu/2);
-            $ustats[prof_earn] -= intval($tool_stats[$biz_tools[$t][$bizval]][1]*$bu);
+            $char['gold'] -= intval($tool_stats[$biz_tools[$t][$bizval]]['1']*$bu);
+            $location['bank']+= intval($tool_stats[$biz_tools[$t][$bizval]]['1']*$bu/2);
+            $ustats['prof_earn'] -= intval($tool_stats[$biz_tools[$t][$bizval]]['1']*$bu);
             $biz['value'] += intval($tool_stats[$biz_tools[$t][$bizval]][1]*$bu/2);
             $message = $biz_tools[$t][$bizval]." purchased!";
             $supgrades = serialize($upgrades[$t]);
-            mysql_query("UPDATE Users SET gold='".$char[gold]."' WHERE id='".$char[id]."'");
-            mysql_query("UPDATE Users_stats SET prof_earn='".$ustats[prof_earn]."' WHERE id='".$char[id]."'");            
-            mysql_query("UPDATE Profs SET upgrades='".$supgrades."', value='".$biz['value']."' WHERE id='".$biz[id]."'");
-            mysql_query("UPDATE Locations SET bank='$location[bank]' WHERE id='$location[id]'");
+            mysqli_query($db,"UPDATE Users SET gold='".$char['gold']."' WHERE id='".$char['id']."'");
+            mysqli_query($db,"UPDATE Users_stats SET prof_earn='".$ustats['prof_earn']."' WHERE id='".$char['id']."'");            
+            mysqli_query($db,"UPDATE Profs SET upgrades='".$supgrades."', value='".$biz['value']."' WHERE id='".$biz['id']."'");
+            mysqli_query($db,"UPDATE Locations SET bank='$location[bank]' WHERE id='$location[id]'");
           }
           else {$message = "You can't afford that!";}
         }
@@ -174,21 +173,21 @@ for ($t=0; $t<11; $t++)
         {
           if ($hires[$t][0] < $upgrades[$t][0]) // do you have more room to hire?
           {
-            if ($char[gold] >= intval(($hires[$t][0]+1)*$hirebase*$bu)) // can you afford it?
+            if ($char['gold'] >= intval(($hires[$t]['0']+1)*$hirebase*$bu)) // can you afford it?
             {
               $upgrades[$t][2][$hires[$t][0]] = $bizval;
               $hires[$t][$bizval]++;
-              $char[gold] -= intval(($hires[$t][0]+1)*$hirebase*$bu);
-              $location[bank]+= intval(($hires[$t][0]+1)*$hirebase*$bu/2);
-              $ustats[prof_earn] -= intval(($hires[$t][0]+1)*$hirebase*$bu);
+              $char['gold'] -= intval(($hires[$t]['0']+1)*$hirebase*$bu);
+              $location['bank']+= intval(($hires[$t]['0']+1)*$hirebase*$bu/2);
+              $ustats['prof_earn'] -= intval(($hires[$t]['0']+1)*$hirebase*$bu);
               $biz['value'] += intval(($hires[$t][0]+1)*$hirebase*$bu/2);
               $message = $biz_hires[$t][($bizval-1)]." hired!";
               $supgrades = serialize($upgrades[$t]);
               $hires[$t][0]++;
-              mysql_query("UPDATE Users SET gold='".$char[gold]."' WHERE id='".$char[id]."'");
-              mysql_query("UPDATE Users_stats SET prof_earn='".$ustats[prof_earn]."' WHERE id='".$char[id]."'");
-              mysql_query("UPDATE Profs SET upgrades='".$supgrades."', value='".$biz['value']."' WHERE id='".$biz[id]."'");
-              mysql_query("UPDATE Locations SET bank='$location[bank]' WHERE id='$location[id]'");
+              mysqli_query($db,"UPDATE Users SET gold='".$char['gold']."' WHERE id='".$char['id']."'");
+              mysqli_query($db,"UPDATE Users_stats SET prof_earn='".$ustats['prof_earn']."' WHERE id='".$char['id']."'");
+              mysqli_query($db,"UPDATE Profs SET upgrades='".$supgrades."', value='".$biz['value']."' WHERE id='".$biz['id']."'");
+              mysqli_query($db,"UPDATE Locations SET bank='$location[bank]' WHERE id='$location[id]'");
             }
             else {$message = "You can't afford them!";}
           }
@@ -200,20 +199,20 @@ for ($t=0; $t<11; $t++)
       {
         if ($upgrades[$t][0] < $jobs[$t]) // you can buy more
         {
-          if ($char[gold] >= intval(($upgrades[$t][0]+1)*$stationbase*$bu)) // can you afford it?
+          if ($char['gold'] >= intval(($upgrades[$t]['0']+1)*$stationbase*$bu)) // can you afford it?
           {
-            $char[gold] -= intval(($upgrades[$t][0]+1)*$stationbase*$bu);
-            $location[bank] += intval(($upgrades[$t][0]+1)*$stationbase*$bu/2);
-            $ustats[prof_earn] -= intval(($upgrades[$t][0]+1)*$stationbase*$bu);
+            $char['gold'] -= intval(($upgrades[$t]['0']+1)*$stationbase*$bu);
+            $location['bank'] += intval(($upgrades[$t]['0']+1)*$stationbase*$bu/2);
+            $ustats['prof_earn'] -= intval(($upgrades[$t]['0']+1)*$stationbase*$bu);
             $biz['value'] += intval(($upgrades[$t][0]+1)*$stationbase*$bu/2);
             $upgrades[$t][0]++;
-            if ($ustats[highest_biz]< $upgrades[$t][0]) $ustats[highest_biz]= $upgrades[$t][0];
+            if ($ustats['highest_biz']< $upgrades[$t]['0']) $ustats['highest_biz']= $upgrades[$t]['0'];
             $message = $job_biz_names[$t][1]." purchased!";
             $supgrades = serialize($upgrades[$t]);
-            mysql_query("UPDATE Users SET gold='".$char[gold]."' WHERE id='".$char[id]."'");
-            mysql_query("UPDATE Users_stats SET prof_earn='".$ustats[prof_earn]."', highest_biz='".$ustats[highest_biz]."' WHERE id='".$char[id]."'");
-            mysql_query("UPDATE Profs SET upgrades='".$supgrades."', value='".$biz['value']."' WHERE id='".$biz[id]."'");
-            mysql_query("UPDATE Locations SET bank='$location[bank]' WHERE id='$location[id]'");
+            mysqli_query($db,"UPDATE Users SET gold='".$char['gold']."' WHERE id='".$char['id']."'");
+            mysqli_query($db,"UPDATE Users_stats SET prof_earn='".$ustats['prof_earn']."', highest_biz='".$ustats['highest_biz']."' WHERE id='".$char['id']."'");
+            mysqli_query($db,"UPDATE Profs SET upgrades='".$supgrades."', value='".$biz['value']."' WHERE id='".$biz['id']."'");
+            mysqli_query($db,"UPDATE Locations SET bank='$location[bank]' WHERE id='$location[id]'");
           }
           else {$message = "You can't afford that!";}
         }
@@ -243,7 +242,7 @@ for ($t=0; $t<11; $t++)
         if ($producing)
         {
           $message = $job_biz_names[$t][3];        
-          mysql_query("UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz[id]."'");        
+          mysqli_query($db,"UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz['id']."'");        
         }
       }
       elseif ($bizact == 5) // Sell sub product
@@ -261,7 +260,7 @@ for ($t=0; $t<11; $t++)
             $gvalue=$trade_goods[$job_goods[$t][$bizprod]][1]*((100+$valbonus)/100);
             if ($t<7)
             {
-              $qualbonus=$valbonus+$town_bonuses[cQ];
+              $qualbonus=$valbonus+$town_bonuses['cQ'];
               $quality = $status[$t][$s][5];
               $valbonus = ((100*$quality)/2);
               if ($t == 4) $inum=20;
@@ -272,8 +271,8 @@ for ($t=0; $t<11; $t++)
             
               if ($shopg[$inum][$quality][$bizprod-1]>=0)
                 $shopg[$inum][$quality][$bizprod-1] += 5;
-              $location[shopg]=serialize($shopg);
-              mysql_query("UPDATE Locations SET shopg='".$location[shopg]."' WHERE name='$loc_query'");
+              $location['shopg']=serialize($shopg);
+              mysqli_query($db,"UPDATE Locations SET shopg='".$location['shopg']."' WHERE name='$loc_query'");
             }
             $gtotal += $gvalue;
             $status[$t][$s][0] = 0;
@@ -288,14 +287,14 @@ for ($t=0; $t<11; $t++)
         }
         if ($gtotal)
         {
-          $char[gold] += $gtotal;
-          $ustats[prof_earn] += $gtotal;
+          $char['gold'] += $gtotal;
+          $ustats['prof_earn'] += $gtotal;
           $biz['value'] += intval($gtotal/2);        
           $message = "Goods sold for ".displayGold($gtotal)."!";
-          if ($society[id]) updateSocRep($society, $location[id], $gtotal);
-          mysql_query("UPDATE Users SET gold='".$char[gold]."' WHERE id='".$char[id]."'");
-          mysql_query("UPDATE Users_stats SET prof_earn='".$ustats[prof_earn]."' WHERE id='".$char[id]."'");
-          mysql_query("UPDATE Profs SET status='".$sstatus."', value='".$biz['value']."' WHERE id='".$biz[id]."'");
+          if ($society['id']) updateSocRep($society, $location['id'], $gtotal);
+          mysqli_query($db,"UPDATE Users SET gold='".$char['gold']."' WHERE id='".$char['id']."'");
+          mysqli_query($db,"UPDATE Users_stats SET prof_earn='".$ustats['prof_earn']."' WHERE id='".$char['id']."'");
+          mysqli_query($db,"UPDATE Profs SET status='".$sstatus."', value='".$biz['value']."' WHERE id='".$biz['id']."'");
         }
         else { $message = "You didn't select anything to sell!"; }
       }
@@ -303,13 +302,13 @@ for ($t=0; $t<11; $t++)
       {
         if ($status[$t][$bizsub][0] == 2) // is it done?
         {
-          $takenum = mysql_real_escape_string($_POST['cquant'.$bizsub.'b'.$t]);
+          $takenum = mysqli_real_escape_string($db,$_POST['cquant'.$bizsub.'b'.$t]);
           if ($takenum <= $status[$t][$bizsub][4])
           {
             $bizprod = $status[$t][$bizsub][1][0];
             $gname = $job_goods[$t][$bizprod];
             $valbonus = $upgrades[$t][1][1]*5 + $upgrades[$t][1][2]*3;
-            $qualbonus=$valbonus+$town_bonuses[cQ];
+            $qualbonus=$valbonus+$town_bonuses['cQ'];
             $valbonus = 0;
             $quality = $status[$t][$bizsub][5];
             if ($t == 4) $inum=20;
@@ -317,7 +316,7 @@ for ($t=0; $t<11; $t++)
             elseif ($t == 6) $inum=19;
             $gname = ucwords(getQualityWord($inum, $quality)." ".$gname);
           
-            $itmsize = mysql_num_rows(mysql_query("SELECT * FROM Items WHERE owner='$id' AND type>=19 AND istatus=0"));
+            $itmsize = mysqli_num_rows(mysqli_query($db,"SELECT * FROM Items WHERE owner='$id' AND type>=19 AND istatus=0"));
             if ($itmsize+$takenum <= $pouch_max)
             {
               for ($k=0; $k < $takenum; $k++)
@@ -327,7 +326,7 @@ for ($t=0; $t<11; $t++)
                 $istats= itp($item_base[$base][0],$item_base[$base][1]);
                 $ipts= lvl_req($istats,100);
                 $itime=time();
-                $result = mysql_query("INSERT INTO Items (owner,type,    cond, istatus,points, society,last_moved,base,   prefix,suffix,stats) 
+                $result = mysqli_query($db,"INSERT INTO Items (owner,type,    cond, istatus,points, society,last_moved,base,   prefix,suffix,stats) 
                                                    VALUES ('$id','$itype','100','0',    '$ipts','',    '$itime',  '$base','',    '',    '$istats')");
               }         
 
@@ -345,7 +344,7 @@ for ($t=0; $t<11; $t++)
                 $status[$t][$bizsub][5] = 0;
               }
               $sstatus = serialize($status[$t]);
-              mysql_query("UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz[id]."'");
+              mysqli_query($db,"UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz['id']."'");
             }
             else { $message = "You don't have room to carry that!"; }
           }
@@ -386,9 +385,9 @@ for ($t=0; $t<11; $t++)
         if ($sgood)
         {
           $shipgs = serialize($shipg);
-          mysql_query("UPDATE Locations SET shipg='".$shipgs."' WHERE id='".$location[id]."'");        
+          mysqli_query($db,"UPDATE Locations SET shipg='".$shipgs."' WHERE id='".$location['id']."'");        
           $sstatus = serialize($status[$t]);
-          mysql_query("UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz[id]."'");
+          mysqli_query($db,"UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz['id']."'");
           $message = $job_biz_names[$t][3];        
         }
       }
@@ -399,18 +398,18 @@ for ($t=0; $t<11; $t++)
         {
           if ($status[$t][$s][0] == 2) // is it done?
           {
-            $destloc = mysql_fetch_array(mysql_query("SELECT * FROM Locations WHERE id='".($status[$t][$s][1][2]+1)."'"));
-            $destgoods = unserialize($destloc[shipg]);
+            $destloc = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Locations WHERE id='".($status[$t][$s][1][2]+1)."'"));
+            $destgoods = unserialize($destloc['shipg']);
 
             $p1_loc = floor($status[$t][$s][1][0]/3);
             $p1_num = $status[$t][$s][1][0]%3;
-            $p1_lval = ($ship_travel[$ship_ports[$location[id]-1]][$p1_loc])/50*$base_good_val;
+            $p1_lval = ($ship_travel[$ship_ports[$location['id']-1]][$p1_loc])/50*$base_good_val;
             $p1_dval = ($ship_travel[$ship_ports[$status[$t][$s][1][2]]][$p1_loc])/50*$base_good_val;
             $p1_ddem = (100-($destgoods[$p1_loc][$p1_num]/5))/100;
     
             $p2_loc = floor($status[$t][$s][1][1]/3);
             $p2_num = $status[$t][$s][1][1]%3;    
-            $p2_lval = ($ship_travel[$ship_ports[$location[id]-1]][$p2_loc])/50*$base_good_val;
+            $p2_lval = ($ship_travel[$ship_ports[$location['id']-1]][$p2_loc])/50*$base_good_val;
             $p2_dval = ($ship_travel[$ship_ports[$status[$t][$s][1][2]]][$p2_loc])/50*$base_good_val;
             $p2_ldem = (100-($shipg[$p2_loc][$p2_num]/5))/100;
             
@@ -431,19 +430,19 @@ for ($t=0; $t<11; $t++)
             if ($shipg[$p2_loc][$p2_num] >= 0)     $shipg[$p2_loc][$p2_num]+= $ship_hold;
             if ($destgoods[$p1_loc][$p1_num] >= 0) $destgoods[$p1_loc][$p1_num] += $ship_hold;
             $dshipgs = serialize($destgoods);
-            mysql_query("UPDATE Locations SET shipg='".$dshipgs."' WHERE id='".($status[$t][$s][1][2]+1)."'");         
+            mysqli_query($db,"UPDATE Locations SET shipg='".$dshipgs."' WHERE id='".($status[$t][$s][1][2]+1)."'");         
           }
           else { $message = "It's not done yet!";}
         }
-        $char[gold] += $totvalue;
-        $ustats[prof_earn] += $totvalue;   
+        $char['gold'] += $totvalue;
+        $ustats['prof_earn'] += $totvalue;   
         $biz['value'] += intval($totvalue/2);
         $shipgs = serialize($shipg);
-        mysql_query("UPDATE Locations SET shipg='".$shipgs."' WHERE id='".$location[id]."'");
-        mysql_query("UPDATE Users SET gold='".$char[gold]."' WHERE id='".$char[id]."'");
-        mysql_query("UPDATE Users_stats SET prof_earn='".$ustats[prof_earn]."' WHERE id='".$char[id]."'");
+        mysqli_query($db,"UPDATE Locations SET shipg='".$shipgs."' WHERE id='".$location['id']."'");
+        mysqli_query($db,"UPDATE Users SET gold='".$char['gold']."' WHERE id='".$char['id']."'");
+        mysqli_query($db,"UPDATE Users_stats SET prof_earn='".$ustats['prof_earn']."' WHERE id='".$char['id']."'");
         $sstatus = serialize($status[$t]);
-        mysql_query("UPDATE Profs SET status='".$sstatus."', value='".$biz['value']."' WHERE id='".$biz[id]."'");
+        mysqli_query($db,"UPDATE Profs SET status='".$sstatus."', value='".$biz['value']."' WHERE id='".$biz['id']."'");
         
         $message = "Trade complete! Earned ".displayGold($totvalue)."!";        
       }
@@ -465,14 +464,14 @@ for ($t=0; $t<11; $t++)
             }
           }
         }
-        if ($char[gold] >= $tmpgold)
+        if ($char['gold'] >= $tmpgold)
         {
-          $char[gold] -= $tmpgold;
-          $ustats[prof_earn] -= $tmpgold;
+          $char['gold'] -= $tmpgold;
+          $ustats['prof_earn'] -= $tmpgold;
           $supgrades = serialize($upgrades[$t]);
-          mysql_query("UPDATE Users SET gold='".$char[gold]."' WHERE id='".$char[id]."'");
-          mysql_query("UPDATE Users_stats SET prof_earn='".$ustats[prof_earn]."' WHERE id='".$char[id]."'");
-          mysql_query("UPDATE Profs SET upgrades='".$supgrades."', value='".$biz['value']."' WHERE id='".$biz[id]."'");
+          mysqli_query($db,"UPDATE Users SET gold='".$char['gold']."' WHERE id='".$char['id']."'");
+          mysqli_query($db,"UPDATE Users_stats SET prof_earn='".$ustats['prof_earn']."' WHERE id='".$char['id']."'");
+          mysqli_query($db,"UPDATE Profs SET upgrades='".$supgrades."', value='".$biz['value']."' WHERE id='".$biz['id']."'");
           $message = "Ships traded for ".displayGold($tmpgold)."!";
         }
         else 
@@ -494,20 +493,20 @@ for ($t=0; $t<11; $t++)
               {
                 if ($oprice > 0)
                 {
-                  if ($itmlist[$bizprod[$t][$s]][id] == $biziname[$s])
+                  if ($itmlist[$bizprod[$t][$s]]['id'] == $biziname[$s])
                   {
                     $status[$t][$s][0] = 1;
                     $status[$t][$s][1][0] = $itmlist[$bizprod[$t][$s]];
                     $status[$t][$s][1][1] = $oprice;
-                    $status[$t][$s][1][2] = $char[id];
+                    $status[$t][$s][1][2] = $char['id'];
                     $status[$t][$s][2] = time();
                 
-                    $mid=$char[id]+30000;
-                    $result = mysql_query("UPDATE Items SET owner='".$mid."', istatus='0', last_moved='".time()."' WHERE id='".$itmlist[$bizprod[$t][$s]][id]."'");
+                    $mid=$char['id']+30000;
+                    $result = mysqli_query($db,"UPDATE Items SET owner='".$mid."', istatus='0', last_moved='".time()."' WHERE id='".$itmlist[$bizprod[$t][$s]]['id']."'");
 
                     $sstatus = serialize($status[$t]);
                     $message = "Market Offers Updated!";
-                    mysql_query("UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz[id]."'");
+                    mysqli_query($db,"UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz['id']."'");
                   }
                   else { $message = "There was some confusion about what you're offering. Please try again!"; }
                 }
@@ -525,13 +524,13 @@ for ($t=0; $t<11; $t++)
         if ($status[$t][$bizsub][0] == 1) // is it active?
         {
           $takecost = floor($status[$t][$bizsub][1][1]/2);
-          if ($char[gold] >= $takecost)
+          if ($char['gold'] >= $takecost)
           {
             if ($listsize < $inv_max)
             {
-              $char[gold] = $char[gold]-$takecost; 
-              $result = mysql_query("UPDATE Items SET owner='".$char[id]."', last_moved='".time()."' WHERE id='".$status[$t][$bizsub][1][0][id]."'");
-              mysql_query("UPDATE Users SET gold='$char[gold]' WHERE id=$id");
+              $char['gold'] = $char['gold']-$takecost; 
+              $result = mysqli_query($db,"UPDATE Items SET owner='".$char['id']."', last_moved='".time()."' WHERE id='".$status[$t][$bizsub][1][0]['id']."'");
+              mysqli_query($db,"UPDATE Users SET gold='$char[gold]' WHERE id=$id");
               $status[$t][$bizsub][0] = 0;
               $status[$t][$bizsub][1][0] = 0;
               $status[$t][$bizsub][1][1] = 0;
@@ -539,7 +538,7 @@ for ($t=0; $t<11; $t++)
               $status[$t][$bizsub][2] = 0;
               $message = "Item taken for ".displayGold($takecost)."!";
               $sstatus = serialize($status[$t]);
-              mysql_query("UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz[id]."'"); 
+              mysqli_query($db,"UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz['id']."'"); 
             }
             else
             { $message = "You don't have room in your inventory for any more items!"; }           
@@ -555,8 +554,8 @@ for ($t=0; $t<11; $t++)
         if ($status[$t][$bizsub][0] == 1) // is it active?
         {
           $sellval = floor(item_val(iparse($status[$t][$bizsub][1][0],$item_base, $item_ix,$ter_bonuses))/4);
-          $char[gold] = $char[gold]+$sellval;
-          mysql_query("UPDATE Users SET gold='$char[gold]' WHERE id=$id");
+          $char['gold'] = $char['gold']+$sellval;
+          mysqli_query($db,"UPDATE Users SET gold='$char[gold]' WHERE id=$id");
           $status[$t][$bizsub][0] = 0;
           $status[$t][$bizsub][1][0] = 0;
           $status[$t][$bizsub][1][1] = 0;
@@ -564,7 +563,7 @@ for ($t=0; $t<11; $t++)
           $status[$t][$bizsub][2] = 0;
           $message = "Item sold for ".displayGold($sellval)."!";
           $sstatus = serialize($status[$t]);
-          mysql_query("UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz[id]."'"); 
+          mysqli_query($db,"UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz['id']."'"); 
         }
         else
         { $message = "There's nothing to sell!"; }
@@ -587,7 +586,7 @@ for ($t=0; $t<11; $t++)
         if ($cleared)
         {
           $sstatus = serialize($status[$t]);
-          mysql_query("UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz[id]."'"); 
+          mysqli_query($db,"UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz['id']."'"); 
           $message = "Displays ready for new offers!";
         }
         else { $message = "Something odd happened. Please try again!"; } 
@@ -608,7 +607,7 @@ for ($t=0; $t<11; $t++)
             $gname = $job_goods[$t][$bizprod];
             $valbonus = 0;
             $valbonus += $upgrades[$t][1][1]*5 + $upgrades[$t][1][2]*3;
-            $gvalue=round($ustats['loc_ji'.$location[id]]*$trade_goods[$gname][1]*((100+$valbonus)/100));
+            $gvalue=round($ustats['loc_ji'.$location['id']]*$trade_goods[$gname]['1']*((100+$valbonus)/100));
 
             if ($bizprod == 1) $orderTotal += $gvalue;
             else if ($bizprod == 2) $chaosTotal += $gvalue;
@@ -634,53 +633,53 @@ for ($t=0; $t<11; $t++)
           $alignTotal = 0;
           if ($orderTotal)
           {
-            $location[order] += $orderTotal;
+            $location['order'] += $orderTotal;
             $alignTotal += $orderTotal/10;
           }
           if ($chaosTotal) 
           {
-            $location[chaos] += $chaosTotal;
+            $location['chaos'] += $chaosTotal;
             $alignTotal -= $chaosTotal/10;
           }
           if ($fundsTotal) 
           {
-            $location[bank] += $fundsTotal;
-            if ($location[bank] < 0) $location[bank] = 0;
+            $location['bank'] += $fundsTotal;
+            if ($location['bank'] < 0) $location['bank'] = 0;
             $alignTotal += $fundsTotal/1000;
           }
           if ($defenseTotal) 
           { 
-            $location[army] += $defenseTotal;
-            if ($location[army] < 1000 ) $location[army] = 1000;
+            $location['army'] += $defenseTotal;
+            if ($location['army'] < 1000 ) $location['army'] = 1000;
             $alignTotal += $defenseTotal/333;
           }
           if ($rulerTotal)
           {
-            $ruler = mysql_fetch_array(mysql_query("SELECT id, align, area_score FROM Soc WHERE name='$location[ruler]'"));
+            $ruler = mysqli_fetch_array(mysqli_query($db,"SELECT id, align, area_score FROM Soc WHERE name='$location[ruler]'"));
             $area_score = unserialize($ruler['area_score']);    
-            $area_score[$location[id]] = $area_score[$location[id]]+$rulerTotal;
-            $area_score[$location[id]] = number_format($area_score[$location[id]],2,'.','');
+            $area_score[$location['id']] = $area_score[$location['id']]+$rulerTotal;
+            $area_score[$location['id']] = number_format($area_score[$location['id']],2,'.','');
             $a_s_str = serialize($area_score);
-            mysql_query("UPDATE Soc SET area_score='$a_s_str' WHERE id='$ruler[id]' ");
+            mysqli_query($db,"UPDATE Soc SET area_score='$a_s_str' WHERE id='$ruler[id]' ");
             
-            if ($ruler[align] > 0) $alignTotal += $rulerTotal/3;
+            if ($ruler['align'] > 0) $alignTotal += $rulerTotal/3;
             else $alignTotal -= $rulerTotal/3;
           }       
-          $char[align] += $alignTotal;
+          $char['align'] += $alignTotal;
           
-          $soc_name = $char[society];
-          $society = mysql_fetch_array(mysql_query("SELECT id, name, align FROM Soc WHERE name='$soc_name' "));
-          if ($society[id]) 
+          $soc_name = $char['society'];
+          $society = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, align FROM Soc WHERE name='$soc_name' "));
+          if ($society['id']) 
           {
-            $society[align] += $alignTotal;
-            $result = mysql_query("UPDATE Soc SET align = align + ".$alignTotal." WHERE id='".$society[id]."'");
+            $society['align'] += $alignTotal;
+            $result = mysqli_query($db,"UPDATE Soc SET align = align + ".$alignTotal." WHERE id='".$society['id']."'");
           }
           $s = "";
           if ($gtotal > 1) $s = "s";
           $message = "Assignment".$s." completed!";
-          mysql_query("UPDATE Locations SET myOrder=myOrder+$orderTotal, chaos=chaos+$chaosTotal, bank='".$location[bank]."', army='".$location[army]."' WHERE id='".$location[id]."'");
-          mysql_query("UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz[id]."'");
-          mysql_query("UPDATE Users SET align='$char[align]' WHERE id=$id");
+          mysqli_query($db,"UPDATE Locations SET myOrder=myOrder+$orderTotal, chaos=chaos+$chaosTotal, bank='".$location['bank']."', army='".$location['army']."' WHERE id='".$location['id']."'");
+          mysqli_query($db,"UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz['id']."'");
+          mysqli_query($db,"UPDATE Users SET align='$char[align]' WHERE id=$id");
         }
         else { $message = "You didn't select any assignments to complete!"; }
       } 
@@ -699,7 +698,7 @@ for ($t=0; $t<11; $t++)
             $gvalue=$trade_goods[$job_goods[$t][$bizprod]][1]*((100+$valbonus)/100);
             if ($t<7)
             {
-              $qualbonus=$valbonus+$town_bonuses[cQ];
+              $qualbonus=$valbonus+$town_bonuses['cQ'];
               $quality = $status[$t][$s][5];
               $valbonus = ((100*$quality)/2);
               if ($t == 4) $inum=20;
@@ -710,8 +709,8 @@ for ($t=0; $t<11; $t++)
             
               if ($shopg[$inum][$quality][$bizprod-1]>=0)
                 $shopg[$inum][$quality][$bizprod-1] += 5;
-              $location[shopg]=serialize($shopg);
-              mysql_query("UPDATE Locations SET shopg='".$location[shopg]."' WHERE name='$loc_query'");
+              $location['shopg']=serialize($shopg);
+              mysqli_query($db,"UPDATE Locations SET shopg='".$location['shopg']."' WHERE name='$loc_query'");
             }
             $gtotal += $gvalue;
             $timebonus = 0;
@@ -731,14 +730,14 @@ for ($t=0; $t<11; $t++)
      
         if ($gtotal)
         {
-          $char[gold] += $gtotal;
-          $ustats[prof_earn] += $gtotal;
+          $char['gold'] += $gtotal;
+          $ustats['prof_earn'] += $gtotal;
           $biz['value'] += intval($gtotal/2);        
           $message = "Goods sold for ".displayGold($gtotal)."!";
-          if ($society[id]) updateSocRep($society, $location[id], $gtotal);
-          mysql_query("UPDATE Users SET gold='".$char[gold]."' WHERE id='".$char[id]."'");
-          mysql_query("UPDATE Users_stats SET prof_earn='".$ustats[prof_earn]."' WHERE id='".$char[id]."'");
-          mysql_query("UPDATE Profs SET status='".$sstatus."', value='".$biz['value']."' WHERE id='".$biz[id]."'");
+          if ($society['id']) updateSocRep($society, $location['id'], $gtotal);
+          mysqli_query($db,"UPDATE Users SET gold='".$char['gold']."' WHERE id='".$char['id']."'");
+          mysqli_query($db,"UPDATE Users_stats SET prof_earn='".$ustats['prof_earn']."' WHERE id='".$char['id']."'");
+          mysqli_query($db,"UPDATE Profs SET status='".$sstatus."', value='".$biz['value']."' WHERE id='".$biz['id']."'");
         }
         else { $message = "You didn't select anything to sell!"; }
       }  
@@ -749,18 +748,18 @@ for ($t=0; $t<11; $t++)
         {
           if ($status[$t][$s][0] == 2) // is it done?
           {
-            $destloc = mysql_fetch_array(mysql_query("SELECT * FROM Locations WHERE id='".($status[$t][$s][1][2]+1)."'"));
-            $destgoods = unserialize($destloc[shipg]);
+            $destloc = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Locations WHERE id='".($status[$t][$s][1][2]+1)."'"));
+            $destgoods = unserialize($destloc['shipg']);
 
             $p1_loc = floor($status[$t][$s][1][0]/3);
             $p1_num = $status[$t][$s][1][0]%3;
-            $p1_lval = ($ship_travel[$ship_ports[$location[id]-1]][$p1_loc])/50*$base_good_val;
+            $p1_lval = ($ship_travel[$ship_ports[$location['id']-1]][$p1_loc])/50*$base_good_val;
             $p1_dval = ($ship_travel[$ship_ports[$status[$t][$s][1][2]]][$p1_loc])/50*$base_good_val;
             $p1_ddem = (100-($destgoods[$p1_loc][$p1_num]/5))/100;
     
             $p2_loc = floor($status[$t][$s][1][1]/3);
             $p2_num = $status[$t][$s][1][1]%3;    
-            $p2_lval = ($ship_travel[$ship_ports[$location[id]-1]][$p2_loc])/50*$base_good_val;
+            $p2_lval = ($ship_travel[$ship_ports[$location['id']-1]][$p2_loc])/50*$base_good_val;
             $p2_dval = ($ship_travel[$ship_ports[$status[$t][$s][1][2]]][$p2_loc])/50*$base_good_val;
             $p2_ldem = (100-($shipg[$p2_loc][$p2_num]/5))/100;
             
@@ -787,20 +786,20 @@ for ($t=0; $t<11; $t++)
             if ($shipg[$p2_loc][$p2_num] >= 0)     $shipg[$p2_loc][$p2_num]+= $ship_hold-1;
             if ($destgoods[$p1_loc][$p1_num] >= 0) $destgoods[$p1_loc][$p1_num] += $ship_hold;
             $dshipgs = serialize($destgoods);
-            mysql_query("UPDATE Locations SET shipg='".$dshipgs."' WHERE id='".($status[$t][$s][1][2]+1)."'");         
+            mysqli_query($db,"UPDATE Locations SET shipg='".$dshipgs."' WHERE id='".($status[$t][$s][1][2]+1)."'");         
           }
           else { $message = "It's not done yet!";}
         }
 
-        $char[gold] += $totvalue;
-        $ustats[prof_earn] += $totvalue;   
+        $char['gold'] += $totvalue;
+        $ustats['prof_earn'] += $totvalue;   
         $biz['value'] += intval($totvalue/2);
         $shipgs = serialize($shipg);
-        mysql_query("UPDATE Locations SET shipg='".$shipgs."' WHERE id='".$location[id]."'");
-        mysql_query("UPDATE Users SET gold='".$char[gold]."' WHERE id='".$char[id]."'");
-        mysql_query("UPDATE Users_stats SET prof_earn='".$ustats[prof_earn]."' WHERE id='".$char[id]."'");
+        mysqli_query($db,"UPDATE Locations SET shipg='".$shipgs."' WHERE id='".$location['id']."'");
+        mysqli_query($db,"UPDATE Users SET gold='".$char['gold']."' WHERE id='".$char['id']."'");
+        mysqli_query($db,"UPDATE Users_stats SET prof_earn='".$ustats['prof_earn']."' WHERE id='".$char['id']."'");
         $sstatus = serialize($status[$t]);
-        mysql_query("UPDATE Profs SET status='".$sstatus."', value='".$biz['value']."' WHERE id='".$biz[id]."'");
+        mysqli_query($db,"UPDATE Profs SET status='".$sstatus."', value='".$biz['value']."' WHERE id='".$biz['id']."'");
         
         $message = "Trade complete! Earned ".displayGold($totvalue)."!";        
       }
@@ -820,7 +819,7 @@ for ($t=0; $t<11; $t++)
             $gname = $job_goods[$t][$bizprod];
             $valbonus = 0;
             $valbonus += $upgrades[$t][1][1]*5 + $upgrades[$t][1][2]*3;
-            $gvalue=round($ustats['loc_ji'.$location[id]]*$trade_goods[$gname][1]*((100+$valbonus)/100));
+            $gvalue=round($ustats['loc_ji'.$location['id']]*$trade_goods[$gname]['1']*((100+$valbonus)/100));
 
             if ($bizprod == 1) $orderTotal += $gvalue;
             else if ($bizprod == 2) $chaosTotal += $gvalue;
@@ -844,53 +843,53 @@ for ($t=0; $t<11; $t++)
           $alignTotal = 0;
           if ($orderTotal)
           {
-            $location[order] += $orderTotal;
+            $location['order'] += $orderTotal;
             $alignTotal += $orderTotal/10;
           }
           if ($chaosTotal) 
           {
-            $location[chaos] += $chaosTotal;
+            $location['chaos'] += $chaosTotal;
             $alignTotal -= $chaosTotal/10;
           }
           if ($fundsTotal) 
           {
-            $location[bank] += $fundsTotal;
-            if ($location[bank] < 0) $location[bank] = 0;
+            $location['bank'] += $fundsTotal;
+            if ($location['bank'] < 0) $location['bank'] = 0;
             $alignTotal += $fundsTotal/1000;
           }
           if ($defenseTotal) 
           { 
-            $location[army] += $defenseTotal;
-            if ($location[army] < 1000 ) $location[army] = 1000;
+            $location['army'] += $defenseTotal;
+            if ($location['army'] < 1000 ) $location['army'] = 1000;
             $alignTotal += $defenseTotal/333;
           }
           if ($rulerTotal)
           {
-            $ruler = mysql_fetch_array(mysql_query("SELECT id, align, area_score FROM Soc WHERE name='$location[ruler]'"));
+            $ruler = mysqli_fetch_array(mysqli_query($db,"SELECT id, align, area_score FROM Soc WHERE name='$location[ruler]'"));
             $area_score = unserialize($ruler['area_score']);    
-            $area_score[$location[id]] = $area_score[$location[id]]+$rulerTotal;
-            $area_score[$location[id]] = number_format($area_score[$location[id]],2,'.','');
+            $area_score[$location['id']] = $area_score[$location['id']]+$rulerTotal;
+            $area_score[$location['id']] = number_format($area_score[$location['id']],2,'.','');
             $a_s_str = serialize($area_score);
-            mysql_query("UPDATE Soc SET area_score='$a_s_str' WHERE id='$ruler[id]' ");
+            mysqli_query($db,"UPDATE Soc SET area_score='$a_s_str' WHERE id='$ruler[id]' ");
             
-            if ($ruler[align] > 0) $alignTotal += $rulerTotal/3;
+            if ($ruler['align'] > 0) $alignTotal += $rulerTotal/3;
             else $alignTotal -= $rulerTotal/3;
           }       
-          $char[align] += $alignTotal;
+          $char['align'] += $alignTotal;
           
-          $soc_name = $char[society];
-          $society = mysql_fetch_array(mysql_query("SELECT id, name, align FROM Soc WHERE name='$soc_name' "));
-          if ($society[id]) 
+          $soc_name = $char['society'];
+          $society = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, align FROM Soc WHERE name='$soc_name' "));
+          if ($society['id']) 
           {
-            $society[align] += $alignTotal;
-            $result = mysql_query("UPDATE Soc SET align = align + ".$alignTotal." WHERE id='".$society[id]."'");
+            $society['align'] += $alignTotal;
+            $result = mysqli_query($db,"UPDATE Soc SET align = align + ".$alignTotal." WHERE id='".$society['id']."'");
           }
           $s = "";
           if ($gtotal > 1) $s = "s";
           $message = "Assignment".$s." completed!";
-          mysql_query("UPDATE Locations SET myOrder=myOrder+$orderTotal, chaos=chaos+$chaosTotal, bank='".$location[bank]."', army='".$location[army]."' WHERE id='".$location[id]."'");
-          mysql_query("UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz[id]."'");
-          mysql_query("UPDATE Users SET align='$char[align]' WHERE id=$id");
+          mysqli_query($db,"UPDATE Locations SET myOrder=myOrder+$orderTotal, chaos=chaos+$chaosTotal, bank='".$location['bank']."', army='".$location['army']."' WHERE id='".$location['id']."'");
+          mysqli_query($db,"UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz['id']."'");
+          mysqli_query($db,"UPDATE Users SET align='$char[align]' WHERE id=$id");
         }
         else { $message = "You didn't select any assignments to complete!"; }
       }                   
@@ -1018,7 +1017,7 @@ for ($t=0; $t<11; $t++)
           $bizstats[$t][0] .= "<tr><td align='right'>".$job_biz_names[$t][1]." ".($i+1).": </td><td align='center'><select id='product".$i."b".$t."' name='product".$i."b".$t."' class='form-control gos-form input-sm' onChange='javascript:showItemInfo(".$t.",".$i.")'><option value='-1'>-Select-</option>";
           for ($p=0; $p<$listsize; $p++)
           {
-            if ($itmlist[$p][society]== "0" && $itmlist[$p][type] != 8 && $itmlist[$p][type] > 0)
+            if ( ($itmlist[$p]['society']== "0" || $itmlist[$p]['society']== "") && $itmlist[$p]['type'] != 8 && $itmlist[$p]['type'] > 0)
             {
               $bizstats[$t][0] .= "<option value='".$p."'>".iname($itmlist[$p])."</option>";
               $so++;
@@ -1106,7 +1105,7 @@ for ($t=0; $t<11; $t++)
             $bizstats[$t][1] .= "<div class='tab-pane ".$isPActive."' id='".$job_biz_names[$t][2]."_progress_tab'>";
             $bizstats[$t][1] .= "<table class='table table-responsive table-clear small'><tr><th>&nbsp;</th><th>".$job_biz_names[$t][2]."ed</th><th>Price</th><th>Posted</th><th>&nbsp;</th></tr>";
           }
-          $bizstats[$t][1] .=  "<tr><td align='right'>".$job_biz_names[$t][1]." ".($i+1).": </td><td align='center'><a href=javascript:popUp('itemstat.php?base=".str_replace(" ","_",$status[$t][$i][1][0][base])."&prefix=".str_replace(" ","_",$status[$t][$i][1][0][prefix])."&suffix=".str_replace(" ","_",$status[$t][$i][1][0][suffix])."&lvl=".$char[level]."&gender=".$char[sex]."&cond=".$status[$t][$i][1][0][cond]."')>";
+          $bizstats[$t]['1'] .=  "<tr><td align='right'>".$job_biz_names[$t]['1']." ".($i+1).": </td><td align='center'><a href=javascript:popUp('itemstat.php?base=".str_replace(" ","_",$status[$t][$i]['1']['0']['base'])."&prefix=".str_replace(" ","_",$status[$t][$i]['1']['0']['prefix'])."&suffix=".str_replace(" ","_",$status[$t][$i]['1']['0']['suffix'])."&lvl=".$char['level']."&gender=".$char['sex']."&cond=".$status[$t][$i]['1']['0']['cond']."')>";
           $bizstats[$t][1] .=  iname($status[$t][$i][1][0])."</a></td><td align='center' class='foottext'>".displayGold($status[$t][$i][1][1])."</td>";
           $bizstats[$t][1] .=  "<td align='center' class='foottext'>".$timemsg."</td>";
           $bizstats[$t][1] .=  "<td><input type='button' value='Take' class='btn btn-sm btn-warning' onClick='javascript:subAction(".$t.",11,0,".$i.");'><input type='button' value='Sell' class='btn btn-sm btn-danger' onClick='javascript:subAction(".$t.",12,0,".$i.");'></td>";
@@ -1127,7 +1126,7 @@ for ($t=0; $t<11; $t++)
               elseif ($status[$t][$i][5] > 3) $status[$t][$i][5] = 3;              
             }
             $sstatus = serialize($status[$t]);
-            mysql_query("UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz[id]."'");          
+            mysqli_query($db,"UPDATE Profs SET status='".$sstatus."' WHERE id='".$biz[id]."'");          
             $i--;
           }
           else 
@@ -1149,11 +1148,11 @@ for ($t=0; $t<11; $t++)
               if ($t<7)
               {
                 $mult=5*0.75;
-                $qualbonus=$valbonus+$town_bonuses[cQ];
+                $qualbonus=$valbonus+$town_bonuses['cQ'];
                 $valbonus = 0;
                 $qualnum1=$jobs[$t]*5+$qualbonus+1;
                 $qualnum2=$jobs[$t]*5+$qualbonus+50;
-                $quals="";
+                $quals=array();
                 if (25-$qualnum1>0)
                 {
                   $quals[0]=25-$qualnum1; 
@@ -1185,7 +1184,7 @@ for ($t=0; $t<11; $t++)
               if ($t != 99) $bizstats[$t][1] .= "<td align='center' class='foottext'>".displayGold($trade_goods[$job_goods[$t][$status[$t][$i][1][0]]][1]*((100+$valbonus)/100)*$mult)."</td>";
               else 
               {
-                $assignAmount = round($ustats['loc_ji'.$location[id]]*$trade_goods[$job_goods[$t][$status[$t][$i][1][0]]][1]*((100+$valbonus)/100)*$mult);
+                $assignAmount = round($ustats['loc_ji'.$location['id']]*$trade_goods[$job_goods[$t][$status[$t][$i]['1']['0']]]['1']*((100+$valbonus)/100)*$mult);
                 if ($status[$t][$i][1][0] == 3 || $status[$t][$i][1][0] == 4) $assignAmount = displayGold($assignAmount);
                 $bizstats[$t][1] .= "<td align='center' class='foottext'>".$assignAmount."</td>";
               }
@@ -1197,17 +1196,17 @@ for ($t=0; $t<11; $t++)
               $tdist = $ship_travel[$ship_ports[$location['id']-1]][$status[$t][$i][1][2]];
             
               $percomp= floor($timedone/(($tdist/$tspeed)*3600)*100);
-              $destloc = mysql_fetch_array(mysql_query("SELECT * FROM Locations WHERE id='".($status[$t][$i][1][2]+1)."'"));
-              $destgoods = unserialize($destloc[shipg]);
+              $destloc = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Locations WHERE id='".($status[$t][$i][1][2]+1)."'"));
+              $destgoods = unserialize($destloc['shipg']);
               $p1_loc = floor($status[$t][$i][1][0]/3);
               $p1_num = $status[$t][$i][1][0]%3;
-              $p1_lval = ($ship_travel[$ship_ports[$location[id]-1]][$p1_loc])/50*$base_good_val;
+              $p1_lval = ($ship_travel[$ship_ports[$location['id']-1]][$p1_loc])/50*$base_good_val;
               $p1_dval = ($ship_travel[$ship_ports[$status[$t][$i][1][2]]][$p1_loc])/50*$base_good_val;
               $p1_ddem = (100-($destgoods[$p1_loc][$p1_num]/5))/100;
      
               $p2_loc = floor($status[$t][$i][1][1]/3);
               $p2_num = $status[$t][$i][1][1]%3;    
-              $p2_lval = ($ship_travel[$ship_ports[$location[id]-1]][$p2_loc])/50*$base_good_val;
+              $p2_lval = ($ship_travel[$ship_ports[$location['id']-1]][$p2_loc])/50*$base_good_val;
               $p2_dval = ($ship_travel[$ship_ports[$status[$t][$i][1][2]]][$p2_loc])/50*$base_good_val;
               $p2_ldem = (100-($shipg[$p2_loc][$p2_num]/5))/100;
              
@@ -1250,7 +1249,7 @@ for ($t=0; $t<11; $t++)
             $bizstats[$t][2] .= "<div class='tab-pane ".$isCActive."' id='".$job_biz_names[$t][2]."_complete_tab'>";
             $bizstats[$t][2] .= "<table class='table table-responsive table-clear small'><tr><th>&nbsp;</th><th>".$job_biz_names[$t][2]."ed</th><th>Sold For</th><th>Sold</th><th>Bought by</th></tr>";
           }
-          $bizstats[$t][2] .=  "<tr><td align='right'>".$job_biz_names[$t][1]." ".($i+1).": </td><td align='center' class='foottext'><a href=javascript:popUp('itemstat.php?base=".str_replace(" ","_",$status[$t][$i][1][0][base])."&prefix=".str_replace(" ","_",$status[$t][$i][1][0][prefix])."&suffix=".str_replace(" ","_",$status[$t][$i][1][0][suffix])."&lvl=".$char[level]."&gender=".$char[sex]."&cond=".$status[$t][$i][1][0][cond]."')>";
+          $bizstats[$t]['2'] .=  "<tr><td align='right'>".$job_biz_names[$t]['1']." ".($i+1).": </td><td align='center' class='foottext'><a href=javascript:popUp('itemstat.php?base=".str_replace(" ","_",$status[$t][$i]['1']['0']['base'])."&prefix=".str_replace(" ","_",$status[$t][$i]['1']['0']['prefix'])."&suffix=".str_replace(" ","_",$status[$t][$i]['1']['0']['suffix'])."&lvl=".$char['level']."&gender=".$char['sex']."&cond=".$status[$t][$i]['1']['0']['cond']."')>";
           $bizstats[$t][2] .=  iname($status[$t][$i][1][0])."</a></td><td align='center' class='foottext'>".displayGold($status[$t][$i][1][1])."</td>"; 
           $bizstats[$t][2] .=  "<td align='center' class='foottext'>".$timemsg."</td>";
           
@@ -1271,7 +1270,7 @@ for ($t=0; $t<11; $t++)
           if ($t==7 || $t==8) $valbonus += $hires[$t][2]*2;
           if ($t<7)
           { 
-            $qualbonus=$valbonus+$town_bonuses[cQ];
+            $qualbonus=$valbonus+$town_bonuses['cQ'];
             $quality = $status[$t][$i][5];
             $valbonus = ((100*$quality)/2);
             if ($t == 4) $inum=20;
@@ -1298,7 +1297,7 @@ for ($t=0; $t<11; $t++)
           if ($t != 99 ) $bizstats[$t][2] .= "<td align='center' class='foottext'>".displayGold($gvalue)."</td>";
           else 
           {
-            $assignAmount = round($ustats['loc_ji'.$location[id]]*$trade_goods[$job_goods[$t][$status[$t][$i][1][0]]][1]*((100+$valbonus)/100));
+            $assignAmount = round($ustats['loc_ji'.$location['id']]*$trade_goods[$job_goods[$t][$status[$t][$i]['1']['0']]]['1']*((100+$valbonus)/100));
             if ($status[$t][$i][1][0] == 3 || $status[$t][$i][1][0] == 4) $assignAmount = displayGold($assignAmount);
             $bizstats[$t][2] .= "<td align='center' class='foottext'>".$assignAmount."</td>";
           }
@@ -1320,17 +1319,17 @@ for ($t=0; $t<11; $t++)
         }
         else // shipping
         {
-          $destloc = mysql_fetch_array(mysql_query("SELECT * FROM Locations WHERE id='".($status[$t][$i][1][2]+1)."'"));
-          $destgoods = unserialize($destloc[shipg]);
+          $destloc = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Locations WHERE id='".($status[$t][$i][1][2]+1)."'"));
+          $destgoods = unserialize($destloc['shipg']);
           $p1_loc = floor($status[$t][$i][1][0]/3);
           $p1_num = $status[$t][$i][1][0]%3;
-          $p1_lval = ($ship_travel[$ship_ports[$location[id]-1]][$p1_loc])/50*$base_good_val;
+          $p1_lval = ($ship_travel[$ship_ports[$location['id']-1]][$p1_loc])/50*$base_good_val;
           $p1_dval = ($ship_travel[$ship_ports[$status[$t][$i][1][2]]][$p1_loc])/50*$base_good_val;
           $p1_ddem = (100-($destgoods[$p1_loc][$p1_num]/5))/100;
     
           $p2_loc = floor($status[$t][$i][1][1]/3);
           $p2_num = $status[$t][$i][1][1]%3;    
-          $p2_lval = ($ship_travel[$ship_ports[$location[id]-1]][$p2_loc])/50*$base_good_val;
+          $p2_lval = ($ship_travel[$ship_ports[$location['id']-1]][$p2_loc])/50*$base_good_val;
           $p2_dval = ($ship_travel[$ship_ports[$status[$t][$i][1][2]]][$p2_loc])/50*$base_good_val;
           $p2_ldem = (100-($shipg[$p2_loc][$p2_num]/5))/100;
           
@@ -1422,8 +1421,8 @@ for ($t=0; $t<11; $t++)
       echo "sdata.".str_replace(" ","_",$tmp_good)." = {};\n";
       echo "sdata.".str_replace(" ","_",$tmp_good).".port = ".$trade_goods[$tmp_good][0].";\n";     
     }
-    $tmploc = mysql_fetch_array(mysql_query("SELECT * FROM Locations WHERE id='".($i+1)."'"));
-    $tmpsg = unserialize($tmploc[shipg]);
+    $tmploc = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Locations WHERE id='".($i+1)."'"));
+    $tmpsg = unserialize($tmploc['shipg']);
     echo "ports[$i] = new Array (6);\n";
     for ($j=0; $j < 8; $j++) // port prod num
     {
@@ -1465,11 +1464,11 @@ for ($t=0; $t<11; $t++)
       }
       if ($i<7)
       {
-        $qualbonus=$valbonus+$town_bonuses[cQ];
+        $qualbonus=$valbonus+$town_bonuses['cQ'];
         $valbonus = 0;
         $qualnum1=$jobs[$i]*5+$qualbonus+1;
         $qualnum2=$jobs[$i]*5+$qualbonus+50;
-        $quals="";
+        $quals=[];
         if (25-$qualnum1>0)
         {
           $quals[0]=25-$qualnum1; 
@@ -1638,7 +1637,7 @@ for ($i=1; $i<14; $i++)
     }
   }
 }
-echo "var locji=".$ustats['loc_ji'.$location[id]].";";
+echo "var locji=".$ustats['loc_ji'.$location['id']].";";
 ?>
   var prod = document.getElementById('product'+sub+'b'+basepro).value;
 
@@ -1664,7 +1663,7 @@ echo "var locji=".$ustats['loc_ji'.$location[id]].";";
 <?php
   for ($i=0; $i<$listsize; ++$i)
   {
-    echo "  inv[".$i."] = new Array('".str_replace(" ","_",$itmlist[$i][base])."','".str_replace(" ","_",$itmlist[$i][prefix])."','".str_replace(" ","_",$itmlist[$i][suffix])."','".$itmlist[$i][cond]."','".$itmlist[$i][id]."');";
+    echo "  inv[".$i."] = new Array('".str_replace(" ","_",$itmlist[$i]['base'])."','".str_replace(" ","_",$itmlist[$i]['prefix'])."','".str_replace(" ","_",$itmlist[$i]['suffix'])."','".$itmlist[$i]['cond']."','".$itmlist[$i]['id']."');";
   }
 ?>
 
@@ -1743,7 +1742,7 @@ include('header.htm');
                       }
                       else
                       {
-                        $imgname= "items/".str_replace(' ','',$status[$t][$i][1][0][base]).".gif";
+                        $imgname= "items/".str_replace(' ','',$status[$t][$i]['1']['0']['base']).".gif";
                         echo "<td width='33%' align='center'><img class='img img-optional' src='".$imgname."'/></td>";
                       }
                     }
@@ -1784,3 +1783,5 @@ $no_show_footer = 0;
 
 include('footer.htm');
 ?>
+
+

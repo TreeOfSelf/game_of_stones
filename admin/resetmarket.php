@@ -17,7 +17,7 @@ else*/
 {
 // Drop Old Table
 $query  = 'DROP TABLE Market';
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 echo "<b>Results</b><br><br>Drop Old Table: $result";
 
 // Create New Table
@@ -35,11 +35,11 @@ $query = 'CREATE TABLE Market( '.
 'location varchar(50), '.
 'PRIMARY KEY (id),'.
 'UNIQUE id (id))';
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 echo "<br>Create New Table: $result";
 }
 // Close Database
-mysql_close($db);
+mysql_close();
 ?>
 
 <br><br>

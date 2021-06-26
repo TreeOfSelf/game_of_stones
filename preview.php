@@ -1,4 +1,12 @@
 <?php
+/* establish a connection with the database */
+include_once("admin/connect.php");
+include_once("admin/userdata.php");
+include_once("admin/locFuncs.php");
+include_once("admin/duelFuncs.php");
+include_once("admin/charFuncs.php");
+include_once("admin/jobFuncs.php");
+
 $title = "Welcome to Game of Stones!";
 include('headerno.htm');
 ?>

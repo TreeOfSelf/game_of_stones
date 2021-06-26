@@ -31,8 +31,8 @@ $timeback = $time - 30;
 $n_title = $_COOKIE['name'];
 $nl_title = $_COOKIE['lastname'];
 
-$myresult = mysql_query("SELECT * FROM Users LEFT JOIN Users_data ON Users.id=Users_data.id WHERE Users.id='$id'");
-$char = mysql_fetch_array($myresult);
+$myresult = mysqli_query($db,"SELECT * FROM Users LEFT JOIN Users_data ON Users.id=Users_data.id WHERE Users.id='$id'");
+$char = mysqli_fetch_array($myresult);
 $gold=$char['gold'];
 if ($gold >= $_GET[cost]) $gold = $gold - $_GET[cost];
 $gold = number_format( $gold );

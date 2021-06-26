@@ -4,36 +4,38 @@
 include_once("admin/connect.php");
 include_once("admin/userdata.php");
 
-$game = mysql_real_escape_string($_GET[game]);
-$buyin = mysql_real_escape_string($_POST[buyin]);
-$dwager = mysql_real_escape_string($_POST[dwager]);
+$game = mysqli_real_escape_string($db,$_GET['game']);
+$buyin = mysqli_real_escape_string($db,$_POST['buyin']);
+$dwager = mysqli_real_escape_string($db,$_POST['dwager']);
 
 $message="<b>Tavern Dice Games</b>";
-$players = 2;
-$dice = '';
-$list = '';
-$name = $char[name]." ".$char[lastname];
+$list = [];
+$name = $char['name']." ".$char['lastname'];
 $p_name = array("One","Two","Three","Four","Five");
-$p_info = '';
+$p_info = [];
 $winning_score = 0;
 $winners = 0;
 $text = '';
 $query = "SELECT * FROM Locations WHERE name='$char[location]'";
-$result = mysql_query($query);
-$location = mysql_fetch_array($result);
-if ($location[curr_dice]) $curr_dice = unserialize($location[curr_dice]);
-if ($location[prev_dice]) $prev_dice = unserialize($location[prev_dice]);
-$wager = $location[wager];
-$gtype = $location[gtype];
+$result = mysqli_query($db,$query);
+$location = mysqli_fetch_array($result);
+if ($location['curr_dice']){ 
+	$curr_dice = unserialize($location['curr_dice']);
+}
+if ($location['prev_dice']){
+	$prev_dice = unserialize($location['prev_dice']);
+}
+$wager = $location['wager'];
+$gtype = $location['gtype'];
 
 
 if ($buyin)
 {
-  if (($wager > $char[gold] || $wager <= 0)) {$message="Why don't you put your money where your mouth is?";} 
+  if (($wager > $char['gold'] || $wager <= 0)) {$message="Why don't you put your money where your mouth is?";} 
   elseif( $dwager != $wager) {$message="The wager amount changed while you held the dice. Toss again.";}
   elseif (!$curr_dice[$name])
   {
-    $newdice = '';
+    $newdice = [];
     for ($x=0; $x<5; $x++) 
     {
       $newdice[$x] = rand(1,6);
@@ -41,14 +43,15 @@ if ($buyin)
     $curr_dice[$name] = $newdice;
     $new_dice = serialize($curr_dice);
     $query = "UPDATE Locations SET curr_dice='$new_dice' WHERE name='$char[location]'"; 
-    $result = mysql_query($query); 
-    $gold = $char[gold]-$wager;
+    $result = mysqli_query($db,$query);
+    $gold = $char['gold']-$wager;
     $query2 = "UPDATE Users SET gold='$gold' WHERE id='$char[id]'";
-    $result2 = mysql_query($query2); 
-    $char[gold]=$gold;
-    $ustats = mysql_fetch_array(mysql_query("SELECT * FROM Users_stats WHERE id='".$id."'"));
+    $result2 = mysqli_query($db,$query2);
+    $char['gold']=$gold;
+    $ustats = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Users_stats WHERE id='".$id."'"));
     $ustats['dice_earn'] -= $wager;
-    $result = mysql_query("UPDATE Users_stats SET dice_earn='".$ustats[dice_earn]."' WHERE id='".$id."'");
+    $result = mysqli_query($db,"UPDATE Users_stats SET dice_earn='".$ustats['dice_earn']."' WHERE id='".$id."'");
+    //updateDice($curr_dice,$wager,$gtype);
   }
   else { $message = "You are already in this game! Wait for the next one to start."; }
 }
@@ -56,7 +59,7 @@ if ($buyin)
 // PREVIOUS RESULTS
 if ($prev_dice)
 {
- $owager = $location[old_wager];
+ $owager = $location['old_wager'];
  // COMPUTE WINNER
  foreach ($prev_dice as $p => $a)
  {
@@ -67,7 +70,7 @@ if ($prev_dice)
   $p_info[$p] = ComputeScore($list[$p],$gtype);
   if ($p_info[$p] > $winning_score) $winning_score=$p_info[$p];
  }
- 
+//  print_r($p_info);exit;
  // DISPLAY
  $text .= "<center><font class='littletext'><b>Previous Game Results:</b></font>";
  $text .= "<font class='littletext' style='font-size: 14px'>";
@@ -115,8 +118,29 @@ include('header.htm');
     ?>
   </td></tr>
   <tr><td><font class='littletext'><b>Wager</b>: <?php echo displayGold($wager);?></td></tr>
-  <tr><td><font class='littletext'><b>Players so far: <?php echo count($curr_dice);?>
-  <tr><td><font class='littletext'><b>Pot size: <?php echo displayGold(count($curr_dice)*$wager);?>  
+  
+  
+  <tr><td><font class='littletext'><b>Players so far: <?php
+  
+  if(is_array($curr_dice)){
+	echo count($curr_dice);
+  }else{
+	echo 0;
+  }
+  
+  ?>
+  <tr><td><font class='littletext'><b>Pot size: <?php
+  
+  if(is_array($curr_dice)){
+	echo displayGold(count($curr_dice)*$wager);
+  }else{
+	echo displayGold(0);
+  }
+  
+  
+  ?>  
+  
+  
  </form>
 </table>
 <br><br><br>

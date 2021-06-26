@@ -6,19 +6,19 @@ include_once("admin/userdata.php");
 include_once("admin/locFuncs.php");
 include_once('map/mapdata/coordinates.inc');
 $loc=$char['location'];
-$no_query=1;
-$message=mysql_real_escape_string($_REQUEST['message']);
-$fromLoc=mysql_real_escape_string($_REQUEST['fromLoc']);
-$toLoc=mysql_real_escape_string($_REQUEST['toLoc']);
-$escortId=mysql_real_escape_string($_REQUEST['escortId']);
-$waysId=mysql_real_escape_string($_REQUEST['waysId']);
+$no_query=1; 
+$message=mysqli_real_escape_string($db,$_REQUEST['message']);
+$fromLoc=mysqli_real_escape_string($db,$_REQUEST['fromLoc']);
+$toLoc=mysqli_real_escape_string($db,$_REQUEST['toLoc']);
+$escortId=mysqli_real_escape_string($db,$_REQUEST['escortId']);
+$waysId=mysqli_real_escape_string($db,$_REQUEST['waysId']);
 
 $surrounding_area = $map_data[$loc]; 
-$clean_loc = str_replace("&#39;", "", $char[location]);
+$clean_loc = str_replace("&#39;", "", $char['location']);
 if ($fromLoc == $clean_loc && (($toLoc >= 0 && $toLoc < 4) || $escortId > 0 || $waysId > 0)) 
 {
-  $result3 = mysql_query("SELECT * FROM Hordes WHERE done='0' AND location='$char[location]'");
-  $numhorde = mysql_num_rows($result3);
+  $result3 = mysqli_query($db,"SELECT * FROM Hordes WHERE done='0' AND location='$char[location]'");
+  $numhorde = mysqli_num_rows($result3);
   // SET TRAVELING
   if ($travel_mode[$char['travelmode']][1]<=$char['feedneed']) $char['travelmode']=0; // WALK IF HORSE IS TOO HUNGRY
   $newstamina = $char['stamina'];
@@ -33,39 +33,40 @@ if ($fromLoc == $clean_loc && (($toLoc >= 0 && $toLoc < 4) || $escortId > 0 || $
   }
   else if ($escortId > 0)
   { 
-    $myquests= unserialize($char[quests]);
-    $quest = mysql_fetch_array(mysql_query("SELECT * FROM Quests WHERE id='$escortId'"));
-    $goals = unserialize($quest[goals]);
-    $route = mysql_fetch_array(mysql_query("SELECT * FROM Routes WHERE id='".$goals[1]."'"));
-    $rpath = unserialize($route[path]);
+    $myquests= unserialize($char['quests']);
+    $quest = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Quests WHERE id='$escortId'"));
+    $goals = unserialize($quest['goals']);
+    $route = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Routes WHERE id='".$goals[1]."'"));
+    $rpath = unserialize($route['path']);
     $loc = $rpath[$myquests[$escortId][1]+1];
     $myquests[$escortId][1] += 1;
     $myquests[$escortId][2] = 0;
     $myquests2 = serialize($myquests);
-    $char[quests] = $myquests2;
-    mysql_query("UPDATE Users_data SET quests='".$myquests2."' WHERE id='$id'");
+    $char['quests'] = $myquests2;
+    mysqli_query($db,"UPDATE Users_data SET quests='".$myquests2."' WHERE id='$id'");
+	
   }
-  else if ($waysId > 0 && $waysId == $char[route])
+  else if ($waysId > 0 && $waysId == $char['route'])
   {
-    $route = mysql_fetch_array(mysql_query("SELECT * FROM Routes WHERE id='".$waysId."'"));
-    $rpath = unserialize($route[path]);
-    $loc = $rpath[$char[routepoint]+1];
-    $char[routepoint] = $char[routepoint]+1;
-    if ($char[routepoint] >= $route[length]-1)
+    $route = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Routes WHERE id='".$waysId."'"));
+    $rpath = unserialize($route['path']);
+    $loc = $rpath[$char['routepoint']+1];
+    $char['routepoint'] = $char['routepoint']+1;
+    if ($char['routepoint'] >= $route['length']-1)
     {
-      mysql_query("UPDATE Users SET route='0', routepoint='0' WHERE id='$id'");
-      mysql_query("UPDATE Users_stats SET ways_use= ways_use + 1 WHERE id='$id'");
+      mysqli_query($db,"UPDATE Users SET route='0', routepoint='0' WHERE id='$id'");
+      mysqli_query($db,"UPDATE Users_stats SET ways_use= ways_use + 1 WHERE id='$id'");
     }
     else
     {
-      mysql_query("UPDATE Users SET routepoint='".$char[routepoint]."' WHERE id='$id'");
+      mysqli_query($db,"UPDATE Users SET routepoint='".$char['routepoint']."' WHERE id='$id'");
     }
   }
   
-  if ($loc != $char[location])
+  if ($loc != $char['location'])
   {
-    $char[location] = $loc;
-    mysql_query("UPDATE Users SET stamina='".$newstamina."', feedneed='".$char['feedneed']."', location='$loc' WHERE id='$char[id]'");
+    $char['location'] = $loc;
+    mysqli_query($db,"UPDATE Users SET stamina='".$newstamina."', feedneed='".$char['feedneed']."', location='$loc' WHERE id='$char[id]'");
   }
 }
 

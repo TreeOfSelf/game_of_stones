@@ -18,8 +18,8 @@ include_once("admin/userdata.php");
 
 $wikilink = "Game+Settings";
 
-$avatar=mysql_real_escape_string($_POST['newav']);
-$newtext=mysql_real_escape_string($_POST['aboutchar']);
+$avatar=mysqli_real_escape_string($db,$_POST['newav']);
+$newtext=mysqli_real_escape_string($db,$_POST['aboutchar']);
 $id=$char['id'];
 $message="Edit character settings";
 
@@ -32,7 +32,7 @@ if ($_POST['changer'])
   if ( $avatar && strlen($avatar) < 200 && (preg_match("/jpg\Z/i", $avatar) || preg_match("/gif\Z/i", $avatar)))
   {
     $query = "UPDATE Users SET avatar='$avatar' WHERE id='$id'";
-    $result = mysql_query($query);
+    $result = mysqli_query($db,$query);
     $char['avatar']=$avatar;
   }
   else 
@@ -45,7 +45,7 @@ if ($_POST['changer'])
     {
       $char['avatar']='';
       $query = "UPDATE Users SET avatar='' WHERE id=$id";
-      $result = mysql_query($query);
+      $result = mysqli_query($db,$query);
     }
   }
 }
@@ -57,15 +57,15 @@ if ($_POST['killer'])
   if ($_POST['killmail'] == $char['email'] && $killpass == $char['password'])
   {
     // TIE UP SOCIETY STUFF
-    $soc_name = $char[society];
+    $soc_name = $char['society'];
     $query = "SELECT * FROM Soc WHERE name='$char[society]' ";
-    $result = mysql_query($query);
-    $society = mysql_fetch_array($result);
+    $result = mysqli_query($db,$query);
+    $society = mysqli_fetch_array($result);
 
-    if ($society[id])
+    if ($society['id'])
     {
       // CHECK IF LEADER CHANGES
-      if (strtolower($name) == strtolower($society[leader]) && strtolower($lastname) == strtolower($society[leaderlast]) )
+      if (strtolower($name) == strtolower($society['leader']) && strtolower($lastname) == strtolower($society['leaderlast']) )
       {
         $message = $user['name'];
         if ($society['subs']>0)
@@ -85,79 +85,79 @@ if ($_POST['killer'])
             if ($c_n == $new_id)
             {
               $queryb = "UPDATE Soc SET leader='$c_s[0]', leaderlast='$c_s[1]' WHERE name='$soc_name'";
-              $result = mysql_query($queryb);
+              $result = mysqli_query($db,$queryb);
               --$subs;
               $subleaders[$new_id][0]=0;
               $subleaders=delete_blank($subleaders);
   
               if ($subs > 0)
               {
-                $query = "UPDATE Soc SET subleaders='".serialize($subleaders)."', subs='$subs' WHERE name='".$char[society]."'";
+                $query = "UPDATE Soc SET subleaders='".serialize($subleaders)."', subs='$subs' WHERE name='".$char['society']."'";
               }
               else
               {
-                $query = "UPDATE Soc SET subleaders='', subs='$subs' WHERE name='".$char[society]."'";
+                $query = "UPDATE Soc SET subleaders='', subs='$subs' WHERE name='".$char['society']."'";
               }
-              $result = mysql_query($query);
+              $result = mysqli_query($db,$query);
             }
           }
         }  
         else 
         {
-          $user = mysql_fetch_array(mysql_query("SELECT * FROM Users WHERE society='".$char['society']."' ORDER BY exp DESC LIMIT 1"));
-          mysql_query("UPDATE Soc SET leader='".$user['name']."', leaderlast='".$user['lastname']."' WHERE name='".$char['society']."'");
+          $user = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Users WHERE society='".$char['society']."' ORDER BY exp DESC LIMIT 1"));
+          mysqli_query($db,"UPDATE Soc SET leader='".$user['name']."', leaderlast='".$user['lastname']."' WHERE name='".$char['society']."'");
         }
       }  
       // return all vault items
-      $vid = 10000+$society[id];
-      $vresult = mysql_query("SELECT id, owner, society FROM Items WHERE owner='$char[id]' AND society > '0' AND society < '10000'");
-      while ($sitem=mysql_fetch_array($vresult))
+      $vid = 10000+$society['id'];
+      $vresult = mysqli_query($db,"SELECT id, owner, society FROM Items WHERE owner='$char[id]' AND society > '0' AND society < '10000'");
+      while ($sitem=mysqli_fetch_array($vresult))
       {
-        $result = mysql_query("UPDATE Items SET owner='".$vid."', last_moved='".time()."', istatus='0' WHERE id='".$sitem[id]."'");
+        $result = mysqli_query($db,"UPDATE Items SET owner='".$vid."', last_moved='".time()."', istatus='0' WHERE id='".$sitem['id']."'");
       }    
 
       // ADD TO NUMBER OF MEMBERS
-      $memnumb = $society[members] - 1;
+      $memnumb = $society['members'] - 1;
       $query = "UPDATE Soc SET members='$memnumb' WHERE name='$soc_name' ";
-      $result = mysql_query($query);
+      $result = mysqli_query($db,$query);
 
       if ($memnumb <= 0)
       {
         // IF THERE IS NO ONE LEFT IN THE CLAN THEN DELETE IT
-        $stance = unserialize($society[stance]);
+        $stance = unserialize($society['stance']);
         foreach ($stance as $c_n => $c_s)
         {
           if ($c_s != 0)
           {
             $soc_name2 = str_replace("_"," ",$c_n);
-            $society2 = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='$soc_name2' "));
-            $stance2 = unserialize($society2[stance]);
+            $society2 = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='$soc_name2' "));
+            $stance2 = unserialize($society2['stance']);
             $stance2[str_replace(" ","_",$soc_name)] = 0;
             $changed_stance2 = serialize($stance2);
-            mysql_query("UPDATE Soc SET stance='$changed_stance2' WHERE name='$society2[name]' ");
+            mysqli_query($db,"UPDATE Soc SET stance='$changed_stance2' WHERE name='$society2[name]' ");
           }
         }
 
         $query = "DELETE FROM Soc WHERE name='$soc_name'";
-        $result5 = mysql_query($query, $db);
+        $result5 = mysqli_query($db,$query);
       }
     }
     
     // Delete any businesses
-    $result4 = mysql_query("DELETE FROM Profs WHERE owner='$char[id]'");   
+    $result4 = mysqli_query($db,"DELETE FROM Profs WHERE owner='$char[id]'");   
     
     // Delete any estates
-    $result4 = mysql_query("DELETE FROM Estates WHERE owner='$char[id]'");  
+    $result4 = mysqli_query($db,"DELETE FROM Estates WHERE owner='$char[id]'");  
        
     // Send a message to The Creator 
-    $tc = mysql_fetch_array(mysql_query("SELECT id, name, lastname FROM Users WHERE name='The' AND lastname='Creator' "));
-    $cid = $tc[id];
-    $notesub = "OB: ".$char[name]." ".$char[lastname];
-    $note = "Born: ".$char[born]."<br/>";
-    $note .= "ID: ".$char[id]."<br/>";
-    $note .= "Clan: ".$char[society]."<br/>";
+    $tc = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, lastname FROM Users WHERE name='The' AND lastname='Creator' "));
+    $cid = $tc['id'];
+    $notesub = "OB: ".$char['name']." ".$char['lastname'];
+    $note = "Born: ".$char['born']."<br/>";
+    $note .= "ID: ".$char['id']."<br/>";
+    $note .= "Clan: ".$char['society']."<br/>";
     $note .= "IPs:<br/>";
-    $charip = unserialize($char[ip]); 
+    $charip = unserialize($char['ip']); 
     for ($i = 0; $i < count($charip); $i++)
     {
       $note .= $charip[$i]."<br/>";
@@ -169,18 +169,18 @@ if ($_POST['killer'])
       $note .= $aname."<br/>";
     }
     
-    $result = mysql_query("INSERT INTO Notes (from_id,to_id, del_from,del_to,type,root,sent,        cc,subject,   body,   special) 
+    $result = mysqli_query($db,"INSERT INTO Notes (from_id,to_id, del_from,del_to,type,root,sent,        cc,subject,   body,   special) 
                                       VALUES ('$cid', '$cid','0',     '0',   '0', '0', '".time()."','','$notesub','$note','')");
-    mysql_query("UPDATE Users SET lastmsg='".time()."' WHERE id='$cid'");
+    mysqli_query($db,"UPDATE Users SET lastmsg='".time()."' WHERE id='$cid'");
     
     // Take Care of IP stuff
-    $ips = unserialize($char[ip]); 
-    $fullname = $char[name]."_".$char[lastname];
+    $ips = unserialize($char['ip']); 
+    $fullname = $char['name']."_".$char['lastname'];
     for ($i = 0; $i < count($ips); $i++)
     {
-      $result = mysql_query("SELECT * FROM IP_logs WHERE addy='$ips[$i]'");
-      $ip_log = mysql_fetch_array($result);
-      $users= unserialize($ip_log[users]);
+      $result = mysqli_query($db,"SELECT * FROM IP_logs WHERE addy='$ips[$i]'");
+      $ip_log = mysqli_fetch_array($result);
+      $users= unserialize($ip_log['users']);
       for ($j=0; $j < count($users); $j++)
       {
         if ($users[$j] == $fullname)
@@ -195,15 +195,15 @@ if ($_POST['killer'])
       }
       $ipcount = count($users);
       $ip_users2 = serialize($users);
-      mysql_query("UPDATE IP_logs SET users='$ip_users2', num='$ipcount' WHERE addy='$ips[$i]'");
+      mysqli_query($db,"UPDATE IP_logs SET users='$ip_users2', num='$ipcount' WHERE addy='$ips[$i]'");
     }
     
     //Finish 'em off!
-    $id = $char[id];
+    $id = $char['id'];
     $query = "DELETE FROM Users_data WHERE id='$id'";
-    $result5 = mysql_query($query, $db);
+    $result5 = mysqli_query($db,$query);
     $query = "DELETE FROM Users WHERE id='$id'";
-    $result5 = mysql_query($query, $db); 
+    $result5 = mysqli_query($db,$query);
     // Leave Users_Stats around just in case...
          
     $message = "Bang! You're dead!";
@@ -217,7 +217,7 @@ if ($_POST['killer'])
 
 if ($_POST['password'] && $_POST['passworda'] && $_POST['passwordb'])
 {
-$char = mysql_fetch_array(mysql_query("SELECT * FROM Users WHERE id='$id'"));
+$char = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Users WHERE id='$id'"));
 $pass = $char['password'];
 
 if ($_POST['passworda'] == $_POST['passwordb'] && strlen($_POST['passworda']) > 4 && strlen($_POST['passworda']) < 11 && sha1($_POST['password']) == $pass)
@@ -226,7 +226,7 @@ $pass = $_POST['passworda'];
 $password = sha1($_POST['passworda']);
 setcookie("password", "$password", time()+99999999, "/");
 $query = "UPDATE Users SET password='$password' WHERE id='$id' ";
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 }
 else $message = "Problem with the password";
 }
@@ -242,7 +242,7 @@ if (strlen($newtext) < 501)
   {
     $char['about']=$newtext;
     $query = "UPDATE Users_data SET about='$newtext' WHERE id='$id'";
-    $result = mysql_query($query);
+    $result = mysqli_query($db,$query);
   }
   //else $message = "Some punctuation marks are not supported. Please remove them and try again.";
 }

@@ -9,23 +9,23 @@ else $is_town=0;
 
 $wikilink = "Rumors";
 
-$sealToCity=mysql_real_escape_string($_POST['sealCity']);
-$hornTarget=mysql_real_escape_string($_POST['hornTarget']);
-$tab = mysql_real_escape_string($_GET['tab']);
-$curHorn = mysql_fetch_array( mysql_query("SELECT * FROM Items WHERE type='-1' ORDER BY last_moved" ));
+$sealToCity=mysqli_real_escape_string($db,$_POST['sealCity']);
+$hornTarget=mysqli_real_escape_string($db,$_POST['hornTarget']);
+$tab = mysqli_real_escape_string($db,$_GET['tab']);
+$curHorn = mysqli_fetch_array( mysqli_query($db,"SELECT * FROM Items WHERE type='-1' ORDER BY last_moved" ));
 
 if ($sealToCity != "" && $sealToCity > 0)
 {
   $soc_name = $char[society];
-  $loc =  mysql_fetch_array(mysql_query("SELECT id, name, ruler FROM Locations WHERE id='".$sealToCity."' AND ruler='".$soc_name."'"));
-  $mySeal = mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE type=0 AND owner='$char[id]'"));
+  $loc =  mysqli_fetch_array(mysqli_query($db,"SELECT id, name, ruler FROM Locations WHERE id='".$sealToCity."' AND ruler='".$soc_name."'"));
+  $mySeal = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE type=0 AND owner='$char[id]'"));
   if ($mySeal[id])
   {
     if ($loc[id])
     {
       $locid = 50000 + $loc[id];
       $myTime = time();
-      mysql_query("UPDATE Items SET owner = '".$locid."', last_moved='".$myTime."' WHERE id='".$mySeal[id]."' ");
+      mysqli_query($db,"UPDATE Items SET owner = '".$locid."', last_moved='".$myTime."' WHERE id='".$mySeal[id]."' ");
       $message = "Seal added to $loc[name]!";
     }
     else
@@ -37,7 +37,7 @@ if ($sealToCity != "" && $sealToCity > 0)
 
 if ($hornTarget != "" && $hornTarget > 0)
 {
-  $myHorde = mysql_fetch_array( mysql_query("SELECT id, npcs, done, ends, location FROM Hordes WHERE target='$char[location]' AND type='1' ORDER BY ends DESC LIMIT 1"));
+  $myHorde = mysqli_fetch_array( mysqli_query($db,"SELECT id, npcs, done, ends, location FROM Hordes WHERE target='$char[location]' AND type='1' ORDER BY ends DESC LIMIT 1"));
   
   if ($myHorde[id])
   {
@@ -50,22 +50,22 @@ if ($hornTarget != "" && $hornTarget > 0)
       $sni = serialize($npc_info);
       $alignMod = 100;
       if ($hornTarget == 2) $alignMod = -100;
-      mysql_query("UPDATE Users SET align = align + '".$alignMod."' WHERE id='".$char[id]."'");
-      mysql_query("UPDATE Hordes SET npcs='".$sni."' WHERE id='".$myHorde[id]."'");
-      mysql_query("DELETE FROM Items WHERE id='".$curHorn[id]."'");
+      mysqli_query($db,"UPDATE Users SET align = align + '".$alignMod."' WHERE id='".$char[id]."'");
+      mysqli_query($db,"UPDATE Hordes SET npcs='".$sni."' WHERE id='".$myHorde[id]."'");
+      mysqli_query($db,"DELETE FROM Items WHERE id='".$curHorn[id]."'");
       
       // Update City Rumors
       $groupName = "horde";
       if ($hornTarget == 2) $groupName = "army";
       $myMsg = "<".$char[location]."_".time().">` The Horn of Valere has sounded! ";
       $myMsg .= "The Heroes of the Horn dealt ".$hornDmg." to the ".$groupName."!|";
-      $cityRumors = mysql_fetch_array(mysql_query("SELECT * FROM messages WHERE id='50000'"));
+      $cityRumors = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM messages WHERE id='50000'"));
       $rumorMessages = unserialize($cityRumors[message]);
       $numRumors = count($rumorMessages);
       $rumorMessages[$numRumors] = $myMsg;
       $rumorMessages = pruneMsgs($rumorMessages, 50);
       $newRumors = serialize($rumorMessages);
-      $resultR = mysql_query("UPDATE messages SET message='$newRumors' WHERE id='50000'"); 
+      $resultR = mysqli_query($db,"UPDATE messages SET message='$newRumors' WHERE id='50000'"); 
       
       $message = "The Heroes of the Horn deal $hornDmg to the ".$npc_info[$hornTarget-1][0]."!";
     }
@@ -99,16 +99,16 @@ include('header.htm');
 if ($is_town)
 {
   $style="style='border-width: 0px; border-bottom: 1px solid #333333'";
-  $numSeals=mysql_num_rows(mysql_query("SELECT id FROM Items WHERE type=0"));
-  $numHorn=mysql_num_rows(mysql_query("SELECT id FROM Items WHERE type='-1'"));
+  $numSeals=mysqli_num_rows(mysqli_query($db,"SELECT id FROM Items WHERE type=0"));
+  $numHorn=mysqli_num_rows(mysqli_query($db,"SELECT id FROM Items WHERE type='-1'"));
   $sealList[0]='';
   $sealNum=1;
-  $result = mysql_query("SELECT * FROM Items WHERE type=0 ORDER BY last_moved");  
-  while ($tmpSeal = mysql_fetch_array( $result ) )
+  $result = mysqli_query($db,"SELECT * FROM Items WHERE type=0 ORDER BY last_moved");  
+  while ($tmpSeal = mysqli_fetch_array( $result ) )
   {
     $sealList[$sealNum++] = $tmpSeal;
   }
-  $curHorn = mysql_fetch_array( mysql_query("SELECT * FROM Items WHERE type='-1' ORDER BY last_moved" ));
+  $curHorn = mysqli_fetch_array( mysqli_query($db,"SELECT * FROM Items WHERE type='-1' ORDER BY last_moved" ));
 
 ?>
   <div class="row solid-back">
@@ -130,11 +130,11 @@ if ($is_town)
             <div class='row'>
               <div class='col-sm-12'>
               <?php
-                $cityRumors = mysql_fetch_array(mysql_query("SELECT * FROM messages WHERE id='50000'"));
+                $cityRumors = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM messages WHERE id='50000'"));
                 // If LB is coming/started, put a countdown. Numbers tied to admin/lastbattle.php
-                if ($cityRumors[checktime] > 0)
+                if ($cityRumors['checktime'] > 0)
                 {
-                  $minFromBreak = intval(((time()/60)-$cityRumors[checktime]*60));
+                  $minFromBreak = intval(((time()/60)-$cityRumors['checktime']*60));
                   if ($minFromBreak < 43200) // 720 hours after first seal breaks LB starts
                   {
                     echo "<b>The Last Battle begins in ".displayTime(43200-$minFromBreak,0,1)."!</b><br/><br/>" ;
@@ -158,8 +158,8 @@ if ($is_town)
                   </tr>
                   <?php
                     $hasHorn = 0;
-                    $topchar = mysql_fetch_array(mysql_query("SELECT id, level FROM Users WHERE 1 ORDER BY level DESC, exp DESC LIMIT 1"));
-                    $availHorn = getMaxHorn($topchar[level]);
+                    $topchar = mysqli_fetch_array(mysqli_query($db,"SELECT id, level FROM Users WHERE 1 ORDER BY level DESC, exp DESC LIMIT 1"));
+                    $availHorn = getMaxHorn($topchar['level']);
                   ?>
                   <tr>
                     <td align='center'>Horn</td>
@@ -167,8 +167,8 @@ if ($is_town)
                     if ($numHorn > 0 )
                     {
                       // Display Horn Info
-                      $owner = mysql_fetch_array(mysql_query("SELECT id, name, lastname, goodevil, location FROM Users WHERE id='".$curHorn[owner]."'"));
-                      if ($owner['id'] == $char[id])
+                      $owner = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, lastname, goodevil, location FROM Users WHERE id='".$curHorn['owner']."'"));
+                      if ($owner['id'] == $char['id'])
                       {
                         $classn="btn-info";
                         $hasHorn = 1;
@@ -176,9 +176,9 @@ if ($is_town)
                       else $classn="btn-primary";
                         
                       $owner_name = "<a class='btn btn-xm btn-block btn-wrap ".$classn."' href='bio.php?name=".$owner['name']."&last=".$owner['lastname']."'>".$owner['name']." ".$owner['lastname']."</a>";
-                      $loc_name = str_replace('-ap-','&#39;',$owner[location]);
+                      $loc_name = str_replace('-ap-','&#39;',$owner['location']);
                       
-                      $heldTime = intval((time()-$curHorn[last_moved])/60);
+                      $heldTime = intval((time()-$curHorn['last_moved'])/60);
                   ?>
                     <td align='center'><b><?php echo $owner_name;?></b></td>
                     <td align='center'><b><?php echo $loc_name; ?></b></td>
@@ -204,7 +204,7 @@ if ($is_town)
                   <?php
                     $hasSeal = 0;
                     $heldFor = 0;
-                    $availSeals = getMaxSeals($topchar[level]);
+                    $availSeals = getMaxSeals($topchar['level']);
 
                     for ($s = 1; $s <= 7; $s++)
                     {
@@ -215,10 +215,10 @@ if ($is_town)
                       if ($numSeals >= $s )
                       {
                         // Display Seal Info
-                        if ($sealList[$s][owner] < 50000)
+                        if ($sealList[$s]['owner'] < 50000)
                         {
                           // Seal held by player
-                          $owner = mysql_fetch_array(mysql_query("SELECT id, name, lastname, goodevil, location FROM Users WHERE id='".$sealList[$s][owner]."'"));
+                          $owner = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, lastname, goodevil, location FROM Users WHERE id='".$sealList[$s][owner]."'"));
                           if ($owner['id'] == $char[id])
                           {
                             $classn="btn-info";
@@ -229,7 +229,7 @@ if ($is_town)
                           $owner_name = "<a class='btn btn-xs btn-block btn-wrap ".$classn."'  href='bio.php?name=".$owner['name']."&last=".$owner['lastname']."'>".$owner['name']." ".$owner['lastname']."</a>";
                           $loc_name = str_replace('-ap-','&#39;',$owner[location]);
                         }
-                        else if ($sealList[$s][owner] == 99999)
+                        else if ($sealList[$s]['owner'] == 99999)
                         {
                           $classn="btn-default";
                           $owner_name = "<a class='btn btn-xm btn-block btn-wrap ".$classn."' href='#'>No One</a>";                          
@@ -238,13 +238,13 @@ if ($is_town)
                         else
                         {
                           // Seal held by a city
-                          $locid = $sealList[$s][owner] - 50000;
-                          $owner = mysql_fetch_array(mysql_query("SELECT id, name, ruler FROM Locations WHERE id='".$locid."'"));
+                          $locid = $sealList[$s]['owner'] - 50000;
+                          $owner = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, ruler FROM Locations WHERE id='".$locid."'"));
                           $classn="btn-warning";
-                          $owner_name = "<a class='btn btn-xm btn-block btn-wrap ".$classn."' href=\"joinclan.php?name=".$owner[ruler]."\">".$owner[ruler]."</a>";
-                          $loc_name = $owner[name];
+                          $owner_name = "<a class='btn btn-xm btn-block btn-wrap ".$classn."' href=\"joinclan.php?name=".$owner['ruler']."\">".$owner['ruler']."</a>";
+                          $loc_name = $owner['name'];
                         }        
-                        $heldTime = intval((time()-$sealList[$s][last_moved])/60);
+                        $heldTime = intval((time()-$sealList[$s]['last_moved'])/60);
                     ?>
                     <td align='center'><b><?php echo $owner_name;?></b></td>
                     <td align='center'><b><?php echo $loc_name; ?></b></td>
@@ -274,8 +274,8 @@ if ($is_town)
     <form id="hornForm" name="hornForm" action="rumors.php" method="post">
 <?php
       
-      $result3 = mysql_query("SELECT id, npcs, done, ends, location FROM Hordes WHERE target='$char[location]' AND type='1' AND done='0' ORDER BY ends DESC LIMIT 1");
-      while ($myHorde = mysql_fetch_array( $result3 ) )
+      $result3 = mysqli_query($db,"SELECT id, npcs, done, ends, location FROM Hordes WHERE target='$char[location]' AND type='1' AND done='0' ORDER BY ends DESC LIMIT 1");
+      while ($myHorde = mysqli_fetch_array( $result3 ) )
       {
         if ($hasHorn)
         {
@@ -302,19 +302,19 @@ if ($is_town)
 
     <form id="sealForm" name="sealForm" action="rumors.php" method="post">
 <?php
-      $soc_name = $char[society];
-      $society = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='$soc_name' "));
+      $soc_name = $char['society'];
+      $society = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='$soc_name' "));
       if ($hasSeal && $heldFor > 60*24 && $society[id])
       {
         echo "Add Seal to Ruled City: ";
 ?>
         <select name="sealCity" size="1" class="form-control gos-form"><option value="0">-Select-</option>
 <?php 
-        $result = mysql_query("SELECT id, name FROM Locations WHERE ruler='".$society[name]."'");  
-        while ($ruledCity = mysql_fetch_array( $result ) )
+        $result = mysqli_query($db,"SELECT id, name FROM Locations WHERE ruler='".$society[name]."'");  
+        while ($ruledCity = mysqli_fetch_array( $result ) )
         {
           $sealid = $ruledCity[id]+50000;
-          $hasSeal = mysql_num_rows(mysql_query("SELECT id FROM Items WHERE type=0 && owner='$sealid'"));
+          $hasSeal = mysqli_num_rows(mysqli_query($db,"SELECT id FROM Items WHERE type=0 && owner='$sealid'"));
           if (!$hasSeal)
           {
             echo "<option value='".$ruledCity[id]."'>".$ruledCity[name]."</option>";

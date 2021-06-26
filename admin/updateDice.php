@@ -4,9 +4,9 @@ include_once("config.php");
 include_once('map/mapdata/coordinates.inc');
 include_once('displayFuncs.php');
 
-$result = mysql_query("SELECT * FROM Locations");
+$result = mysqli_query($db,"SELECT * FROM Locations");
 
-while ( $listloc = mysql_fetch_array( $result ) )
+while ( $listloc = mysqli_fetch_array( $result ) )
 {
   if (time() - ($listloc[lastdice]*60) >= 60)
   {
@@ -17,7 +17,7 @@ while ( $listloc = mysql_fetch_array( $result ) )
       updateDice($curr_dice, $listloc[wager], $listloc[gtype]);
       $listloc[prev_dice] = serialize($curr_dice);
     }
-    $newdice = '';
+    $newdice = [];
     for ($x=0; $x<5; $x++) 
     {
       $newdice[$x] = rand(1,6);
@@ -27,7 +27,7 @@ while ( $listloc = mysql_fetch_array( $result ) )
     $listloc[old_wager]=$listloc[wager];
     $listloc[wager] = pow(10, rand($listloc[minw],$listloc[maxw]));
   
-    mysql_query("UPDATE Locations SET curr_dice='$curr_dice', prev_dice='$listloc[prev_dice]', wager='$listloc[wager]', old_wager='$listloc[old_wager]', lastdice='$listloc[lastdice]' WHERE id='$listloc[id]'");
+    mysqli_query($db,"UPDATE Locations SET curr_dice='$curr_dice', prev_dice='$listloc[prev_dice]', wager='$listloc[wager]', old_wager='$listloc[old_wager]', lastdice='$listloc[lastdice]' WHERE id='$listloc[id]'");
   }
 }
 ?>

@@ -12,19 +12,22 @@ if ($location_array[$char['location']][2]) $is_town=1;
 $query='';
 if ($is_town)
 {
-  $query = "target='".$char[location]."'";
+  $query = "target='".$char['location']."'";
 }
 else
 {
-  $query = "location='".$char[location]."'";
+  $query = "location='".$char['location']."'";
 }
 
 
 
-$result3 = mysql_query("SELECT * FROM Hordes WHERE ".$query." ORDER BY ends DESC LIMIT 1");
-$myHorde = mysql_fetch_array( $result3 );
+$result3 = mysqli_query($db,"SELECT * FROM Hordes WHERE ".$query." ORDER BY ends DESC LIMIT 1");
+$myHorde = mysqli_fetch_array( $result3 );
 
-  $npc_info = unserialize($myHorde[npcs]);
+
+  $npc_info = unserialize($myHorde['npcs']);
+  
+  
   $hordemsg = "";
   for ($n=0; $n < count($npc_info); $n++)
   {
@@ -32,50 +35,50 @@ $myHorde = mysql_fetch_array( $result3 );
     $hordemsg .= $horde_types[$npc_info[$n][0]]." of ".$npc_info[$n][0]."s";
   }
 
-  $stime = intval((time()-$myHorde[starts]*3600)/60);
+  $stime = intval((time()-$myHorde['starts']*3600)/60);
   $ago = 1;
   $atext = "Attack Time";
   
   // Horde not done
-  if ($myHorde[done] == 0)
+  if ($myHorde['done'] == 0)
   {
-    $atime = intval(($myHorde[ends]*3600-time())/60);
+    $atime = intval(($myHorde['ends']*3600-time())/60);
     $ago=0;
   }
   // Horde defeated
-  elseif ($myHorde[defeated])
+  elseif ($myHorde['defeated'])
   {
-    $atime = intval((time()-$myHorde[defeated])/60);  
+    $atime = intval((time()-$myHorde['defeated'])/60);  
     $atext = "Defeated";
   }
   // Horde ended
-  elseif ($myHorde[ends]*3600 <= time())
+  elseif ($myHorde['ends']*3600 <= time())
   {
-    $atime = intval((time()-$myHorde[ends]*3600)/60);
+    $atime = intval((time()-$myHorde['ends']*3600)/60);
     $atext = "Attacked";
   }
   // We really shouldn't get here...
   else 
   {
-    $atime = intval((time()-$myHorde[ends]*3600)/60);
+    $atime = intval((time()-$myHorde['ends']*3600)/60);
   }
   
   $hstatus = "Defeated";
-  if ($myHorde[done]== 0)
+  if ($myHorde['done']== 0)
   {
     $hstatus = "Gathering";
   }
-  elseif ($myHorde[done]== 3)
+  elseif ($myHorde['done']== 3)
   {
     $hstatus = "Victorious";
   }
   
-  $dchamp='';
-  $wchamp='';
-  $fchamp='';
-  if ($myHorde[users])
+  $dchamp=[];
+  $wchamp=[];
+  $fchamp=[];
+  if ($myHorde['users'])
   {
-    $husers = unserialize($myHorde[users]);
+    $husers = unserialize($myHorde['users']);
     foreach ($husers as $uid => $udata)
     {
       $uhwins[$uid]=$udata[0];
@@ -151,27 +154,27 @@ $myHorde = mysql_fetch_array( $result3 );
   
     if ($dhid)
     {
-      $dchamp[0] = mysql_fetch_array(mysql_query("SELECT id, name, lastname FROM Users WHERE id='".$dhid."'"));
+      $dchamp[0] = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, lastname FROM Users WHERE id='".$dhid."'"));
     }
     if ($whid)
     {
-      $wchamp[0] = mysql_fetch_array(mysql_query("SELECT id, name, lastname FROM Users WHERE id='".$whid."'"));
+      $wchamp[0] = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, lastname FROM Users WHERE id='".$whid."'"));
     }
     if ($daid)
     {
-      $dchamp[1] = mysql_fetch_array(mysql_query("SELECT id, name, lastname FROM Users WHERE id='".$daid."'"));
+      $dchamp[1] = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, lastname FROM Users WHERE id='".$daid."'"));
     }
     if ($waid)
     {
-      $wchamp[1] = mysql_fetch_array(mysql_query("SELECT id, name, lastname FROM Users WHERE id='".$waid."'"));
+      $wchamp[1] = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, lastname FROM Users WHERE id='".$waid."'"));
     }     
-    if ($myHorde[finisher])
+    if ($myHorde['finisher'])
     {
-      $fchamp[0] = mysql_fetch_array(mysql_query("SELECT id, name, lastname FROM Users WHERE id='".$myHorde[finisher]."'"));
+      $fchamp['0'] = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, lastname FROM Users WHERE id='".$myHorde['finisher']."'"));
     }
-    if ($myHorde[afinisher])
+    if ($myHorde['afinisher'])
     {
-      $fchamp[1] = mysql_fetch_array(mysql_query("SELECT id, name, lastname FROM Users WHERE id='".$myHorde[afinisher]."'"));
+      $fchamp[1] = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, lastname FROM Users WHERE id='".$myHorde['afinisher']."'"));
     }
   }
 $message = $hordemsg;  
@@ -192,11 +195,11 @@ include('header.htm');
               </tr>
               <tr>
                 <td align='right' width='50%'>Gathered in: </td>
-                <td><?php echo str_replace('-ap-','&#39;',$myHorde[location]);?></td>
+                <td><?php echo str_replace('-ap-','&#39;',$myHorde['location']);?></td>
               </tr>
               <tr>
                 <td align='right' width='50%'>Targeting: </td>
-                <td><?php echo str_replace('-ap-','&#39;',$myHorde[target]);?></td>
+                <td><?php echo str_replace('-ap-','&#39;',$myHorde['target']);?></td>
               </tr>
               <tr>
                 <td align='right' width='50%'>Start Time: </td>
@@ -229,7 +232,7 @@ include('header.htm');
                 <td align='right' width='50%'>Most Damage: </td>
                 <td>
                   <?php 
-                    if ($dchamp[0]) { echo $dchamp[0][name]." ".$dchamp[0][lastname]." (".$uhdmg[$dhid].")"; }
+                    if ($dchamp['0']) { echo $dchamp['0']['name']." ".$dchamp['0']['lastname']." (".$uhdmg[$dhid].")"; }
                     else { echo "No one"; }
                   ?>
                 </td>
@@ -238,7 +241,7 @@ include('header.htm');
                 <td align='right' width='50%'>Most Wins: </td>
                 <td>
                   <?php 
-                    if ($wchamp[0]) { echo $wchamp[0][name]." ".$wchamp[0][lastname]." (".$uhwins[$whid].")"; }
+                    if ($wchamp['0']) { echo $wchamp['0']['name']." ".$wchamp['0']['lastname']." (".$uhwins[$whid].")"; }
                     else { echo "No one"; }
                   ?>
                 </td>
@@ -247,7 +250,7 @@ include('header.htm');
                 <td align='right' width='50%'>Final Blow: </td>
                 <td>
                   <?php 
-                    if ($fchamp[0]) { echo $fchamp[0][name]." ".$fchamp[0][lastname]; }
+                    if ($fchamp['0']) { echo $fchamp['0']['name']." ".$fchamp['0']['lastname']; }
                     else { echo "No one"; }
                   ?>
                 </td>
@@ -275,7 +278,7 @@ include('header.htm');
                 <td align='right' width='50%'>Most Damage: </td>
                 <td>
                   <?php 
-                    if ($dchamp[1]) { echo $dchamp[1][name]." ".$dchamp[1][lastname]." (".$uadmg[$daid].")"; }
+                    if ($dchamp['1']) { echo $dchamp['1']['name']." ".$dchamp['1']['lastname']." (".$uadmg[$daid].")"; }
                     else { echo "No one"; }
                   ?>
                 </td>
@@ -284,7 +287,7 @@ include('header.htm');
                 <td align='right' width='50%'>Most Wins: </td>
                 <td>
                   <?php 
-                    if ($wchamp[1]) { echo $wchamp[1][name]." ".$wchamp[1][lastname]." (".$uawins[$waid].")"; }
+                    if ($wchamp['1']) { echo $wchamp['1']['name']." ".$wchamp['1']['lastname']." (".$uawins[$waid].")"; }
                     else { echo "No one"; }
                   ?>
                 </td>
@@ -293,7 +296,7 @@ include('header.htm');
                 <td align='right' width='50%'>Final Blow: </td>
                 <td>
                   <?php 
-                    if ($fchamp[1]) { echo $fchamp[1][name]." ".$fchamp[1][lastname]; }
+                    if ($fchamp[1]) { echo $fchamp[1]['name']." ".$fchamp[1]['lastname']; }
                     else { echo "No one"; }
                   ?>
                 </td>

@@ -14,64 +14,64 @@ include_once("map/mapdata/coordinates.inc");
 if ($location_array[$char['location']][2]) $is_town=1;
 else $is_town=0;
 
-$message = mysql_real_escape_string($_GET[message]);
-$shop = mysql_real_escape_string($_GET[shop]);
-$room = mysql_real_escape_string($_GET[room]);
-$new_pouch = mysql_real_escape_string($_GET['pouch']);
-$outfit = mysql_real_escape_string($_POST[outfit]);
-$newpack = mysql_real_escape_string($_POST[packrad]);
-$newpouch = mysql_real_escape_string($_POST[pouchrad]);
-$newhorse = mysql_real_escape_string($_POST[horserad]);
-$combTer = mysql_real_escape_string($_REQUEST[ters]);
-$combItm = mysql_real_escape_string($_REQUEST[titm]);
-$combTerN = mysql_real_escape_string($_REQUEST[combTer]);
-$combItmN = mysql_real_escape_string($_REQUEST[combItm]);
-$combTEq = mysql_real_escape_string($_REQUEST[combTEq]);
-$combIEq = mysql_real_escape_string($_REQUEST[combIEq]);
+$message = mysqli_real_escape_string($db,$_GET['message']);
+$shop = mysqli_real_escape_string($db,$_GET['shop']);
+$room = mysqli_real_escape_string($db,$_GET['room']);
+$new_pouch = mysqli_real_escape_string($db,$_GET['pouch']);
+$outfit = mysqli_real_escape_string($db,$_POST['outfit']);
+$newpack = mysqli_real_escape_string($db,$_POST['packrad']);
+$newpouch = mysqli_real_escape_string($db,$_POST['pouchrad']);
+$newhorse = mysqli_real_escape_string($db,$_POST['horserad']);
+$combTer = mysqli_real_escape_string($db,$_REQUEST['ters']);
+$combItm = mysqli_real_escape_string($db,$_REQUEST['titm']);
+$combTerN = mysqli_real_escape_string($db,$_REQUEST['combTer']);
+$combItmN = mysqli_real_escape_string($db,$_REQUEST['combItm']);
+$combTEq = mysqli_real_escape_string($db,$_REQUEST['combTEq']);
+$combIEq = mysqli_real_escape_string($db,$_REQUEST['combIEq']);
 
-$soc_name = $char[society];
-$society = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='$soc_name' "));
+$soc_name = $char['society'];
+$society = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='$soc_name' "));
 
 $loc = $char['location'];
 $shopname = $town_shop_names[$loc][$shop-1];
 if ($shopname == "") $shopname = $loc."'s Outfitter";
 
 // Check if city has been destroyed. If so, don't display anything.
-if (!$location[isDestroyed])
+if (!$location['isDestroyed'])
 {
 $type = $shop + 18;
 
-$jobs = unserialize($char[jobs]);
+$jobs = unserialize($char['jobs']);
 $pro_stats=cparse(getAllJobBonuses($jobs));
 
-$fv = $pro_stats[fV] + $town_bonuses[fV] + $town_bonuses[lV] + $town_bonuses[tV];
-$hv = $pro_stats[hV] + $town_bonuses[hV] + $town_bonuses[lV] + $town_bonuses[tV];
-$dv = $pro_stats[dV] + $town_bonuses[dV] + $town_bonuses[lV] + $town_bonuses[tV];
-$iv = $pro_stats[iV] + $town_bonuses[iV] + $town_bonuses[oV] + $town_bonuses[tV];
-$uv = $pro_stats[uV] + $town_bonuses[uV] + $town_bonuses[oV] + $town_bonuses[tV];
-$sv = $pro_stats[sV] + $town_bonuses[sV] + $town_bonuses[oV] + $town_bonuses[tV];
+$fv = $pro_stats['fV'] + $town_bonuses["fV"] + $town_bonuses['lV'] + $town_bonuses['tV'];
+$hv = $pro_stats['hV'] + $town_bonuses['hV'] + $town_bonuses['lV'] + $town_bonuses['tV'];
+$dv = $pro_stats['dV'] + $town_bonuses['dV'] + $town_bonuses['lV'] + $town_bonuses['tV'];
+$iv = $pro_stats['iV'] + $town_bonuses['iV'] + $town_bonuses['oV'] + $town_bonuses['tV'];
+$uv = $pro_stats['uV'] + $town_bonuses['uV'] + $town_bonuses['oV'] + $town_bonuses['tV'];
+$sv = $pro_stats['sV'] + $town_bonuses['sV'] + $town_bonuses['oV'] + $town_bonuses['tV'];
 
 $pro_minus[1] = (100+$fv)/100;
 $pro_minus[2] = (100+$hv)/100;
 $pro_minus[3] = (100+$dv)/100;
 
-$ustats = mysql_fetch_array(mysql_query("SELECT * FROM Users_stats WHERE id='$id'"));
+$ustats = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Users_stats WHERE id='$id'"));
 
 if (!$shop || $shop < 1 || $shop > 4) {$shop = 1;}
 
-if (!$location[shopg])
+if (!$location['shopg'])
 {
-  $location[shopg]=serialize($base_town_consumes[$loc]);
-  mysql_query("UPDATE Locations SET shopg='".$location[shopg]."' WHERE name='$loc'");
+  $location['shopg']=serialize($base_town_consumes[$loc]);
+  mysqli_query($db,"UPDATE Locations SET shopg='".$location['shopg']."' WHERE name='$loc'");
 }
 
-$shopg = unserialize($location[shopg]);
+$shopg = unserialize($location['shopg']);
 
 $shopname = $town_shop_names[$loc][$shop-1];
 
 $listsize=0;
-$iresult=mysql_query("SELECT * FROM Items WHERE owner='$id' AND type<15 AND type>0");
-while ($qitem = mysql_fetch_array($iresult))
+$iresult=mysqli_query($db,"SELECT * FROM Items WHERE owner='$id' AND type<15 AND type>0");
+while ($qitem = mysqli_fetch_array($iresult))
 {
   $itmlist[$listsize++] = $qitem;
 }
@@ -83,23 +83,23 @@ if ($combTer != '' && $combItm != '' && $is_town)
       strtolower(iname($itmlist[$combTer]))== strtolower($combTerN) && 
       strtolower(iname($itmlist[$combItm])) == strtolower($combItmN))
   {
-    if ($combTEq) $itmlist[$combTer][istatus] = -2;
-    if ($combIEq) $itmlist[$combItm][istatus] = -2;
+    if ($combTEq) $itmlist[$combTer]['istatus'] = -2;
+    if ($combIEq) $itmlist[$combItm]['istatus'] = -2;
     
     // if clan item(s), save off clan id
-    if ($itmlist[$combTer][society] != 0) $itmlist[$combItm][society]=$itmlist[$combTer][society];
+    if ($itmlist[$combTer]['society'] != 0) $itmlist[$combItm]['society']=$itmlist[$combTer]['society'];
   
-    if ($itmlist[$combTer][prefix]) $itmlist[$combItm][prefix] = $itmlist[$combTer][prefix];
-    if ($itmlist[$combTer][suffix]) $itmlist[$combItm][suffix] = $itmlist[$combTer][suffix];
+    if ($itmlist[$combTer]['prefix']) $itmlist[$combItm]['prefix'] = $itmlist[$combTer]['prefix'];
+    if ($itmlist[$combTer]['suffix']) $itmlist[$combItm]['suffix'] = $itmlist[$combTer]['suffix'];
     
-    $istats= itp($item_base[$itmlist[$combItm][base]][0]." ".$item_ix[$itmlist[$combItm][prefix]]." ".$item_ix[$itmlist[$combItm][suffix]],$itmlist[$combItm][type]);
-    $istats .= getTerMod($ter_bonuses,$itmlist[$combItm][type],$itmlist[$combItm][prefix],$itmlist[$combItm][suffix],$itmlist[$combItm][base]);
+    $istats= itp($item_base[$itmlist[$combItm]['base']][0]." ".$item_ix[$itmlist[$combItm]['prefix']]." ".$item_ix[$itmlist[$combItm]['suffix']],$itmlist[$combItm]['type']);
+    $istats .= getTerMod($ter_bonuses,$itmlist[$combItm]['type'],$itmlist[$combItm]['prefix'],$itmlist[$combItm]['suffix'],$itmlist[$combItm]['base']);
     $ipts= lvl_req($istats,100);
-    $result = mysql_query("UPDATE Items SET prefix='".$itmlist[$combItm][prefix]."', suffix='".$itmlist[$combItm][suffix]."', society='".$itmlist[$combItm][society]."', stats='".$istats."', points='".$ipts."', istatus='".$itmlist[$combItm][istatus]."' WHERE id='".$itmlist[$combItm][id]."'");
-    $result = mysql_query("DELETE FROM Items WHERE id='".$itmlist[$combTer][id]."'");
+    $result = mysqli_query($db,"UPDATE Items SET prefix='".$itmlist[$combItm]['prefix']."', suffix='".$itmlist[$combItm]['suffix']."', society='".$itmlist[$combItm]['society']."', stats='".$istats."', points='".$ipts."', istatus='".$itmlist[$combItm]['istatus']."' WHERE id='".$itmlist[$combItm]['id']."'");
+    $result = mysqli_query($db,"DELETE FROM Items WHERE id='".$itmlist[$combTer]['id']."'");
 
-    $ustats[items_combined]++;
-    $query = mysql_query("UPDATE Users_stats SET items_combined='".$ustats[items_combined]."' WHERE id=$id");
+    $ustats['items_combined']++;
+    $query = mysqli_query($db,"UPDATE Users_stats SET items_combined='".$ustats['items_combined']."' WHERE id=$id");
  
     $message = "Items Combined!";
     if ($combTEq || $combIEq) $message .= " Equipment Changed!";
@@ -111,8 +111,8 @@ if ($combTer != '' && $combItm != '' && $is_town)
 }
 
 $listsize=0;
-$iresult=mysql_query("SELECT * FROM Items WHERE owner='$id' AND type<15 AND type>0");
-while ($qitem = mysql_fetch_array($iresult))
+$iresult=mysqli_query($db,"SELECT * FROM Items WHERE owner='$id' AND type<15 AND type>0");
+while ($qitem = mysqli_fetch_array($iresult))
 {
   $itmlist[$listsize++] = $qitem;
 }
@@ -121,29 +121,29 @@ $bonuses1 = $stomach_bonuses1." ".$stamina_effect1." ".$clan_bonus1." ".$skill_b
 $skills = $bonuses1;
 
 $y = 0;
-$a = "";
-$b = "";
-$c = "";
-$d = "";
-$e = "";
-$a = mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE owner='$char[id]' AND istatus='1' AND type<15 AND type>0"));
-$b = mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE owner='$char[id]' AND istatus='2' AND type<15 AND type>0"));
-$c = mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE owner='$char[id]' AND istatus='3' AND type<15 AND type>0"));
-$d = mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE owner='$char[id]' AND istatus='4' AND type<15 AND type>0"));
-$e = mysql_fetch_array(mysql_query("SELECT * FROM Items WHERE owner='$char[id]' AND istatus='5' AND type<15 AND type>0"));
+$a = [];
+$b = [];
+$c = [];
+$d = [];
+$e = [];
+$a = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE owner='$char[id]' AND istatus='1' AND type<15 AND type>0"));
+$b = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE owner='$char[id]' AND istatus='2' AND type<15 AND type>0"));
+$c = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE owner='$char[id]' AND istatus='3' AND type<15 AND type>0"));
+$d = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE owner='$char[id]' AND istatus='4' AND type<15 AND type>0"));
+$e = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Items WHERE owner='$char[id]' AND istatus='5' AND type<15 AND type>0"));
 $estats = getstats($a,$b,$c,$d,$e,$skills);
 $askills = $skills." ".$estats[0];
 $pts_tot = 0;
-if ($a != "") $pts_tot += (lvl_req($estats[1], getTypeMod($askills,$a[type])));
-if ($b != "") $pts_tot += (lvl_req($estats[2], getTypeMod($askills,$b[type])));
-if ($c != "") $pts_tot += (lvl_req($estats[3], getTypeMod($askills,$c[type])));
-if ($d != "") $pts_tot += (lvl_req($estats[4], getTypeMod($askills,$d[type])));      
-if ($e != "") $pts_tot += (lvl_req($estats[5], getTypeMod($askills,$e[type])));
+if (!empty($a)) $pts_tot += (lvl_req($estats[1], getTypeMod($askills,$a['type'])));
+if (!empty($b)) $pts_tot += (lvl_req($estats[2], getTypeMod($askills,$b['type'])));
+if (!empty($c)) $pts_tot += (lvl_req($estats[3], getTypeMod($askills,$c['type'])));
+if (!empty($d)) $pts_tot += (lvl_req($estats[4], getTypeMod($askills,$d['type'])));
+if (!empty($e)) $pts_tot += (lvl_req($estats[5], getTypeMod($askills,$e['type'])));
 
 if ($pts_tot != $char['used_pts'])
 {
   $char['used_pts'] = $pts_tot;
-  $result = mysql_query("UPDATE Users SET used_pts='$pts_tot' WHERE id=$id");
+  $result = mysqli_query($db,"UPDATE Users SET used_pts='$pts_tot' WHERE id=$id");
 }
 
 ?>
@@ -161,19 +161,19 @@ if ($pts_tot != $char['used_pts'])
 <?php
   for ($i=0; $i<$listsize; ++$i)
   {
-    echo "  inv[".$i."] = new Array('".str_replace(" ","_",$itmlist[$i][base])."','".str_replace(" ","_",$itmlist[$i][prefix])."','".str_replace(" ","_",$itmlist[$i][suffix])."','".$itmlist[$i][cond]."','".$itmlist[$i][istatus]."');";
-    echo "  invinfo[".$i."] = \"<FIELDSET class=abox><LEGEND><b>".ucwords($itmlist[$i][prefix]." ".$itmlist[$i][base])." ".str_replace("Of","of",ucwords($itmlist[$i][suffix]))."</b></LEGEND><center><br/><img class='img-optional' border='0' bordercolor='black' src='items/".str_replace(' ','',$itmlist[$i][base]).".gif'><br/><br/>\" + "; 
+    echo "  inv[".$i."] = new Array('".str_replace(" ","_",$itmlist[$i]['base'])."','".str_replace(" ","_",$itmlist[$i]['prefix'])."','".str_replace(" ","_",$itmlist[$i]['suffix'])."','".$itmlist[$i]['cond']."','".$itmlist[$i]['istatus']."');";
+    echo "  invinfo[".$i."] = \"<FIELDSET class=abox><LEGEND><b>".ucwords($itmlist[$i]['prefix']." ".$itmlist[$i]['base'])." ".str_replace("Of","of",ucwords($itmlist[$i]['suffix']))."</b></LEGEND><center><br/><img class='img-optional' border='0' bordercolor='black' src='items/".str_replace(' ','',$itmlist[$i]['base']).".gif'><br/><br/>\" + "; 
 
-    if ($itmlist[$i][type]==8)
-      echo "itm_info(cparse(weaveStats('".$itmlist[$i][base]."',skills)))+\"";
+    if ($itmlist[$i]['type']==8)
+      echo "itm_info(cparse(weaveStats('".$itmlist[$i]['base']."',skills)))+\"";
     else
-      echo "itm_info(cparse(iparse('".str_replace(" ","_",$itmlist[$i][base])."','".str_replace(" ","_",$itmlist[$i][prefix])."','".str_replace(" ","_",$itmlist[$i][suffix])."','".str_replace(" ","_",$itmlist[$i][cond])."')))+\"";
+      echo "itm_info(cparse(iparse('".str_replace(" ","_",$itmlist[$i]['base'])."','".str_replace(" ","_",$itmlist[$i]['prefix'])."','".str_replace(" ","_",$itmlist[$i]['suffix'])."','".str_replace(" ","_",$itmlist[$i]['cond'])."')))+\"";
     echo "<br/><br/></FIELDSET>\";\n";
-    if ($itmlist[$i][istatus]==1)      echo "  ai=".$i.";";
-    else if ($itmlist[$i][istatus]==2) echo "  bi=".$i.";";
-    else if ($itmlist[$i][istatus]==3) echo "  ci=".$i.";";
-    else if ($itmlist[$i][istatus]==4) echo "  di=".$i.";";
-    else if ($itmlist[$i][istatus]==5) echo "  ei=".$i.";";
+    if ($itmlist[$i]['istatus']==1)      echo "  ai=".$i.";";
+    else if ($itmlist[$i]['istatus']==2) echo "  bi=".$i.";";
+    else if ($itmlist[$i]['istatus']==3) echo "  ci=".$i.";";
+    else if ($itmlist[$i]['istatus']==4) echo "  di=".$i.";";
+    else if ($itmlist[$i]['istatus']==5) echo "  ei=".$i.";";
   }
 ?>
 
@@ -433,7 +433,7 @@ function displayItemTable($ditmlist, $dnum)
   echo "    <td class='headrow' width='50' align='center'><b>Action</b></td>";
   echo "  </tr>";
   
-  if (count($ditmlist) > 0)
+  if (!empty($ditmlist))
   {
   foreach ($ditmlist as $x => $sitm)
   {
@@ -442,7 +442,7 @@ function displayItemTable($ditmlist, $dnum)
       echo "  <tr class='listtab'>";
       $worth = floor($item_base[$sitm[0]][2]*$pro_minus[$shop]);
       $btnstyle='btn-default';
-      if ($worth > $char[gold]) 
+      if ($worth > $char['gold']) 
         $btnstyle = "btn-danger"; 
       if($shopg[$sitm[3]][$sitm[4]][$sitm[5]] > 0)
       {
@@ -483,18 +483,18 @@ if ($room == 1 && $is_town)
 {
   if ($shop == 1)
   {
-    $room_cost = (($char[stamaxa]-$char[stamina])*60);
+    $room_cost = (($char['stamaxa']-$char['stamina'])*60);
     if ($iv) $room_cost = floor($room_cost*((100+$iv)/100));
-    if ($char[gold] >= $room_cost)
+    if ($char['gold'] >= $room_cost)
     {
-      $char[gold] -= $room_cost;
-      $char[stamina] = $char[stamaxa];
+      $char['gold'] -= $room_cost;
+      $char['stamina'] = $char['stamaxa'];
       $town_share = intval($room_cost/2);
-      if ($town_share > 0) $location[bank] += $town_share;
-      if ($society[id]) updateSocRep($society, $location[id], $room_cost);
-      mysql_query("UPDATE Locations SET bank='$location[bank]' WHERE name='$loc'");
-      mysql_query("UPDATE Users SET gold='".$char[gold]."', stamina='".$char[stamina]."' WHERE id='$id'");
-      mysql_query("UPDATE Users_stats SET inn_use= inn_use + 1 WHERE id='$id'");
+      if ($town_share > 0) $location['bank'] += $town_share;
+      if ($society['id']) updateSocRep($society, $location['id'], $room_cost);
+      mysqli_query($db,"UPDATE Locations SET bank='$location[bank]' WHERE name='$loc'");
+      mysqli_query($db,"UPDATE Users SET gold='".$char['gold']."', stamina='".$char['stamina']."' WHERE id='$id'");
+      mysqli_query($db,"UPDATE Users_stats SET inn_use= inn_use + 1 WHERE id='$id'");
       $message = "You enjoyed your rest for ".displayGold($room_cost);
     }
     else {$message = "You can't afford a room here!"; }
@@ -514,10 +514,10 @@ if ($_GET['feed'] && $location_array[$char['location']][2] && $is_town)
     $char['feedneed']=0;
     $message=$char['travelmode_name']." has been fed and is ready to travel";
     $town_share = intval($cost);
-    if ($town_share > 0) $location[bank] += $town_share;
-    if ($society[id]) updateSocRep($society, $location[id], $cost);
-    mysql_query("UPDATE Locations SET bank='$location[bank]' WHERE name='$loc'");
-    mysql_query("UPDATE Users SET gold='".$char['gold']."', feedneed='0' WHERE id='".$char['id']."'");
+    if ($town_share > 0) $location['bank'] += $town_share;
+    if ($society['id']) updateSocRep($society, $location['id'], $cost);
+    mysqli_query($db,"UPDATE Locations SET bank='$location[bank]' WHERE name='$loc'");
+    mysqli_query($db,"UPDATE Users SET gold='".$char['gold']."', feedneed='0' WHERE id='".$char['id']."'");
   }
   else $message="You do not have that much money";
 }
@@ -528,48 +528,57 @@ if ($outfit && $is_town)
   {
     $myitmlist=unserialize($char['itmlist']);
     $mypouch = unserialize($char['pouch']);
-    $mylistsize = count($myitmlist);
-    $myclistsize = count($mypouch);
-    if (($pack_name[$newpack][1]+$base_inv_max+$pro_stats[eS] >= $mylistsize) && ($pouch_name[$newpouch][1]+4+$pro_stats[cS] >= $myclistsize))
+	if(is_array($myitmlist)){
+		$mylistsize = count($myitmlist);
+	}else{
+		$mylistsize=0;
+	}
+	
+	if(is_array($mypouch)){
+		$myclistsize = count($mypouch);
+	}else{
+		$myclistsize = 0;
+	}
+    if (($pack_name[$newpack][1]+$base_inv_max+$pro_stats['eS'] >= $mylistsize) && ($pouch_name[$newpouch][1]+4+$pro_stats['cS'] >= $myclistsize))
     {
       $change = 0;
       $totalcost = 0;
-      if ($newpack != $char[travelmode2])
+      if ($newpack != $char['travelmode2'])
       {
-        $totalcost += intval(($pack_cost[$newpack]-($pack_cost[$char[travelmode2]]/2))*(100+$sv)/100);
+        $totalcost += intval(($pack_cost[$newpack]-($pack_cost[$char['travelmode2']]/2))*(100+$sv)/100);
         $change = 1;
       }
-      if ($newhorse != $char[travelmode])
+      if ($newhorse != $char['travelmode'])
       {
-        $totalcost += intval(($travel_mode_cost[$newhorse]-($travel_mode_cost[$char[travelmode]]/2))*(100+$uv)/100);
+        $totalcost += intval(($travel_mode_cost[$newhorse]-($travel_mode_cost[$char['travelmode']]/2))*(100+$uv)/100);
         $change = 1;        
       }
-      if ($newpouch != $char[pouch_type])
+      if ($newpouch != $char['pouch_type'])
       {
-        $totalcost += intval(($pouch_cost[$newpouch]-($pouch_cost[$char[pouch_type]]/2))*(100+$sv)/100);
+        $totalcost += intval(($pouch_cost[$newpouch]-($pouch_cost[$char['pouch_type']]/2))*(100+$sv)/100);
         $change = 1;    
       }   
       
       if ($change)
       {
-        if ($totalcost <= $char[gold])
+        if ($totalcost <= $char['gold'])
         {
-          $char[gold] -= $totalcost;
-          if ($newhorse != $char[travelmode]) 
+          $char['gold'] -= $totalcost;
+          if ($newhorse != $char['travelmode']) 
           { 
-            $char[feedneed] = 0;
+            $char['feedneed'] = 0;
             if ($newhorse > 0) $char['travelmode_name']=HorseNamer();
             else $char['travelmode_name']='';
           }
-          $char[travelmode] = $newhorse;
-          $char[travelmode2] = $newpack;
-          $char[pouch_type] = $newpouch;
+          $char['travelmode'] = $newhorse;
+          $char['travelmode2'] = $newpack;
+          $char['pouch_type'] = $newpouch;
           $town_share = intval($totalcost/2);
-          if ($town_share > 0) $location[bank] += $town_share;
-          if ($society[id]) updateSocRep($society, $location[id], $totalcost);
-          mysql_query("UPDATE Locations SET bank='$location[bank]' WHERE name='$loc'");
-          mysql_query("UPDATE Users SET gold='".$char['gold']."', pouch_type='".$char['pouch_type']."', travelmode='".$char[travelmode]."', travelmode_name='".$char['travelmode_name']."', travelmode2='".$char[travelmode2]."', feedneed='".$char[feedneed]."' WHERE id='".$char['id']."'");
-          mysql_query("UPDATE Users_stats SET outfit_use = outfit_use + 1 WHERE id='$id'");
+          if ($town_share > 0) $location['bank'] += $town_share;
+          if ($society['id']) updateSocRep($society, $location['id'], $totalcost);
+          mysqli_query($db,"UPDATE Locations SET bank='$location[bank]' WHERE name='$loc'");
+          mysqli_query($db,"UPDATE Users SET gold='".$char['gold']."', pouch_type='".$char['pouch_type']."', travelmode='".$char['travelmode']."', travelmode_name='".$char['travelmode_name']."', travelmode2='".$char['travelmode2']."', feedneed='".$char['feedneed']."' WHERE id='".$char['id']."'");
+          mysqli_query($db,"UPDATE Users_stats SET outfit_use = outfit_use + 1 WHERE id='$id'");
           $message = "Gear updated for ".displayGold($totalcost);
         }
         else
@@ -589,7 +598,7 @@ if ($message == '')
 {
   if ($shop == 4) $message = "Welcome to the local Outfitter";
 }
-$buy = mysql_real_escape_string($_GET[buy]);
+$buy = mysqli_real_escape_string($db,$_GET['buy']);
 
 $shop_inv=$town_consumables[$loc];
 
@@ -610,40 +619,43 @@ for ($i =0; $i < 4; $i++)
     }
   }  
 }
-$slistsize=count($sitmlist);
+if(!empty($sitmlist)){
+	$slistsize=count($sitmlist);
+}else{
+	$slistsize=0;
+}
 
 // BUY ITEM
 $time = time();
 
-if (strtolower(iname_list($buy-1,$sitmlist)) == strtolower($_GET[name]) && $buy<=$slistsize && $buy>0 && $is_town)
+if ($buy>0 && strtolower(iname_list($buy-1,$sitmlist)) == strtolower($_GET['name']) && $buy<=$slistsize && $buy>0 && $is_town)
 {
   $buy--;
   $worth = $item_base[$sitmlist[$buy][0]][2]*$pro_minus[$shop];
-  if ($char[gold] >= $worth)
+  if ($char['gold'] >= $worth)
   {
-    $gold = $char[gold];
-    $itmsize = mysql_num_rows(mysql_query("SELECT * FROM Items WHERE owner='$id' AND type>=19 AND istatus=0"));
+    $gold = $char['gold'];
+    $itmsize = mysqli_num_rows(mysqli_query($db,"SELECT * FROM Items WHERE owner='$id' AND type>=19 AND istatus=0"));
     if ($itmsize < $pouch_max)
     {
-      $gold = $char[gold]-$worth; 
-      $char[gold]=$gold;
+      $gold = $char['gold']-$worth; 
+      $char['gold']=$gold;
       $base= $sitmlist[$buy][0];
       $itype=$item_base[$base][1];
       $istats= $item_base[$base][0];
       $itime = time();
-      $result = mysql_query("INSERT INTO Items (owner,type,    cond, istatus,points,society,last_moved,base,   prefix,suffix,stats) 
+      $result = mysqli_query($db,"INSERT INTO Items (owner,type,    cond, istatus,points,society,last_moved,base,   prefix,suffix,stats) 
                                         VALUES ('$id','$itype','100','0',    '0',   '',     '$itime',  '$base','',    '',    '$istats')");         
         
       if ($shopg[$type][$sitmlist[$buy][4]][$sitmlist[$buy][5]]>0)
         $shopg[$type][$sitmlist[$buy][4]][$sitmlist[$buy][5]] -= 1;
-      $location[shopg]=serialize($shopg);
+      $location['shopg']=serialize($shopg);
       $town_share = intval($worth/2);
-      if ($town_share > 0) $location[bank] += $town_share;
-      if ($society[id]) updateSocRep($society, $location[id], $worth);
-      mysql_query("UPDATE Locations SET shopg='".$location[shopg]."', bank='$location[bank]' WHERE name='$loc'");
-      mysql_query("UPDATE Users SET gold='$gold', lastbuy='$time' WHERE id=$id");
-        
-      $message = strtolower($_GET[name])." purchased for ".displayGold($worth);
+      if ($town_share > 0) $location['bank'] += $town_share;
+      if ($society['id']) updateSocRep($society, $location['id'], $worth);
+      mysqli_query($db,"UPDATE Locations SET shopg='".$location['shopg']."', bank='$location[bank]' WHERE name='$loc'");
+      mysqli_query($db,"UPDATE Users SET gold='$gold', lastbuy='$time' WHERE id=$id");
+      $message = strtolower($_GET['name'])." purchased for ".displayGold($worth);
     }
     else 
     {
@@ -659,7 +671,7 @@ else if ($buy >0)
 
 // Regrab shop list   
 $x=0;
-$sitmlist='';
+$sitmlist=[];
 for ($i =0; $i < 4; $i++)
 {
   for ($j=0; $j<12; $j++)
@@ -723,9 +735,9 @@ if ($shop < 4)
 
 if ($shop==1)
 {
-  if ($char[stamaxa]>$char[stamina])
+  if ($char['stamaxa']>$char['stamina'])
   {
-    $room_cost = ($char[stamaxa]-$char[stamina])*60;
+    $room_cost = ($char['stamaxa']-$char['stamina'])*60;
     if ($iv) $room_cost = floor($room_cost*((100+$iv)/100));
 ?>
   <div class='col-sm-9'>
@@ -818,16 +830,16 @@ else if ($shop == 4)
         <?php
           for ($x=0; $x<count($pack_name); $x++)
           {
-            if ($x == $char[travelmode2])
+            if ($x == $char['travelmode2'])
               $color = 'info';
             else
               $color = '';
 
             echo "<tr class='".$color."'>";
             echo "<td><input type='radio' name='packrad' value='".$x."'";
-            if ($x == $char[travelmode2]) echo " checked></td>"; else echo "></td>";
+            if ($x == $char['travelmode2']) echo " checked></td>"; else echo "></td>";
             echo "<td>".ucwords($pack_name[$x][0])."</td><td>".($base_inv_max+$pack_name[$x][1])."</td><td>".$pack_name[$x][2]."</td>";
-            if ($x == $char[travelmode2]) echo "<td>&nbsp;</td>"; else echo "<td>".displayGold(intval(($pack_cost[$x]-($pack_cost[$char[travelmode2]]/2))*(100+$sv)/100))."</td>";
+            if ($x == $char['travelmode2']) echo "<td>&nbsp;</td>"; else echo "<td>".displayGold(intval(($pack_cost[$x]-($pack_cost[$char['travelmode2']]/2))*(100+$sv)/100))."</td>";
             echo "</tr>";
           }
         ?>
@@ -846,16 +858,16 @@ else if ($shop == 4)
         <?php
           for ($x=0; $x<count($pouch_name); $x++)
           {
-            if ($x == $char[pouch_type])
+            if ($x == $char['pouch_type'])
               $color = 'info';
             else
               $color = '';
 
             echo "<tr class='".$color."'>";
             echo "<td><input type='radio' name='pouchrad' value='".$x."'";
-            if ($x == $char[pouch_type]) echo " checked></td>"; else echo "></td>";
+            if ($x == $char['pouch_type']) echo " checked></td>"; else echo "></td>";
             echo "<td>".ucwords($pouch_name[$x][0])."</td><td>".(4+$pouch_name[$x][1])."</td>";
-            if ($x == $char[pouch_type]) echo "<td>&nbsp;</td>"; else echo "<td>".displayGold(intval(($pouch_cost[$x]-($pouch_cost[$char[pouch_type]]/2))*(100+$sv)/100))."</td>";
+            if ($x == $char['pouch_type']) echo "<td>&nbsp;</td>"; else echo "<td>".displayGold(intval(($pouch_cost[$x]-($pouch_cost[$char['pouch_type']]/2))*(100+$sv)/100))."</td>";
             echo "</tr>";
           }
         ?>
@@ -875,16 +887,16 @@ else if ($shop == 4)
         <?php
           for ($x=0; $x<count($travel_mode); $x++)
           {
-            if ($x == $char[travelmode])
+            if ($x == $char['travelmode'])
               $color = 'info';
             else
               $color = '';
 
             echo "<tr class='".$color."'>";
             echo "<td><input type='radio' name='horserad' value='".$x."'";
-            if ($x == $char[travelmode]) echo " checked></td>"; else echo "></td>";
+            if ($x == $char['travelmode']) echo " checked></td>"; else echo "></td>";
             echo "<td>".ucwords($travel_mode[$x][0])."</td><td>".($travel_mode[$x][1])."</td><td>".$travel_mode[$x][2]."</td>";
-            if ($x == $char[travelmode]) echo "<td>".$char[travelmode_name]."</td>"; else echo "<td>".displayGold(intval(($travel_mode_cost[$x]-($travel_mode_cost[$char[travelmode]]/2))*(100+$uv)/100))."</td>";
+            if ($x == $char['travelmode']) echo "<td>".$char['travelmode_name']."</td>"; else echo "<td>".displayGold(intval(($travel_mode_cost[$x]-($travel_mode_cost[$char['travelmode']]/2))*(100+$uv)/100))."</td>";
             echo "</tr>";
           }
         ?>

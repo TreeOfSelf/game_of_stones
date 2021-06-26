@@ -19,7 +19,7 @@ else
 {
   // Drop Old Table
   $query  = 'DROP TABLE IF EXISTS IP_logs';
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<b>Results</b><br><br>Drop Old Table: $result";
 
   // Create New Table
@@ -31,7 +31,7 @@ else
   `test` int(11) DEFAULT NULL,
   PRIMARY KEY (`addy`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1';
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<br>Create New Table: $result";
 
 }

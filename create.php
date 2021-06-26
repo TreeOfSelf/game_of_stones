@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 include_once("admin/charFuncs.php");
 ?>
 <script language="Javascript">

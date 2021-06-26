@@ -1,5 +1,6 @@
 <?php
 //LOCATION FUNCTIONS
+include_once('connect.php');
 include_once('mapData.php');
 include_once('displayFuncs.php');
 
@@ -718,7 +719,7 @@ $npc_plural = array(
 );
 
 $npc_count=0;
-$npc_list = "";
+$npc_list = [];
 foreach ($npc_types as $tmpname => $data) {
   $npc_list[$npc_count++] = $tmpname;
 }
@@ -995,14 +996,14 @@ function build_base_consume_list ($order)
 }
 
 $clan_building_bonuses= "";
-$result = mysql_query("SELECT id, upgrades, name FROM Locations WHERE ruler='".$char[society]."' AND isDestroyed='0'");
-while ($town = mysql_fetch_array( $result ) )
+$result = mysqli_query($db,"SELECT id, upgrades, name FROM Locations WHERE ruler='".$char['society']."' AND isDestroyed='0'");
+while ($town = mysqli_fetch_array( $result ) )
 {
-  $tmpUps = unserialize($town[upgrades]);
-  $clan_building_bonuses .= getBuildClanBonuses($tmpUps, $unique_buildings[$town[name]], $unique_build_bonuses);
+  $tmpUps = unserialize($town['upgrades']);
+  $clan_building_bonuses .= getBuildClanBonuses($tmpUps, $unique_buildings[$town['name']], $unique_build_bonuses);
 }
 
-$location = mysql_fetch_array(mysql_query("SELECT * FROM Locations WHERE name='$char[location]'"));
+$location = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Locations WHERE name='$char[location]'"));
 
 // setup bonuses for the current location
 include("locBonuses.php");
@@ -1074,37 +1075,38 @@ function getNatBonuses($nb,$wf,$nf,$town_bonuses)
 
 function updateSocScores()
 {
-  $result = mysql_query("SELECT id, ruler, estate_support, name FROM Locations WHERE 1");
-  while ($loc = mysql_fetch_array( $result ) )
+    global $db;
+  $result = mysqli_query($db,"SELECT id, ruler, estate_support, name FROM Locations WHERE 1");
+  while ($loc = mysqli_fetch_array( $result ) )
   {
     $clans = array();
     $locid = $loc['id'];
-    $clanscores = '';
-    $supporting='';
-    $result2 = mysql_query("SELECT id, support, area_score FROM Soc WHERE 1 ORDER BY score DESC");
-    while ($soc = mysql_fetch_array( $result2 ) )
+    $clanscores = [];
+    $supporting=[];
+    $result2 = mysqli_query($db,"SELECT id, support, area_score FROM Soc WHERE 1 ORDER BY score DESC");
+    while ($soc = mysqli_fetch_array( $result2 ) )
     {
       $support = unserialize($soc['support']);
-      $clan_id = $soc[id];
+      $clan_id = $soc['id'];
       if (!$clanscores[$clan_id]) $clanscores[$clan_id]=0;
-      $supporting[$soc[id]]==0;
+      $supporting[$soc['id']]==0;
       if ($support[$locid] != 0 && $support[$locid] != $clan_id)
       {
-        $supporting[$soc[id]]=$support[$locid];
+        $supporting[$soc['id']]=$support[$locid];
         $clan_id = $support[$locid];
       }
       $area_score = unserialize($soc['area_score']);
-      if ($supporting[$soc[id]] == 0)  $clanscores[$clan_id] += $area_score[$locid];
+      if ($supporting[$soc['id']] == 0)  $clanscores[$clan_id] = $clanscores[$clan_id] + $area_score[$locid];
       else $clanscores[$clan_id] += $area_score[$locid]/2;
     }
     
     // add estate support and format
-    $result3 = mysql_query("SELECT id FROM Hordes WHERE done='0' AND target='$loc[name]'");
-    $numhorde = mysql_num_rows($result3);
+    $result3 = mysqli_query($db,"SELECT id FROM Hordes WHERE done='0' AND target='$loc[name]'");
+    $numhorde = mysqli_num_rows($result3);
     $ediv=1;
     if ($numhorde) $ediv=2;
-    $es= unserialize($loc[estate_support]);
-    $finalscores='';
+    $es= unserialize($loc['estate_support']);
+    $finalscores=[];
     if ($clanscores)
     {
       foreach ($clanscores as $csid => $cscore)
@@ -1122,27 +1124,28 @@ function updateSocScores()
       $clanscores = array_reverse($clanscores, TRUE);
       $scs=serialize($clanscores);
       $ss=serialize($supporting);
-      mysql_query("UPDATE Locations SET clan_scores='$scs', clan_support='$ss' WHERE id='$loc[id]'"); 
+      mysqli_query($db,"UPDATE Locations SET clan_scores='$scs', clan_support='$ss' WHERE id='$loc[id]'");
     }
   }
 }
 
 function updateEstateSupport($estate_ji)
 {
-  $result= mysql_query("SELECT * FROM Estates WHERE 1");
+    global $db;
+  $result= mysqli_query($db,"SELECT * FROM Estates WHERE 1");
   $esup = array();
-  while ($estate = mysql_fetch_array( $result ) )
+  while ($estate = mysqli_fetch_array( $result ) )
   {
-    if ($estate[supporting] != "")
+    if ($estate['supporting'] != "")
     {
-      $supporting = unserialize($estate[supporting]);
+      $supporting = unserialize($estate['supporting']);
       if (count($supporting))
       {
         foreach ($supporting as $loc => $clan) 
         {
           if (!$esup[$loc][$clan]) 
           {$esup[$loc][$clan]=0;}
-         $esup[$loc][$clan]+= $estate_ji[$estate[level]];
+         $esup[$loc][$clan]+= $estate_ji[$estate['level']];
         }
       }
     }
@@ -1151,17 +1154,18 @@ function updateEstateSupport($estate_ji)
   foreach ($esup as $loc => $data)
   {
     $sdata = serialize($data);
-    mysql_query("UPDATE Locations SET estate_support='$sdata' WHERE name='$loc'"); 
+    mysqli_query($db,"UPDATE Locations SET estate_support='$sdata' WHERE name='$loc'");
   }
 }
 
 function updateSocRep($society, $locid, $gold)
 {
-  $area_rep = unserialize($society[area_rep]);
+    global $db;
+    $area_rep = unserialize($society['area_rep']);
   $area_rep[$locid] += $gold/10000;
   if ($area_rep[$locid] > 500) $area_rep[$locid] = 500;
   $area_reps = serialize($area_rep);
-  mysql_query("UPDATE Soc SET area_rep='".$area_reps."' WHERE id='".$society[id]."'");
+  mysqli_query($db,"UPDATE Soc SET area_rep='".$area_reps."' WHERE id='".$society['id']."'");
 }
 
 ?>

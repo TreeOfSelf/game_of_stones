@@ -18,7 +18,7 @@ else
 {
   // Drop Old Table
   $query  = 'DROP TABLE Users_stats';
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<b>Results</b><br><br>Drop Old Table: $result";
 
   // Create New Table
@@ -42,12 +42,12 @@ else
   'quest_types text, '.
   'PRIMARY KEY (id)'.
   ')';
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<br>Create New Table: $result";
 
 }
 // Close Database
-mysql_close($db);
+mysql_close();
 ?>
 
 <br><br>

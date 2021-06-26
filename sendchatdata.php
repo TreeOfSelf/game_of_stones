@@ -6,11 +6,11 @@ include_once ("admin/connect.php");
 include_once ("admin/userdata.php");
 // get user & message
 $write=1;
-$id=mysql_real_escape_string($_GET['id']);
+$id=mysqli_real_escape_string($db,$_GET['id']);
 $jtime=time();
 // insert new message into database table
-$msgs = mysql_fetch_array(mysql_query("SELECT * FROM messages WHERE id='".$id."'"));
-$msg = unserialize($msgs[message]);
+$msgs = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM messages WHERE id='".$id."'"));
+$msg = unserialize($msgs['message']);
 
 if (!($name && $lastname && $password) || $password!=$char['password']) 
 {
@@ -19,7 +19,7 @@ if (!($name && $lastname && $password) || $password!=$char['password'])
 }
 else
 {
-$user=$char[name]."_".$char[lastname];
+$user=$char['name']."_".$char['lastname'];
 if($char['goodevil']==3) $classn="warning";
 else if ($char['donor']==1) $classn="danger";
 else $classn="primary";
@@ -48,11 +48,11 @@ if ($msg[0])
   $msgs= serialize($msg);
 
   if ($write)
-  $result = mysql_query("UPDATE messages SET message='$msgs' WHERE id='".$id."'", $db);
+  $result = mysqli_query($db,"UPDATE messages SET message='$msgs' WHERE id='".$id."'");
   if ($id == 0) {
-    mysql_query("UPDATE Users_stats SET tar_posts = tar_posts + 1 WHERE id='".$char[id]."'");
+    mysqli_query($db,"UPDATE Users_stats SET tar_posts = tar_posts + 1 WHERE id='".$char['id']."'");
   } else {
-    mysql_query("UPDATE Users_stats SET clan_posts = clan_posts + 1 WHERE id='".$char[id]."'");
+    mysqli_query($db,"UPDATE Users_stats SET clan_posts = clan_posts + 1 WHERE id='".$char['id']."'");
   }
 
 // send messages to the client
@@ -67,3 +67,4 @@ if ($msg[0])
   }
 }
 ?>
+

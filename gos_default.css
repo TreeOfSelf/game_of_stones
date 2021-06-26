@@ -1,15 +1,24 @@
 body {
   margin: 0;
-  background-image:url('images/GoSBackdrop.gif'); 
+  background: rgb(15,15,15) url('images/stone-tiles3150.jpg'); 
   color: #FFFFFF;
   padding-top: 60px; 
 }  
-  .solid-back { background-color: #000000;  }
-  
+/*This section is how to change the main information box*/
+  .solid-back { background-color: rgba(0,0,0,0.5);
+                border: 3px solid;
+                border-color: rgba(0,0,0,0.7);
+                border-radius: 10px;
+                padding: 10px;
+                margin:10px 10px 25px 10px;
+                box-shadow: 3px 3px 3px 3px rgba(105,105,105,0.3);}
+  /*This section is how to change the smaller boxes information*/
   .abox { border: 1px solid #333333; 	
-        background-image:url('images/GoSBackdrop.gif');
-        border-spacing: 0px; 
+        background-image:url('images/stone-tiles3150.jpg');
+        font-weight: Bold;
+        border-spacing: 1px; 
         padding: 15px 3px 3px 3px;
+        box-shadow: 1px 1px 1px 1px rgba(105,105,105,0.3);
         }
   .gos-form { color: #999999; background: #0F0F0F; border: #333333 solid 1px; }
 
@@ -23,7 +32,7 @@ div#chatdiv {
 div#messages {
         height: 255px;
 	width: 100%;
-	background: #222222 url('images/ChatBckgrnd.gif') center no-repeat;
+	background: #fff url('images/ChatBckgrnd.gif') center no-repeat;
        	padding: 5px;
 	border: 1px solid #000;
 	overflow: scroll;
@@ -33,7 +42,7 @@ div#messages {
 div#messagebox {
 	width: 100%;
 	height: 60px;
-	background: #333333;
+	background: #000;
 	border-left: 1px solid #000;
 	border-right: 1px solid #000;
 	border-bottom: 1px solid #000;

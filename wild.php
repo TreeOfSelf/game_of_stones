@@ -63,7 +63,7 @@
 
 <?php
 
-$message=mysql_real_escape_string($_GET['message']);
+$message=mysqli_real_escape_string($db,$_GET['message']);
 $isHorde=0;
 
 $soc_name = $char['society'];
@@ -73,10 +73,10 @@ $loc_query = $char['location'];
 $surrounding_area=$map_data[$char['location']];
 
 // LOAD SOCIETY TABLE
-$location = mysql_fetch_array(mysql_query("SELECT * FROM Locations WHERE name='$loc_query'"));
+$location = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Locations WHERE name='$loc_query'"));
 
 // UPDATE NUMBER OF MEMEBERS
-$resultf = mysql_fetch_array(mysql_query("SELECT COUNT(*) FROM Users WHERE location='$loc_query' "));
+$resultf = mysqli_fetch_array(mysqli_query($db,"SELECT COUNT(*) FROM Users WHERE location='$loc_query' "));
 $numchar = $resultf[0];
 $myHorde=0;
 ?>
@@ -90,52 +90,68 @@ $myHorde=0;
           <p>Number of characters: <?php echo "$numchar"; ?></p>
 
   <?php
-    $result3 = mysql_query("SELECT * FROM Hordes WHERE done='0' AND location='$char[location]'");
-    while ($myHorde = mysql_fetch_array( $result3 ) )
+    $result3 = mysqli_query($db,"SELECT * FROM Hordes WHERE done='0' AND location='$char[location]'");
+    while ($myHorde = mysqli_fetch_array( $result3 ) )
     {
-      $npc_info = unserialize($myHorde[npcs]);
+      $npc_info = unserialize($myHorde['npcs']);
       $hordemsg = "";
       for ($n=0; $n < 1; $n++)
       {
         if ($n==0) $hordemsg .= "A "; else $hordemsg.= " and a ";
         $hordemsg .= $horde_types[$npc_info[$n][0]]." of ".$npc_info[$n][0]."s";
       }
-      $tminus = intval(($myHorde[ends]*3600-time())/60);
+      $tminus = intval(($myHorde['ends']*3600-time())/60);
       if (count($npc_info)==1) $hordemsg .= " is "; else $hordemsg.= " are ";              
-      $hordemsg .= "heading towards ".str_replace('-ap-','&#39;',$myHorde[target]).". Attack in ".displayTime($tminus,0,1)."!";
+      $hordemsg .= "heading towards ".str_replace('-ap-','&#39;',$myHorde['target']).". Attack in ".displayTime($tminus,0,1)."!";
       echo "<p><a href='hordeinfo.php' class='evil'>".$hordemsg."</a></p>";
       $isHorde=$myHorde;
     }
   ?>
         </div>
       </div>
+	  
+		<div class="panel panel-travel">
+			<div class="panel-heading">
+			  <h3 class="panel-title" >Travel</h3>
+			</div>
+			<div class="panel-body abox">
+			  <table style="background-color: transparent;">
+			  <tr ><td style='padding-right:20px'><a style="cursor: pointer;" onClick='submitTravelForm(0);'><img src="map/places/imgs/w.gif"></img> <?php echo $surrounding_area[0]?></a></td>
+			  <td style='padding-left:20px'><a style="cursor: pointer;" onClick='submitTravelForm(1);'><img src="map/places/imgs/w.gif"></img> <?php echo $surrounding_area[1]?></a></td></tr>
+			  <tr ><td style='padding-right:20px'><a style="cursor: pointer;" onClick='submitTravelForm(2);'><img src="map/places/imgs/w.gif"></img> <?php echo $surrounding_area[2]?></a></td>
+			  <td style='padding-left:20px'><a style="cursor: pointer;" onClick='submitTravelForm(3);'><img src="map/places/imgs/w.gif"></img> <?php echo $surrounding_area[3]?></a></td></tr>
+			  </table>
+			</div>
+		</div>
     </div>
+	
+
     <div class='col-md-8 col-md-pull-4'>
       <div class='row'>
       <?php
         $hunt =0;
-        $myquests= unserialize($char[quests]);
+        $myquests= unserialize($char['quests']);
         if ($myquests)
         {
           foreach ($myquests as $c_n => $c_s)
           {
             if ($c_s[0] == 1)
             {
-              $quest = mysql_fetch_array(mysql_query("SELECT * FROM Quests WHERE id='$c_n'"));
-              if ($quest[expire] > (time()/3600) || $quest[expire] == -1)
+              $quest = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Quests WHERE id='$c_n'"));
+              if ($quest['expire'] > (time()/3600) || $quest['expire'] == -1)
               { 
-                if ($quest[type] == 1)
+                if ($quest['type'] == 1)
                 {
-                  $goals = unserialize($quest[goals]);
-                  if (strtolower($goals[2]) == strtolower($char[location]) && $myquests[$c_n][1]< $goals[0])
+                  $goals = unserialize($quest['goals']);
+                  if (strtolower($goals[2]) == strtolower($char['location']) && $myquests[$c_n][1]< $goals[0])
                   {
                     $hunt = 1;
                   }
                 }
-                else if ($quest[type] == $quest_type_num["Horde"])
+                else if ($quest['type'] == $quest_type_num["Horde"])
                 {
-                  $goals = unserialize($quest[goals]);
-                  if (strtolower($goals[2]) == strtolower($char[location]) && $myquests[$c_n][1] > 0)
+                  $goals = unserialize($quest['goals']);
+                  if (strtolower($goals[2]) == strtolower($char['location']) && $myquests[$c_n][1] > 0)
                   {
                      $hunt = 1;
                   }
@@ -149,10 +165,10 @@ $myHorde=0;
         $isEstate=1;
           
         $links=1+$hunt+$isEstate;
-        if ($isHorde[id])
+        if ($isHorde['id'])
         {
           $links++;
-          if ($isHorde[army_done] == 0) $links++;
+          if ($isHorde['army_done'] == 0) $links++;
         }
       ?>
 <table cellpadding=0 cellspacing=0 width='98%' class='table-clear'>
@@ -187,21 +203,21 @@ $myHorde=0;
     <td width='4%'><img src="images/extpillar.jpg" class='hidden-xs img-optional'></td>
 <?php
   }  
-  if ($isHorde[id])
+  if ($isHorde['id'])
   {
 ?>
     <td width='15%'>
-      <div align='center' onClick="parent.document.location='npc.php?horde=<?php echo $isHorde[id];?>'">
+      <div align='center' onClick="parent.document.location='npc.php?horde=<?php echo $isHorde['id'];?>'">
         <img class='img-responsive' src="images/horde1.gif" alt="Horde" onMouseover="this.src='images/horde2.gif'" onMouseout="this.src='images/horde1.gif'">
       </div>
     </td>
     <td width='4%'><img src="images/extpillar.jpg" class='hidden-xs img-optional'></td>
 <?php
-    if ($isHorde[army_done] == 0)
+    if ($isHorde['army_done'] == 0)
     {
 ?>
     <td width='15%'>
-      <div align='center' onClick="parent.document.location='npc.php?horde=<?php echo $isHorde[id];?>&army=1'">
+      <div align='center' onClick="parent.document.location='npc.php?horde=<?php echo $isHorde['id'];?>&army=1'">
         <img class='img-responsive' src="images/armies1.gif" alt="Army" onMouseover="this.src='images/armies2.gif'" onMouseout="this.src='images/armies1.gif'">
       </div>
     </td>

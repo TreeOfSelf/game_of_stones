@@ -8,7 +8,7 @@ include_once("admin/itemFuncs.php");
 include_once("admin/questFuncs.php");
 include_once("admin/userdata.php");
 include_once("admin/locFuncs.php");
-$id = mysql_real_escape_string($_GET['id']);
+$id = mysqli_real_escape_string($db,$_GET['id']);
 $goodevil=$char['goodevil'];
 if ($goodevil >1) $goodevil= 1;
 ?>
@@ -20,7 +20,7 @@ if ($goodevil >1) $goodevil= 1;
 <font face="VERDANA"><font class="bigtext"><center><br>
 
 <?php
-$quest =  mysql_fetch_array(mysql_query("SELECT * FROM Quests WHERE id=$id"));
+$quest =  mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Quests WHERE id=$id"));
 
 function getQuestInfo ($quest)
 {

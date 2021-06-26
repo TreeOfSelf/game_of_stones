@@ -1,8 +1,10 @@
 <?php
-mysql_query("LOCK TABLES Users WRITE, Soc WRITE, Contests WRITE");
-$cbs = (mysql_query("SELECT id, starts, contestants, results, participation FROM Contests WHERE type > 9 AND type != 99 AND starts <= $check AND done = 0"));
+include_once("connect.php");
+mysqli_query($db,"LOCK TABLES Users WRITE, Soc WRITE, Contests WRITE");
 $check=intval(time()/3600);
-while ($cb = mysql_fetch_array($cbs))
+$cbs = (mysqli_query($db,"SELECT id, starts, contestants, results, participation FROM Contests WHERE type > 9 AND type != 99 AND starts <= $check AND done = 0"));
+
+while ($cb = mysqli_fetch_array($cbs))
 {
   echo "Updating hourly participation for CB $cb[id]...";
   $bhour = $check-$cb[starts];
@@ -28,9 +30,9 @@ while ($cb = mysql_fetch_array($cbs))
     $ccons = serialize($cb_clans);
     $cparts = serialize($cpart);
     $cresults = serialize($cb_results);
-    mysql_query("UPDATE Contests SET contestants='".$ccons."', participation='".$cparts."', results='".$cresults."' WHERE id='$cb[id]'");
+    mysqli_query($db,"UPDATE Contests SET contestants='".$ccons."', participation='".$cparts."', results='".$cresults."' WHERE id='$cb[id]'");
   }
 }
-mysql_query("UNLOCK TABLES;");
+mysqli_query($db,"UNLOCK TABLES;");
 
 ?>

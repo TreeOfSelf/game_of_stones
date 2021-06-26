@@ -8,7 +8,7 @@ include_once("admin/locFuncs.php");
 
 
 // Check if city has been destroyed. If so, don't display anything.
-if (!$location[isDestroyed])
+if (!$location['isDestroyed'])
 {
 function displayBuildInfo($build, $blvl, $name )
 {
@@ -31,30 +31,30 @@ function displayUniqBuildInfo($build, $blvl, $name, $ubb)
 }
 
 $id=$char['id'];
-$jobs = unserialize($char[jobs]);
+$jobs = unserialize($char['jobs']);
 $wikilink = "City+Hall";
-$tab = mysql_real_escape_string($_REQUEST[tab]);
+$tab = mysqli_real_escape_string($db,$_REQUEST['tab']);
 
 $loc_name = str_replace('-ap-','&#39;',$char['location']);
 $loc_query = $char['location'];
-$soc_name = $char[society];
+$soc_name = $char['society'];
 
 $message = $loc_name." City Hall";
 
 $shoplvls=unserialize($location['shoplvls']);
 
 // KICK OFF PAGE IF NOT CLAN LEADER
-$society = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='$soc_name' "));
+$society = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='$soc_name' "));
 $subleaders = unserialize($society['subleaders']);
 $subs = $society['subs'];
 $offices = unserialize($society['offices']);
 $areascore = unserialize($society['area_score']);
-$locscore = $areascore[$location[id]];
+$locscore = $areascore[$location['id']];
 
 $slead = 0;
 $soff = 0;
-if ($offices[$location[id]][0]) $soff=1;
-if (strtolower($name) == strtolower($society[leader]) && strtolower($lastname) == strtolower($society[leaderlast]) ) 
+if ($offices[$location['id']]['0']) $soff=1;
+if (strtolower($name) == strtolower($society['leader']) && strtolower($lastname) == strtolower($society['leaderlast']) ) 
 {
   $slead=1;
 }
@@ -68,17 +68,17 @@ if ($subs > 0)
     }
   }
 }  
-if ($offices[$location[id]][0] != '1')
+if ($offices[$location['id']]['0'] != '1')
 {
-  if (strtolower($name) == strtolower($offices[$location[id]][0]) && strtolower($lastname) == strtolower($offices[$location[id]][1]) ) 
+  if (strtolower($name) == strtolower($offices[$location['id']]['0']) && strtolower($lastname) == strtolower($offices[$location['id']]['1']) ) 
   {
     $slead=1;  
   }
 } 
 
 $b = 0;
-$ruler = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='$location[ruler]' "));
-if ($location['ruler'] == $society[name])
+$ruler = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='$location[ruler]' "));
+if ($location['ruler'] == $society['name'])
 {
   $rulerscore = $locscore;
   if ($slead==1)
@@ -89,31 +89,31 @@ if ($location['ruler'] == $society[name])
 else 
 {
   $rareascore = unserialize($ruler['area_score']);
-  $rulerscore = $rareascore[$location[id]];
+  $rulerscore = $rareascore[$location['id']];
 }
 
-$gtype=mysql_real_escape_string($_POST[game]);
-$minw=mysql_real_escape_string($_POST[minw]);
-$maxw=mysql_real_escape_string($_POST[maxw]);
-$bought=mysql_real_escape_string($_POST[bought]);
-$buildup=mysql_real_escape_string($_POST[buildup]);
+$gtype=mysqli_real_escape_string($db,$_POST['game']);
+$minw=mysqli_real_escape_string($db,$_POST['minw']);
+$maxw=mysqli_real_escape_string($db,$_POST['maxw']);
+$bought=mysqli_real_escape_string($db,$_POST['bought']);
+$buildup=mysqli_real_escape_string($db,$_POST['buildup']);
 
-$ustats = mysql_fetch_array(mysql_query("SELECT * FROM Users_stats WHERE id='$id'"));
+$ustats = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Users_stats WHERE id='$id'"));
 
 $myLocBiz = array (0,0,0,0,0,0,0,0,0,0,0,0,0);
 $myLocBiz[99]=0;
 $myTotBiz = array (0,0,0,0,0,0,0,0,0,0,0,0,0);
 $myTotBiz[99]=0;
 $query = "SELECT * FROM Profs WHERE owner='$id'";
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 $most_biz=0;
-while ($bq = mysql_fetch_array( $result ) )
+while ($bq = mysqli_fetch_array( $result ) )
 {
-  $myTotBiz[$bq[type]]++;
-  if($most_biz<$myTotBiz[$bq[type]]) $most_biz = $myTotBiz[$bq[type]];
-  if ($bq[location]==$loc_query)
+  $myTotBiz[$bq['type']]++;
+  if($most_biz<$myTotBiz[$bq['type']]) $most_biz = $myTotBiz[$bq['type']];
+  if ($bq['location']==$loc_query)
   {
-    $myLocBiz[$bq[type]]++;
+    $myLocBiz[$bq['type']]++;
   }
 }
 $num_biz_types=0;
@@ -131,12 +131,12 @@ if ($bought != '' && $bought != '-1')
   {
     if ($myTotBiz[$bought] < 6)
     {
-      $bcost=($biz_costs[$bought][$myTotBiz[$bought]]*(100+$town_bonuses[bG])/100);
-      if ($bcost <= $char[gold])
+      $bcost=($biz_costs[$bought][$myTotBiz[$bought]]*(100+$town_bonuses['bG'])/100);
+      if ($bcost <= $char['gold'])
       {
-        $char[gold] -= $bcost;
-        $ustats[prof_earn] -= $bcost;
-        mysql_query("UPDATE Users_stats SET prof_earn='".$ustats[prof_earn]."' WHERE id='".$char[id]."'");
+        $char['gold'] -= $bcost;
+        $ustats['prof_earn'] -= $bcost;
+        mysqli_query($db,"UPDATE Users_stats SET prof_earn='".$ustats['prof_earn']."' WHERE id='".$char['id']."'");
         $tools = array(0,0,0);
         $spec = array(0,0,0,0,0,0,0,0,0);
         $bupgrades = serialize(array(1,$tools,$spec));
@@ -147,10 +147,10 @@ if ($bought != '' && $bought != '-1')
         $myTotBiz[$bought]++;
         if ($myTotBiz[$bought]>$most_biz) $most_biz=$myTotBiz[$bought];
         if ($myTotBiz[$bought]==1) $num_biz_types++;
-        $ustats[num_biz]++;
-        if ($ustats[most_biz]< $most_biz) $ustats[most_biz] = $most_biz;
-        if ($ustats[num_biz_types]< $num_biz_types) $ustats[num_biz_types] = $num_biz_types;
-        if ($ustats[highest_biz]<1) $ustats[highest_biz]=1;
+        $ustats['num_biz']++;
+        if ($ustats['most_biz']< $most_biz) $ustats['most_biz'] = $most_biz;
+        if ($ustats['num_biz_types']< $num_biz_types) $ustats['num_biz_types'] = $num_biz_types;
+        if ($ustats['highest_biz']<1) $ustats['highest_biz']=1;
         
         for ($i=0;$i<9;$i++)
         {
@@ -159,17 +159,17 @@ if ($bought != '' && $bought != '-1')
         $statuss = serialize($status);
         $sql = "INSERT INTO Profs (name,type,     owner,location,    value, started,     upgrades,    status)
                            VALUES ('',  '$bought','$id','$loc_query','2500','".time()."','$bupgrades','$statuss')";
-        $resultt = mysql_query($sql, $db);
-        mysql_query("UPDATE Users SET gold='".$char[gold]."' WHERE id='".$char[id]."'");
-        mysql_query("UPDATE Users_stats SET prof_earn='".$ustats[prof_earn]."', highest_biz='".$ustats[highest_biz]."', num_biz='".$ustats[num_biz]."', most_biz='".$ustats[most_biz]."', num_biz_types='".$ustats[num_biz_types]."' WHERE id='".$char[id]."'");
+        $resultt = mysqli_query($db,$sql);
+        mysqli_query($db,"UPDATE Users SET gold='".$char['gold']."' WHERE id='".$char['id']."'");
+        mysqli_query($db,"UPDATE Users_stats SET prof_earn='".$ustats['prof_earn']."', highest_biz='".$ustats['highest_biz']."', num_biz='".$ustats['num_biz']."', most_biz='".$ustats['most_biz']."', num_biz_types='".$ustats['num_biz_types']."' WHERE id='".$char['id']."'");
         $message = "Business Bought for ".displayGold($bcost)."!";    
      
         $myLocBiz[0] = '';
         $query = "SELECT * FROM Profs WHERE owner='$id' AND location='$loc_query'";
-        $result = mysql_query($query);  
-        while ($bq = mysql_fetch_array( $result ) )
+        $result = mysqli_query($db,$query);
+        while ($bq = mysqli_fetch_array( $result ) )
         {
-          $myLocBiz[$bq[type]]=1;
+          $myLocBiz[$bq['type']]=1;
         }
       }
       else { $message="You can't afford that!"; }
@@ -199,7 +199,7 @@ if ($buildup != '' && $buildup != '-1')
     else
     {
       $maxlvl = 1;
-      $bname = $unique_buildings[$location[name]][$buildup-6];
+      $bname = $unique_buildings[$location['name']][$buildup-6];
       $cost=$build_costs[$lvl+5];
       $gcost= floor($build_costs[$lvl+5]/4000);
       $good1=$unique_build_goods[$bname][0];
@@ -225,7 +225,7 @@ if ($buildup != '' && $buildup != '-1')
               $location[$estate_unq_prod[$good2]] -= $gcost;
               $gquery .= $estate_unq_prod[$good2]."='".$location[$estate_unq_prod[$good2]]."', ";
             }
-            $result = mysql_query("UPDATE Locations SET ".$gquery." upgrades='$newups', bank='$location[bank]', num_ups='$numups' WHERE name='$loc_query'");
+            $result = mysqli_query($db,"UPDATE Locations SET ".$gquery." upgrades='$newups', bank='$location[bank]', num_ups='$numups' WHERE name='$loc_query'");
             $message = $bname." upgraded to level ".($lvl+1)."!";
           }
           else {$message = "The city doesn't have enough ".$estate_unq_prod[$good2]." to do that!";}
@@ -245,10 +245,10 @@ if ($gtype)
   if ($minw <= $maxw)
   {
     if ($gtype == "t") $gtype = "";
-    $location[gtype] = $gtype;
-    $location[minw] = $minw;
-    $location[maxw] = $maxw;    
-    mysql_query("UPDATE Locations SET gtype='$gtype', minw='$minw', maxw='$maxw' WHERE name='$loc_query'");
+    $location['gtype'] = $gtype;
+    $location['minw'] = $minw;
+    $location['maxw'] = $maxw;    
+    mysqli_query($db,"UPDATE Locations SET gtype='$gtype', minw='$minw', maxw='$maxw' WHERE name='$loc_query'");
     $message = "Dice Game Setup!";
   }
   else
@@ -267,7 +267,7 @@ if ($_POST['changer2'])
     {
       $message = "City Announcement successfully posted";
       $query = "UPDATE Locations SET info='$newtext' WHERE name='$loc_query'";
-      $result = mysql_query($query);
+      $result = mysqli_query($db,$query);
       $location['info']=$newtext;
     }
     else {$message="What strange characters you used. Officials refuse to post your note";}
@@ -278,20 +278,20 @@ if ($_POST['changer2'])
 // tournaments
 if ($_POST['maketourney'])
 {
-  $ttype = mysql_real_escape_string($_POST[ttype]);
-  $minp = mysql_real_escape_string($_POST[minp]);
-  $maxp = mysql_real_escape_string($_POST[maxp]);
-  $pduels = mysql_real_escape_string($_POST[pduels]);
-  $tfee = mysql_real_escape_string($_POST[tfee]);
-  $pdistro = mysql_real_escape_string($_POST[pdistro]);
+  $ttype = mysqli_real_escape_string($db,$_POST['ttype']);
+  $minp = mysqli_real_escape_string($db,$_POST['minp']);
+  $maxp = mysqli_real_escape_string($db,$_POST['maxp']);
+  $pduels = mysqli_real_escape_string($db,$_POST['pduels']);
+  $tfee = mysqli_real_escape_string($db,$_POST['tfee']);
+  $pdistro = mysqli_real_escape_string($db,$_POST['pdistro']);
   
   if ($maxp == '0' || $maxp >= $minp)
   {
     if ($ttype > 0)
     {
-      if ($location[bank]>=$tfee*2)
+      if ($location['bank']>=$tfee*2)
       {
-        $location[bank]-= $tfee*2;
+        $location['bank']-= $tfee*2;
         $tstarts = intval(time()/3600)+24;
         $tends = $tstarts+24;
         $tprize= $tfee*2;
@@ -300,15 +300,15 @@ if ($_POST['maketourney'])
         $rules = serialize(array($minp*10,$maxp*10,$pduels,$tfee));
         $sql = "INSERT INTO Contests (type,    location,    starts,    ends,    done,distro,    contestants,rules,   results   ,reward)
                               VALUES ('$ttype','$loc_query','$tstarts','$tends','0', '$pdistro','$players', '$rules','$players','$rewards')";
-        $resultt = mysql_query($sql, $db);
-        $myTourney = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE location='$loc_query' AND starts='$tstarts'"));
-        mysql_query("UPDATE Locations SET last_tourney='$myTourney[id]', bank='$location[bank]' WHERE name='$loc_query'");
+        $resultt = mysqli_query($db,$sql);
+        $myTourney = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE location='$loc_query' AND starts='$tstarts'"));
+        mysqli_query($db,"UPDATE Locations SET last_tourney='$myTourney[id]', bank='$location[bank]' WHERE name='$loc_query'");
         $message = "Tournament Announced!";
         
         // Update City Rumors
-        $cityRumors = mysql_fetch_array(mysql_query("SELECT * FROM messages WHERE id='50000'"));
+        $cityRumors = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM messages WHERE id='50000'"));
 
-        $rumorMessages = unserialize($cityRumors[message]);
+        $rumorMessages = unserialize($cityRumors['message']);
         $numRumors = count($rumorMessages);
         
         $myMsg = "<".$loc_query."_".time().">` A new Tournament has been announced!|";
@@ -316,7 +316,7 @@ if ($_POST['maketourney'])
     
         $rumorMessages = pruneMsgs($rumorMessages, 50);
         $newRumors = serialize($rumorMessages);
-        mysql_query("UPDATE messages SET message='$newRumors' WHERE id='50000'");        
+        mysqli_query($db,"UPDATE messages SET message='$newRumors' WHERE id='50000'");        
       }
       else $message = "There is not enough in the city bank to setup that tournament!";
     }
@@ -326,19 +326,19 @@ if ($_POST['maketourney'])
 }
 
 // sign up
-if ($_POST[signup])
+if ($_POST['signup'])
 {
-  $myTourney = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE id='$location[last_tourney]' "));
-  $rules = unserialize($myTourney[rules]);
-  if ($myTourney[starts] > intval(time()/3600)) 
+  $myTourney = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE id='$location[last_tourney]' "));
+  $rules = unserialize($myTourney['rules']);
+  if ($myTourney['starts'] > intval(time()/3600)) 
   {
-    if ($char[lastcontest] != $myTourney[id])
+    if ($char['lastcontest'] != $myTourney['id'])
     {
       $lastdone=0;
-      if ($char[lastcontest])
+      if ($char['lastcontest'])
       {
-        $lastTourney = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE id='$char[lastcontest]' "));
-        $lastdone=$lastTourney[done];
+        $lastTourney = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE id='$char[lastcontest]' "));
+        $lastdone=$lastTourney['done'];
       }
       else
       {
@@ -346,23 +346,23 @@ if ($_POST[signup])
       }
       if ($lastdone)
       {
-        if ($rules[0] <= $char[level] && (!($rules[1]) || $char[level] <= $rules[1]))
+        if ($rules['0'] <= $char['level'] && (!($rules['1']) || $char['level'] <= $rules['1']))
         {
-          if ($char[gold] >= $rules[3])
+          if ($char['gold'] >= $rules['3'])
           {
-            $char[gold] -= $rules[3];
-            $tcontestants = unserialize($myTourney[contestants]);
-            $cc = $char[id];
-            $tcontestants[$cc][0] = $char[name]."_".$char[lastname];
+            $char['gold'] -= $rules['3'];
+            $tcontestants = unserialize($myTourney['contestants']);
+            $cc = $char['id'];
+            $tcontestants[$cc]['0'] = $char['name']."_".$char['lastname'];
             $tcontestants[$cc][1] = 0; 
             $sc = serialize($tcontestants);
-            $prize=unserialize($myTourney[reward]);
+            $prize=unserialize($myTourney['reward']);
             $prize[0]+=$rules[3];
             $sp = serialize($prize);
-            $ustats[num_tourney]++;
-            mysql_query("UPDATE Users_stats SET num_tourney='$ustats[num_tourney]' WHERE id='$char[id]'");
-            mysql_query("UPDATE Users SET lastcontest='$myTourney[id]', gold='$char[gold]' WHERE id='$char[id]'");
-            mysql_query("UPDATE Contests SET contestants='$sc', reward='$sp' WHERE id='$myTourney[id]'");
+            $ustats['num_tourney']++;
+            mysqli_query($db,"UPDATE Users_stats SET num_tourney='$ustats[num_tourney]' WHERE id='$char[id]'");
+            mysqli_query($db,"UPDATE Users SET lastcontest='$myTourney[id]', gold='$char[gold]' WHERE id='$char[id]'");
+            mysqli_query($db,"UPDATE Contests SET contestants='$sc', reward='$sp' WHERE id='$myTourney[id]'");
             $message = "You have signed up for the tournament. Prepare yourself!";
           }
           else $message= "You do not have enough to pay the entry fee!";
@@ -378,10 +378,10 @@ if ($_POST[signup])
 if ($_POST['makewar'] && $slead)
 {
   $lastdone=0;
-  if ($society[last_war])
+  if ($society['last_war'])
   {
-    $lastWar = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE id='$society[last_war]' "));
-    if (($lastWar[ends]+24) <= intval(time()/3600)) $lastdone=1;
+    $lastWar = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE id='$society[last_war]' "));
+    if (($lastWar['ends']+24) <= intval(time()/3600)) $lastdone=1;
   }
   else
   {
@@ -393,22 +393,22 @@ if ($_POST['makewar'] && $slead)
     $minp = 0;
     $maxp = 0;
     $pduels = 0;
-    $tfee = intval($location[bank]/10);
+    $tfee = intval($location['bank']/10);
     $pdistro = 10;
   
-    if ($society[bank]>=$tfee)
+    if ($society['bank']>=$tfee)
     {
-      $society[bank]-= $tfee;
+      $society['bank']-= $tfee;
       $tstarts = intval(time()/3600)+24;
       $tends = $tstarts+24;
       $tprize= $tfee;
     
       $contestants = array(array());
-      $cc = $society[id];
-      $contestants[$cc][0] = $society[name];
+      $cc = $society['id'];
+      $contestants[$cc][0] = $society['name'];
       $contestants[$cc][1] = 0;
-      $rc = $ruler[id];
-      $contestants[$rc][0] = $ruler[name];
+      $rc = $ruler['id'];
+      $contestants[$rc][0] = $ruler['name'];
       $contestants[$rc][1] = 0;       
       $sc = serialize($contestants);
     
@@ -417,46 +417,46 @@ if ($_POST['makewar'] && $slead)
       $part[0][$rc] = 0;
       $sp = serialize($part);
     
-      $swars= unserialize($society[wars]);           
-      $rwars= unserialize($ruler[wars]);
+      $swars= unserialize($society['wars']);           
+      $rwars= unserialize($ruler['wars']);
      
       $rewards = serialize(array("$tprize",'0'));
       $rules = serialize(array($rc,$cc,0,$tfee));
       $sql = "INSERT INTO Contests (type,    location,    starts,    ends,    done,distro,    contestants,rules,   participation,results,   reward)
                             VALUES ('$ttype','$loc_query','$tstarts','$tends','0', '$pdistro','$sc',      '$rules','$sp',        '$players','$rewards')";
-      $resultt = mysql_query($sql, $db);
-      $myWar = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE location='$loc_query' AND starts='$tstarts'"));
-      $location[last_war]=$myWar[id];
-      mysql_query("UPDATE Locations SET last_war='$myWar[id]' WHERE name='$loc_query'");
-      $swars[$myWar[id]]=0;
-      $rwars[$myWar[id]]=0;
+      $resultt = mysqli_query($db,$sql);
+      $myWar = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE location='$loc_query' AND starts='$tstarts'"));
+      $location['last_war']=$myWar['id'];
+      mysqli_query($db,"UPDATE Locations SET last_war='$myWar[id]' WHERE name='$loc_query'");
+      $swars[$myWar['id']]=0;
+      $rwars[$myWar['id']]=0;
       $ssw=serialize($swars);
       $srw=serialize($rwars);
     
-      $align = $ruler[align];
-      if ($align == 2) $society[align] += -25;
-      else if ($align == 1) $society[align] += -10;
-      else if ($align == 0) $society[align] += -5;
-      else if ($align == -1) $society[align] += 10;
-      else if ($align == -2) $society[align] += 25;
+      $align = $ruler['align'];
+      if ($align == 2) $society['align'] += -25;
+      else if ($align == 1) $society['align'] += -10;
+      else if ($align == 0) $society['align'] += -5;
+      else if ($align == -1) $society['align'] += 10;
+      else if ($align == -2) $society['align'] += 25;
      
-      mysql_query("UPDATE Soc SET bank='$society[bank]', wars='$ssw', last_war='$myWar[id]' WHERE name='$society[name]'");
-      //    mysql_query("UPDATE Soc SET bank='$society[bank]', wars='$ssw', last_war='$myWar[id]', align='".$society[align]."' WHERE name='$society[name]'");
-      mysql_query("UPDATE Soc SET wars='$srw' WHERE name='$ruler[name]'");
+      mysqli_query($db,"UPDATE Soc SET bank='$society[bank]', wars='$ssw', last_war='$myWar[id]' WHERE name='$society[name]'");
+      //    mysqli_query($db,"UPDATE Soc SET bank='$society[bank]', wars='$ssw', last_war='$myWar[id]', align='".$society[align]."' WHERE name='$society[name]'");
+      mysqli_query($db,"UPDATE Soc SET wars='$srw' WHERE name='$ruler[name]'");
       $message = "Clan Battle Announced!";
     
       // Update City Rumors
-      $cityRumors = mysql_fetch_array(mysql_query("SELECT * FROM messages WHERE id='50000'"));
+      $cityRumors = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM messages WHERE id='50000'"));
 
-      $rumorMessages = unserialize($cityRumors[message]);
+      $rumorMessages = unserialize($cityRumors['message']);
       $numRumors = count($rumorMessages);
         
-      $myMsg = "<".$loc_query."_".time().">` ".$society[name]." has started a clan battle against ".$ruler[name]."!|";
+      $myMsg = "<".$loc_query."_".time().">` ".$society['name']." has started a clan battle against ".$ruler['name']."!|";
       $rumorMessages[$numRumors] = $myMsg;
     
       $rumorMessages = pruneMsgs($rumorMessages, 50);
       $newRumors = serialize($rumorMessages);
-      mysql_query("UPDATE messages SET message='$newRumors' WHERE id='50000'");     
+      mysqli_query($db,"UPDATE messages SET message='$newRumors' WHERE id='50000'");     
     }
     else $message = "Your clan does not have enough funds to take part in such a battle!";
   }
@@ -465,15 +465,15 @@ if ($_POST['makewar'] && $slead)
 
 if ($_POST['joinwar'] && $slead)
 {
-  $myWar = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE id='$location[last_war]' "));
-  $rules = unserialize($myWar[rules]);
-  if ($myWar[starts] > intval(time()/3600)) 
+  $myWar = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE id='$location[last_war]' "));
+  $rules = unserialize($myWar['rules']);
+  if ($myWar['starts'] > intval(time()/3600)) 
   {
       $lastdone=0;
-      if ($society[last_war])
+      if ($society['last_war'])
       {
-        $lastWar = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE id='$society[last_war]' "));
-        if (($lastWar[ends]+24) <= intval(time()/3600)) $lastdone=1;
+        $lastWar = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE id='$society[last_war]' "));
+        if (($lastWar['ends']+24) <= intval(time()/3600)) $lastdone=1;
       }
       else
       {
@@ -482,29 +482,29 @@ if ($_POST['joinwar'] && $slead)
       
       if ($lastdone)
       {
-          if ($society[bank] >= $rules[3])
+          if ($society['bank'] >= $rules[3])
           {
-            $society[bank] -= $rules[3];
-            $wrewards = unserialize($myWar[reward]);
+            $society['bank'] -= $rules[3];
+            $wrewards = unserialize($myWar['reward']);
             $wrewards[0] += $rules[3];
             $swr = serialize($wrewards);
-            $contestants = unserialize($myWar[contestants]);
-            $cc = $society[id];
-            $contestants[$cc][0] = $society[name];
+            $contestants = unserialize($myWar['contestants']);
+            $cc = $society['id'];
+            $contestants[$cc][0] = $society['name'];
             $contestants[$cc][1] = 0; 
             $sc = serialize($contestants);
-            mysql_query("UPDATE Contests SET reward='$swr', contestants='$sc' WHERE id='$myWar[id]'");
-            $swars= unserialize($society[wars]);
-            $swars[$myWar[id]]=0;
+            mysqli_query($db,"UPDATE Contests SET reward='$swr', contestants='$sc' WHERE id='$myWar[id]'");
+            $swars= unserialize($society['wars']);
+            $swars[$myWar['id']]=0;
             $ssw=serialize($swars);
-            $align = $ruler[align];
-            if ($align == 2) $society[align] += -25;
-            else if ($align == 1) $society[align] += -10;
-            else if ($align == 0) $society[align] += -5;
-            else if ($align == -1) $society[align] += 10;
-            else if ($align == -2) $society[align] += 25;
-            mysql_query("UPDATE Soc SET bank='$society[bank]', wars='$ssw', last_war='$myWar[id]' WHERE name='$society[name]'");
-            //            mysql_query("UPDATE Soc SET bank='$society[bank]', wars='$ssw', last_war='$myWar[id]', align='".$society[align]."' WHERE name='$society[name]'");
+            $align = $ruler['align'];
+            if ($align == 2) $society['align'] += -25;
+            else if ($align == 1) $society['align'] += -10;
+            else if ($align == 0) $society['align'] += -5;
+            else if ($align == -1) $society['align'] += 10;
+            else if ($align == -2) $society['align'] += 25;
+            mysqli_query($db,"UPDATE Soc SET bank='$society[bank]', wars='$ssw', last_war='$myWar[id]' WHERE name='$society[name]'");
+            //            mysqli_query($db,"UPDATE Soc SET bank='$society[bank]', wars='$ssw', last_war='$myWar[id]', align='".$society[align]."' WHERE name='$society[name]'");
             $message = "Clan Battle Joined!";
           }
           else $message= "You do not have enough to pay the entry fee!";
@@ -526,7 +526,7 @@ include('header.htm');
     }
     for ($i=6; $i<8; $i++)
     {
-      echo displayUniqBuildInfo($i,$upgrades[$i], $unique_buildings[$location[name]][$i-6], $unique_build_bonuses)."\n";
+      echo displayUniqBuildInfo($i,$upgrades[$i], $unique_buildings[$location['name']][$i-6], $unique_build_bonuses)."\n";
     }
   ?>
 
@@ -583,8 +583,8 @@ include('header.htm');
                   {
                     $t = $bizarray[$x];
                     echo "<tr><td align='center'>".$job_biz_names[$t][0]."</td>";
-                    echo "<td align='center'>".displayGold(($biz_costs[$t][$myTotBiz[$t]]*(100+$town_bonuses[bG])/100))."</td>";
-                    if (($jobs[$t] >0 && $myTotBiz[$t] < 6)|| ($t==99 && $stats['loc_ji'.$location[id]] > 100))
+                    echo "<td align='center'>".displayGold(($biz_costs[$t][$myTotBiz[$t]]*(100+$town_bonuses['bG'])/100))."</td>";
+                    if (($jobs[$t] >0 && $myTotBiz[$t] < 6)|| ($t==99 && $stats['loc_ji'.$location['id']] > 100))
                     {
                       if ($myLocBiz[$t])
                       {
@@ -607,9 +607,9 @@ include('header.htm');
         <div class="tab-pane <?php if ($tab == 2) echo 'active';?>" id="tourney_tab">
           <div class='row'>
         <?php
-          if ($location[last_tourney])
+          if ($location['last_tourney'])
           {
-            $myTourney = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE id='$location[last_tourney]' "));
+            $myTourney = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE id='$location[last_tourney]' "));
           }
           else
           {
@@ -617,20 +617,20 @@ include('header.htm');
           }
           if ($myTourney != 0) // Previous tournament
           {
-            if ($myTourney[starts] > intval(time()/3600))
+            if ($myTourney['starts'] > intval(time()/3600))
             {
-              $tminus = intval(($myTourney[starts]*3600-time())/60);
+              $tminus = intval(($myTourney['starts']*3600-time())/60);
               echo "Contest starts in: ".displayTime($tminus,0)."<br/>";
             }
-            else if ($myTourney[ends] > intval(time()/3600))
+            else if ($myTourney['ends'] > intval(time()/3600))
             {
-              $tminus = intval(($myTourney[ends]*3600-time())/60);
+              $tminus = intval(($myTourney['ends']*3600-time())/60);
               echo "Contest ends in: ".displayTime($tminus,0)."<br/>";
             }
             else
             {
               $next_tourney = 0;
-              $tpast = intval((time() - $myTourney[ends]*3600)/60);
+              $tpast = intval((time() - $myTourney['ends']*3600)/60);
               $tourney_ago = displayTime($tpast);
               $next_tourney = 7200-$tpast;
               echo "Last Tourney: ".$tourney_ago."<br/>";
@@ -645,17 +645,17 @@ include('header.htm');
             <table class='table table-repsonsive table-hover table-clear small'>
               <tr>
                 <td align=right><b>Battle Type:</b></td>
-                <td><?php echo $tourneyType[$myTourney[type]];?></td>
+                <td><?php echo $tourneyType[$myTourney['type']];?></td>
               </tr>
               <tr>
                 <td align=right><b>Prize Distribution:</b></td>
-                <td><?php echo $tourneyDistro[$myTourney[distro]];?></td>
+                <td><?php echo $tourneyDistro[$myTourney['distro']];?></td>
               </tr>
               <tr>
                 <td align=right><b>Player level range:</b></td>
                 <td>
               <?php 
-                $rules = unserialize($myTourney[rules]);
+                $rules = unserialize($myTourney['rules']);
                 if ($rules[0] > 0) $myMin= "Level ".$rules[0]; else $myMin = "Any";
                 if ($rules[1] > 0) $myMax= "Level ".$rules[1]; else $myMax = "Any";
                 echo $myMin." - ".$myMax;
@@ -673,15 +673,15 @@ include('header.htm');
             </table>
         <?php 
             // Join tournament?
-            if ($myTourney[starts] > intval(time()/3600)) 
+            if ($myTourney['starts'] > intval(time()/3600)) 
             {
-              if ($char[lastcontest] != $myTourney[id])
+              if ($char['lastcontest'] != $myTourney['id'])
               {
                 $lastdone=0;
-                if ($char[lastcontest])
+                if ($char['lastcontest'])
                 {
-                  $lastTourney = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE id='$char[lastcontest]' "));
-                  $lastdone=$lastTourney[done];
+                  $lastTourney = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE id='$char[lastcontest]' "));
+                  $lastdone=$lastTourney['done'];
                 }
                 else
                 {
@@ -689,9 +689,9 @@ include('header.htm');
                 }
                 if ($lastdone)
                 {
-                  if ($rules[0] <= $char[level] && (!($rules[1]) || $char[level] <= $rules[1]))
+                  if ($rules['0'] <= $char['level'] && (!($rules['1']) || $char['level'] <= $rules['1']))
                   {
-                    if ($char[gold] >= $rules[3])
+                    if ($char['gold'] >= $rules['3'])
                     {
         ?>
             <form name='joinForm' id='joinForm' action='townhall.php' method='post'>
@@ -714,10 +714,10 @@ include('header.htm');
               }
             }
           }
-          if ( $myTourney[id] != 0 )
+          if ( $myTourney['id'] != 0 )
           {      
-            $tcontestants = unserialize($myTourney[contestants]);
-            $tresults = unserialize($myTourney[results]);
+            $tcontestants = unserialize($myTourney['contestants']);
+            $tresults = unserialize($myTourney['results']);
             echo "<table class='table table-repsonsive table-hover table-clear small'>";
             echo "<tr>";
               echo "<th></th>";
@@ -756,12 +756,12 @@ include('header.htm');
                   }
                 }
               }
-              if (!$tresults[$char[id]]) $tresults[$char[id]] = array();
+              if (!$tresults[$char['id']]) $tresults[$char['id']] = array();
               foreach ($ranks as $rname => $rscore) 
               {
                 if (!$tresults[$rid[$rname]]) $tresults[$rid[$rname]] = array();
-                if (!$tresults[$char[id]][$rid[$rname]]) $tresults[$char[id]][$rid[$rname]] = array(0,0,0);
-                if (!$tresults[$rid[$rname]][$char[id]]) $tresults[$rid[$rname]][$char[id]] = array(0,0,0);
+                if (!$tresults[$char['id']][$rid[$rname]]) $tresults[$char['id']][$rid[$rname]] = array(0,0,0);
+                if (!$tresults[$rid[$rname]][$char['id']]) $tresults[$rid[$rname]][$char['id']] = array(0,0,0);
                 $cname = explode('_', $rname);
                 
                 if ($rid[$rname] == $id) $classn="btn-info";
@@ -770,16 +770,16 @@ include('header.htm');
                 echo "<td align='center'><a class='btn btn-xs btn-block btn-wrap ".$classn."' href='bio.php?name=".$cname[0]."&last=".$cname[1]."'>".$cname[0]." ".$cname[1]."</a></td>";
                 echo "<td align='center'>".$rscore."</td>";
                 echo "<td align='center'>".$numbat[$rid[$rname]]."</td>";
-                echo "<td align='center'>".$tresults[$char[id]][$rid[$rname]][0]."</td>";
-                echo "<td align='center'>".$tresults[$rid[$rname]][$char[id]][0]."</td>";
-                echo "<td align='center'>".($tresults[$char[id]][$rid[$rname]][1]+$tresults[$rid[$rname]][$char[id]][2])."</td>";
-                echo "<td align='center'>".($tresults[$char[id]][$rid[$rname]][2]+$tresults[$rid[$rname]][$char[id]][1])."</td>";
+                echo "<td align='center'>".$tresults[$char['id']][$rid[$rname]]['0']."</td>";
+                echo "<td align='center'>".$tresults[$rid[$rname]][$char['id']]['0']."</td>";
+                echo "<td align='center'>".($tresults[$char['id']][$rid[$rname]]['1']+$tresults[$rid[$rname]][$char['id']]['2'])."</td>";
+                echo "<td align='center'>".($tresults[$char['id']][$rid[$rname]]['2']+$tresults[$rid[$rname]][$char['id']]['1'])."</td>";
                 echo "</tr>";
               }
             }
             echo "</table>";
           }
-          if ($b && ($myTourney[ends]+72) <= intval(time()/3600))
+          if ($b && ($myTourney['ends']+72) <= intval(time()/3600))
           {
         ?>
             <b>Tournament Rules</b><br/><br/>
@@ -872,36 +872,36 @@ include('header.htm');
         <div class="tab-pane <?php if ($tab == 3) echo 'active';?>" id="cb_tab">
         <?php
           $myWar = 0;
-          $rules = '';
+          $rules = [];
           $lastBattle = 0;
-          $lastBattle = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE type='99' "));
+          $lastBattle = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE type='99' "));
           if ($lastBattle != 0)
           {
             $myWar = $lastBattle;
             $bType = "Last";
           }
-          else if ($location[last_war])
+          else if ($location['last_war'])
           {
-            $myWar = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE id='$location[last_war]' "));
+            $myWar = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE id='$location[last_war]' "));
             $bType = "Clan";
           }
     
           if ($myWar != 0) // Previous clan battle
           {
-            if ($myWar[starts] > intval(time()/3600))
+            if ($myWar['starts'] > intval(time()/3600))
             {
-              $tminus = intval(($myWar[starts]*3600-time())/60);
+              $tminus = intval(($myWar['starts']*3600-time())/60);
               echo $bType." Battle starts in: ".displayTime($tminus,0)."<br/><br/>";
             }
-            else if ($myWar[ends] > intval(time()/3600))
+            else if ($myWar['ends'] > intval(time()/3600))
             {
-              $tminus = intval(($myWar[ends]*3600-time())/60);
+              $tminus = intval(($myWar['ends']*3600-time())/60);
               echo $bType." Battle ends in: ".displayTime($tminus,0)."<br/><br/>";
             }
             else
             {
               $next_war = 0;
-              $tpast = intval((time() - $myWar[ends]*3600)/60);
+              $tpast = intval((time() - $myWar['ends']*3600)/60);
               $war_ago = displayTime($tpast);
               $next_war = 1440-$tpast;
               echo "Previous Battle: ".$war_ago."<br/>";
@@ -910,8 +910,8 @@ include('header.htm');
                 echo "Wait before starting new clan battle here: ".displayTime($next_war,0)."<br/><br/>";
               }
             }
-            $rules = unserialize($myWar[rules]);
-            $reward = unserialize($myWar[reward]);
+            $rules = unserialize($myWar['rules']);
+            $reward = unserialize($myWar['reward']);
         ?>
           <div class='row'> 
         <?php        
@@ -936,12 +936,12 @@ include('header.htm');
         <?php
             } 
           }
-          if ( $myWar[id] != 0 )
+          if ( $myWar['id'] != 0 )
           {    
             $ranks=array();
             $rid= array();  
-            $contestants = unserialize($myWar[contestants]);
-            $tresults = unserialize($myWar[results]);
+            $contestants = unserialize($myWar['contestants']);
+            $tresults = unserialize($myWar['results']);
         ?>
             <table class='table table-repsonsive table-hover table-clear small'>
               <tr>
@@ -997,17 +997,17 @@ include('header.htm');
               
               // Determine Ji risk display
               $jiRisk = 0;
-              if ($myWar[winner] == null)
+              if ($myWar['winner'] == null)
               {
-                $tsoc = mysql_fetch_array(mysql_query("SELECT id, area_score FROM `Soc` WHERE id = '$rid[$rname]'")); 
+                $tsoc = mysqli_fetch_array(mysqli_query($db,"SELECT id, area_score FROM `Soc` WHERE id = '$rid[$rname]'"));
                 $area_score = unserialize($tsoc['area_score']);
                 $jpercent = 0.10;
                 if ($rules[0] == $rid[$rname]) $jpercent = 0.05;
-                $jiRisk = floor($area_score[$location[id]]*$jpercent);
+                $jiRisk = floor($area_score[$location['id']]*$jpercent);
               }
               else 
               {
-                if ($myWar[winner] != $rname) $jiRisk = $rules[2];
+                if ($myWar['winner'] != $rname) $jiRisk = $rules['2'];
               }
               echo "<td align='center'>".$jiRisk."</td>";
               echo "<td align='center'>".$rscore."</td>";
@@ -1024,34 +1024,34 @@ include('header.htm');
           }
 
           $lastdone=0;
-          if ($society[last_war])
+          if ($society['last_war'])
           {
-            $lastWar = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE id='$society[last_war]' "));
-            if (($lastWar[ends]+24) <= intval(time()/3600)) $lastdone=1;
+            $lastWar = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE id='$society[last_war]' "));
+            if (($lastWar['ends']+24) <= intval(time()/3600)) $lastdone=1;
           }
           else
           {
             $lastdone=1;
           }
     
-          $mc = unserialize($myWar[contestants]);
-          if (!$lastBattle && !$b && $slead && $lastdone && ($myWar==0 || $myWar[starts] > intval(time()/3600) || $myWar[done]) && !($mc[$society[id]] && !$myWar[done]))
+          $mc = unserialize($myWar['contestants']);
+          if (!$lastBattle && !$b && $slead && $lastdone && ($myWar==0 || $myWar['starts'] > intval(time()/3600) || $myWar['done']) && !($mc[$society['id']] && !$myWar['done']))
           {
             if ($locscore*2 > $rulerscore) $halfji=1; else $halfji=0;
-            if ($society[bank]*10 > $location[bank]) $bfunds=1; else $bfunds=0;
+            if ($society['bank']*10 > $location['bank']) $bfunds=1; else $bfunds=0;
             $senemy =0;
             $stance = unserialize($society['stance']);
             foreach ($stance as $c_n => $c_s)
             {
-              if ($c_s ==2 && $ruler[name]==str_replace("_"," ",$c_n))
+              if ($c_s ==2 && $ruler['name']==str_replace("_"," ",$c_n))
               {
                 $senemy = 1;
               }
             }
-            if ($society[last_war])
+            if ($society['last_war'])
             {
-              $lastWar = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE id='$society[last_war]' "));
-              if (($lastWar[ends]+24) <= intval(time()/3600)) $lastdone=1;
+              $lastWar = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE id='$society[last_war]' "));
+              if (($lastWar['ends']+24) <= intval(time()/3600)) $lastdone=1;
             }
             else
             {
@@ -1069,7 +1069,7 @@ include('header.htm');
                 if ($soff && $halfji && $bfunds && $senemy && $lastdone)
                 {
                   echo "<form name='joinForm' id='joinForm' action='townhall.php' method='post'>";
-                  if ($myWar == 0 || $myWar[done])
+                  if ($myWar == 0 || $myWar['done'])
                   {
                     echo "<input type='hidden' name='makewar' id='makewar' value=1 />";
                   }
@@ -1167,7 +1167,7 @@ include('header.htm');
                       {
                         echo "<tr>";
                         $lvl = $upgrades[$x];
-                        $unq_name = $unique_buildings[$location[name]][$x-6];
+                        $unq_name = $unique_buildings[$location['name']][$x-6];
                         echo "<td><a class='btn btn-sm btn-warning btn-block' onClick='javascript:swapinfo(".$x.")'>".$unq_name."</a></td>";
                         echo "<td align='center'>".$lvl."</td>";
                         if ($lvl < 1)
@@ -1204,30 +1204,30 @@ include('header.htm');
                     <div class="form-group form-group-sm">
                       <label for="game">Dice Game:</label>
                       <select id="game" name='game' class="form-control gos-form">
-                       <option value="t" <?php if ($location[gtype] != "d") echo "selected=true";?>>Tops</option>
-                        <option value="d" <?php if ($location[gtype] == "d") echo "selected=true";?>>Crowns</option>
+                       <option value="t" <?php if ($location['gtype'] != "d") echo "selected=true";?>>Tops</option>
+                        <option value="d" <?php if ($location['gtype'] == "d") echo "selected=true";?>>Crowns</option>
                       </select>
                     </div>
                     <div class="form-group form-group-sm">
                       <label for="minw">Minimum Wager:</label>
                       <select id="minw" name='minw' class="form-control gos-form">
-                        <option value="1" <?php if ($location[minw] == 1) echo "selected=true";?>>10 Copper</option>
-                        <option value="2" <?php if ($location[minw] == 2) echo "selected=true";?>>1 Silver</option>
-                        <option value="3" <?php if ($location[minw] == 3) echo "selected=true";?>>10 Silver</option>
-                        <option value="4" <?php if ($location[minw] == 4) echo "selected=true";?>>1 Gold</option>
-                        <option value="5" <?php if ($location[minw] == 5) echo "selected=true";?>>10 Gold</option>
-                        <option value="6" <?php if ($location[minw] == 6) echo "selected=true";?>>100 Gold</option>
+                        <option value="1" <?php if ($location['minw'] == 1) echo "selected=true";?>>10 Copper</option>
+                        <option value="2" <?php if ($location['minw'] == 2) echo "selected=true";?>>1 Silver</option>
+                        <option value="3" <?php if ($location['minw'] == 3) echo "selected=true";?>>10 Silver</option>
+                        <option value="4" <?php if ($location['minw'] == 4) echo "selected=true";?>>1 Gold</option>
+                        <option value="5" <?php if ($location['minw'] == 5) echo "selected=true";?>>10 Gold</option>
+                        <option value="6" <?php if ($location['minw'] == 6) echo "selected=true";?>>100 Gold</option>
                       </select>
                     </div>
                     <div class="form-group form-group-sm">
                       <label for="maxw">Maximum Wager:</label>
                       <select id="maxw" name='maxw' class="form-control gos-form">
-                        <option value="1" <?php if ($location[maxw] == 1) echo "selected=true";?>>10 Copper</option>
-                        <option value="2" <?php if ($location[maxw] == 2) echo "selected=true";?>>1 Silver</option>
-                        <option value="3" <?php if ($location[maxw] == 3) echo "selected=true";?>>10 Silver</option>
-                        <option value="4" <?php if ($location[maxw] == 4) echo "selected=true";?>>1 Gold</option>
-                        <option value="5" <?php if ($location[maxw] == 5) echo "selected=true";?>>10 Gold</option>
-                        <option value="6" <?php if ($location[maxw] == 6) echo "selected=true";?>>100 Gold</option>
+                        <option value="1" <?php if ($location['maxw'] == 1) echo "selected=true";?>>10 Copper</option>
+                        <option value="2" <?php if ($location['maxw'] == 2) echo "selected=true";?>>1 Silver</option>
+                        <option value="3" <?php if ($location['maxw'] == 3) echo "selected=true";?>>10 Silver</option>
+                        <option value="4" <?php if ($location['maxw'] == 4) echo "selected=true";?>>1 Gold</option>
+                        <option value="5" <?php if ($location['maxw'] == 5) echo "selected=true";?>>10 Gold</option>
+                        <option value="6" <?php if ($location['maxw'] == 6) echo "selected=true";?>>100 Gold</option>
                       </select>
                     </div>
                     <br/>
@@ -1275,7 +1275,7 @@ include('header.htm');
 } // !isDestroyed
 else
 {
-  $message = "The remains of the City Hall in ".$location[name];
+  $message = "The remains of the City Hall in ".$location['name'];
   if ($mode == 1) { include('header2.htm'); }
   else 
   {
@@ -1285,3 +1285,5 @@ else
 }
 include('footer.htm');
 ?>
+
+

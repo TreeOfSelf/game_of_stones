@@ -1,5 +1,5 @@
 <?php
-$bd = $town_bonuses[bD];
+$bd = $town_bonuses['bD'];
 $max_deposit=($bd+80)/100;
       $tot_dep = floor(($char['gold']+$char['bankgold'])*$max_deposit)-$char['bankgold'];
       $gold_dep = floor($tot_dep/10000);

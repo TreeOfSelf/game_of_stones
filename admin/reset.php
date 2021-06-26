@@ -24,8 +24,22 @@ else
 echo "::USERS TABLE::<br><br>";
 // Drop Old Table
 $query  = 'DROP TABLE IF EXISTS Users';
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
+
 echo "Drop Old Table: $result";
+
+$query  = 'DROP TABLE IF EXISTS Reset';
+$result = mysqli_query($db,$query);
+
+// Create New Table
+$query = "CREATE TABLE IF NOT EXISTS `Reset` (
+  `email` text NOT NULL,
+  `code` text NOT NULL,
+  `name` text NOT NULL,
+  `lastname` text NOT NULL
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1";
+$result = mysqli_query($db,$query);
+
 
 // Create New Table
 $query = "CREATE TABLE IF NOT EXISTS `Users` (
@@ -98,7 +112,8 @@ $query = "CREATE TABLE IF NOT EXISTS `Users` (
   KEY `name` (`name`(3)),
   KEY `lastname` (`lastname`(3))
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1";
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
+
 echo "<br>Create New Table: $result";
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -108,7 +123,7 @@ echo "<br>Create New Table: $result";
 echo "<br><br>::USERS_DATA TABLE::<br><br>";
 // Drop Old Table
 $query  = 'DROP TABLE IF EXISTS Users_data';
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 echo "Drop Old Table: $result";
 
 // Create New Table
@@ -123,13 +138,13 @@ $query = "CREATE TABLE IF NOT EXISTS `Users_data` (
   `achieve` text,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1";
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 echo "<br>Create New Table: $result";
 
 // STATS
   // Drop Old Table
   $query  = 'DROP TABLE IF EXISTS Users_stats';
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<b>Results</b><br><br>Drop Old Table: $result";
 
 $query = "CREATE TABLE IF NOT EXISTS `Users_stats` (
@@ -229,42 +244,42 @@ $query = "CREATE TABLE IF NOT EXISTS `Users_stats` (
   `inn_use` int(11) NOT NULL DEFAULT '0',
   `ways_use` int(11) NOT NULL DEFAULT '0',
   `outfit_use` int(11) NOT NULL DEFAULT '0',
-  `loc_ji1` float NOT NULL,
-  `loc_ji2` float NOT NULL,
-  `loc_ji3` float NOT NULL,
-  `loc_ji4` float NOT NULL,
-  `loc_ji5` float NOT NULL,
-  `loc_ji6` float NOT NULL,
-  `loc_ji7` float NOT NULL,
-  `loc_ji8` float NOT NULL,
-  `loc_ji9` float NOT NULL,
-  `loc_ji10` float NOT NULL,
-  `loc_ji11` float NOT NULL,
-  `loc_ji12` float NOT NULL,
-  `loc_ji13` float NOT NULL,
-  `loc_ji14` float NOT NULL,
-  `loc_ji15` float NOT NULL,
-  `loc_ji16` float NOT NULL,
-  `loc_ji17` float NOT NULL,
-  `loc_ji18` float NOT NULL,
-  `loc_ji19` float NOT NULL,
-  `loc_ji20` float NOT NULL,
-  `loc_ji21` float NOT NULL,
-  `loc_ji22` float NOT NULL,
-  `loc_ji23` float NOT NULL,
-  `loc_ji24` float NOT NULL,
+  `loc_ji1` float NOT NULL DEFAULT '0',
+  `loc_ji2` float NOT NULL DEFAULT '0',
+  `loc_ji3` float NOT NULL DEFAULT '0',
+  `loc_ji4` float NOT NULL DEFAULT '0',
+  `loc_ji5` float NOT NULL DEFAULT '0',
+  `loc_ji6` float NOT NULL DEFAULT '0',
+  `loc_ji7` float NOT NULL DEFAULT '0',
+  `loc_ji8` float NOT NULL DEFAULT '0',
+  `loc_ji9` float NOT NULL DEFAULT '0',
+  `loc_ji10` float NOT NULL DEFAULT '0',
+  `loc_ji11` float NOT NULL DEFAULT '0',
+  `loc_ji12` float NOT NULL DEFAULT '0',
+  `loc_ji13` float NOT NULL DEFAULT '0',
+  `loc_ji14` float NOT NULL DEFAULT '0',
+  `loc_ji15` float NOT NULL DEFAULT '0',
+  `loc_ji16` float NOT NULL DEFAULT '0',
+  `loc_ji17` float NOT NULL DEFAULT '0',
+  `loc_ji18` float NOT NULL DEFAULT '0',
+  `loc_ji19` float NOT NULL DEFAULT '0',
+  `loc_ji20` float NOT NULL DEFAULT '0',
+  `loc_ji21` float NOT NULL DEFAULT '0',
+  `loc_ji22` float NOT NULL DEFAULT '0',
+  `loc_ji23` float NOT NULL DEFAULT '0',
+  `loc_ji24` float NOT NULL DEFAULT '0',
   `achieved` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1";
 
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<br>Create New Table: $result";
   
-  if (mysql_num_rows(mysql_query("SELECT id FROM Users_stats WHERE 1")) ==0)
+  if (mysqli_num_rows(mysqli_query($db,"SELECT id FROM Users_stats WHERE 1")) ==0)
   {
     for ($i=10001; $i<=10020; $i++)
     {
-      mysql_query("INSERT INTO Users_stats (id) VALUES ('$i')");
+      mysqli_query($db,"INSERT INTO Users_stats (id) VALUES ('$i')");
     }
   }
 }
@@ -277,7 +292,7 @@ $query = "CREATE TABLE IF NOT EXISTS `Users_stats` (
 echo "<br><br>::ITEMS TABLE::<br><br>";
 // Drop Old Table
 $query  = 'DROP TABLE IF EXISTS Items';
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 echo "Drop Old Table: $result";
 
 // Create New Table
@@ -288,7 +303,7 @@ $query = "CREATE TABLE IF NOT EXISTS `Items` (
   `cond` int(11) NOT NULL,
   `istatus` int(11) NOT NULL,
   `points` int(11) NOT NULL DEFAULT '0',
-  `society` int(11) DEFAULT NULL,
+  `society` char(30) DEFAULT NULL,
   `last_moved` int(11) NOT NULL DEFAULT '0',
   `base` char(30) DEFAULT NULL,
   `prefix` char(30) DEFAULT NULL,
@@ -297,10 +312,10 @@ $query = "CREATE TABLE IF NOT EXISTS `Items` (
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1";
 
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 echo "<br>Create New Table: $result";
 
-if (mysql_num_rows(mysql_query("SELECT id FROM Users WHERE 1")) ==0)
+if (mysqli_num_rows(mysqli_query($db,"SELECT id FROM Users WHERE 1")) ==0)
 {
   include_once("initSpecialChars.php");
 }

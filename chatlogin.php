@@ -3,7 +3,7 @@
 // & redirect to chat page
 if($_POST['enter']){
 	session_start();
-	$_SESSION['user']=mysql_real_escape_string($_POST['nickname']);
+	$_SESSION['user']=mysqli_real_escape_string($db,$_POST['nickname']);
 	header('location:ajaxchat.php');
 }
 ?>

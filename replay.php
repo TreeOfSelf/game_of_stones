@@ -12,15 +12,15 @@ $redirect=0;
 $rmsg='';
 $battle_view = 1000;
 
-$log_id = intval($_REQUEST[log]);
-$dlog = mysql_fetch_array(mysql_query("SELECT * FROM Notes WHERE id='$log_id'"));
+$log_id = intval($_REQUEST['log']);
+$dlog = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Notes WHERE id='$log_id'"));
 
-if (!$dlog[id] || $dlog[type] != 9)  
+if (!$dlog['id'] || $dlog['type'] != 9)  
 {
   $redirect=1;
   $rmsg='Invalid log selected!';
 }
-else if ($dlog[to_id] != $char[id] && $dlog[from_id] != $char[id])  
+else if ($dlog['to_id'] != $char['id'] && $dlog['from_id'] != $char['id'])  
 {
   $redirect=1;
   $rmsg='You can only replay duels you were a part of!';
@@ -30,11 +30,11 @@ else if ($dlog[to_id] != $char[id] && $dlog[from_id] != $char[id])
 
 if (!$redirect)
 {
-  $bresult = unserialize($dlog[special]);
-  $defend = mysql_fetch_array(mysql_query("SELECT id, name, lastname FROM Users WHERE id='".$dlog[to_id]."'"));
-  $offend = mysql_fetch_array(mysql_query("SELECT id, name, lastname FROM Users WHERE id='".$dlog[from_id]."'"));
+  $bresult = unserialize($dlog['special']);
+  $defend = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, lastname FROM Users WHERE id='".$dlog['to_id']."'"));
+  $offend = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, lastname FROM Users WHERE id='".$dlog['from_id']."'"));
   // THE ACTUAL PAGE DRAWING
-  $message = "<b>".$offend[name]." ".$offend[lastname]."</b> vs <b>".$defend[name]." ".$defend[lastname]."</b> - Replay";
+  $message = "<b>".$offend['name']." ".$offend['lastname']."</b> vs <b>".$defend['name']." ".$defend['lastname']."</b> - Replay";
   $array_gen = generate_duel_text($bresult);
 }
 
@@ -153,9 +153,9 @@ echo "var looping = 1;\n";
 
 if ($redirect==0)
 {
-echo "var tlog = '".$bresult[0][tlog]."';\n";
-echo "var maxHealth0= ".$bresult[0][ahp].";\n";
-echo "var maxHealth1= ".$bresult[0][dhp].";\n";
+echo "var tlog = '".$bresult['0']['tlog']."';\n";
+echo "var maxHealth0= ".$bresult['0']['ahp'].";\n";
+echo "var maxHealth1= ".$bresult['0']['dhp'].";\n";
 ?>
   window.onLoad = startBattle();
 <?php

@@ -2,7 +2,7 @@
 
 function delete_blank($array)
 {
-  $new_array='';
+  $new_array=[];
   foreach ($array as $key => $value)
   {
     if ($value[0]) $new_array[$key]=$value;
@@ -18,25 +18,25 @@ include("admin/skills.php");
 
 $message = "Edit clan settings";
 
-$leadtit=mysql_real_escape_string($_POST['leadtit']);
-$subtit=mysql_real_escape_string($_POST['subtit']);
-$avatar=mysql_real_escape_string($_POST['newav']);
-$newtype=mysql_real_escape_string($_POST['type']);
-$newtext=mysql_real_escape_string($_POST['aboutchar']);
-$newpriv=mysql_real_escape_string($_POST['privchar']);
-$kick=mysql_real_escape_string($_POST['kick']);
-$unblock=mysql_real_escape_string($_POST['unblock']);
-$allow=mysql_real_escape_string($_POST['allow']);
-$addsub=mysql_real_escape_string($_POST['addsub']);
-$delsub=mysql_real_escape_string($_POST['delsub']);
-$support=mysql_real_escape_string($_POST['support']);
-$supportloc=mysql_real_escape_string($_POST['supportloc']);
+$leadtit=mysqli_real_escape_string($db,$_POST['leadtit']);
+$subtit=mysqli_real_escape_string($db,$_POST['subtit']);
+$avatar=mysqli_real_escape_string($db,$_POST['newav']);
+$newtype=mysqli_real_escape_string($db,$_POST['type']);
+$newtext=mysqli_real_escape_string($db,$_POST['aboutchar']);
+$newpriv=mysqli_real_escape_string($db,$_POST['privchar']);
+$kick=mysqli_real_escape_string($db,$_POST['kick']);
+$unblock=mysqli_real_escape_string($db,$_POST['unblock']);
+$allow=mysqli_real_escape_string($db,$_POST['allow']);
+$addsub=mysqli_real_escape_string($db,$_POST['addsub']);
+$delsub=mysqli_real_escape_string($db,$_POST['delsub']);
+$support=mysqli_real_escape_string($db,$_POST['support']);
+$supportloc=mysqli_real_escape_string($db,$_POST['supportloc']);
 $id=$char['id'];
 $soc_name = $char[society];
 
 // KICK OFF PAGE IF NOT CLAN LEADER
 
-$society = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='$soc_name' "));
+$society = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='$soc_name' "));
 $subleaders = unserialize($society['subleaders']);
 $subs = $society['subs'];
 
@@ -70,7 +70,7 @@ if ($leadtit)
 {
     $society[leadertitle]=$leadtit;
     $query = "UPDATE Soc SET leadertitle='$leadtit' WHERE name='$soc_name'";
-    $result = mysql_query($query);
+    $result = mysqli_query($db,$query);
     $message="Title updated";
 }
 // Subleader title
@@ -78,21 +78,21 @@ if ($subtit)
 {
     $society[subtitle]=$subtit;
     $query = "UPDATE Soc SET subtitle='$subtit' WHERE name='$soc_name'";
-    $result = mysql_query($query);
+    $result = mysqli_query($db,$query);
     $message="Title updated";
 }
 // Add subleader
 if ($addsub)
 {
-  $result = mysql_query("SELECT * FROM Users WHERE id='$addsub'");
-  $char_sub = mysql_fetch_array($result);
+  $result = mysqli_query($db,"SELECT * FROM Users WHERE id='$addsub'");
+  $char_sub = mysqli_fetch_array($result);
   $subleaders[$addsub]= array($char_sub[name],$char_sub[lastname]);
   $subleaders_str = serialize($subleaders);
   ++$subs;
   if ($subs < 3)
   {
     $query = "UPDATE Soc SET subleaders='$subleaders_str', subs='$subs' WHERE name='$soc_name'";
-    $result = mysql_query($query);
+    $result = mysqli_query($db,$query);
     $message="Character added as subleader";   
   }
   else
@@ -118,7 +118,7 @@ if ($delsub)
   {
     $query = "UPDATE Soc SET subleaders='', subs='$subs' WHERE name='$soc_name'";
   }
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   $message="Character removed as subleader";  
 }
 
@@ -128,9 +128,9 @@ if ($delsub)
 if ($kick)
 {
 $query = "UPDATE Users SET society='' WHERE id='$kick'";
-$result = mysql_query($query);
-$result = mysql_query("SELECT * FROM Users WHERE id='$kick'");
-$char_kick = mysql_fetch_array($result);
+$result = mysqli_query($db,$query);
+$result = mysqli_query($db,"SELECT * FROM Users WHERE id='$kick'");
+$char_kick = mysqli_fetch_array($result);
 // UPDATE NUMBER OF CLAN MEMBERS AND BLOCK
 $memnumb = $society[members] - 1;
 $blocked[$kick]=array($char_kick[name],$char_kick[lastname]);
@@ -139,7 +139,7 @@ $blocked_str=serialize($blocked);
 if (strlen($blocked_str)<5000)
 {
 $query = "UPDATE Soc SET members='$memnumb', blocked='$blocked_str', block_num='$block_num' WHERE name='$soc_name'";
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 $message="Character kicked and blocked from Clan";
 }
 else $message="Character kicked but could not be blocked - too many blocked already";
@@ -161,7 +161,7 @@ else
 {
   $query = "UPDATE Soc SET blocked='', block_num='$block_num' WHERE name='$soc_name'";
 }
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 $message="Character unblocked from Clan";
 }
 
@@ -173,7 +173,7 @@ if ($allow)
 $allow--;
 $query = "UPDATE Soc SET allow='$allow' WHERE name='$soc_name' ";
 $society[allow]=$allow;
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 $message="Member requirements updated";
 }
 
@@ -183,7 +183,7 @@ if ($support && $supportloc)
   $supporting = unserialize($society['support']);
   $supporting[$supportloc] = $support;
   $supporting_str = serialize($supporting);
-  mysql_query("UPDATE Soc SET support='$supporting_str' WHERE name='$society[name]' ");
+  mysqli_query($db,"UPDATE Soc SET support='$supporting_str' WHERE name='$society[name]' ");
   $message="Clan Supported";
 }
 
@@ -196,7 +196,7 @@ if (strlen($newtext) < 501 && preg_match('/^[-a-z0-9+.,!@*_&#:\/%;?\s]*$/i',$new
 {
 $message = "Clan Info updated successfully";
 $query = "UPDATE Soc SET about='$newtext' WHERE name='$soc_name' ";
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 $society[about]=$newtext;
 }
 else {$message="What strange characters you used. Officials refuse to post your note";}
@@ -206,7 +206,7 @@ if (strlen($newpriv) < 501 && preg_match('/^[-a-z0-9+.,!@*_&#:\/%;?\s]*$/i',$new
 {
 $message = "Clan Info updated successfully";
 $query = "UPDATE Soc SET private_info='$newpriv' WHERE name='$soc_name' ";
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 $society[private_info]=$newpriv;
 }
 else {$message="What strange characters you used. Officials refuse to post your note";}
@@ -218,7 +218,7 @@ $upgrades = unserialize($society['upgrades']);
 // skill levels
 if ($_POST[skill] != "")
 {
-  $upgrade= mysql_real_escape_string($_POST[skill]);
+  $upgrade= mysqli_real_escape_string($db,$_POST[skill]);
   $uplvl = $upgrades[$upgrade];
   $cost = pow(10,$uplvl)*10000;
 
@@ -228,7 +228,7 @@ if ($_POST[skill] != "")
     $gold = $society[bank];
     $upgrades[$upgrade] = $upgrades[$upgrade] + 1;
     $upgrades_str= serialize($upgrades);
-    mysql_query("UPDATE Soc SET upgrades='$upgrades_str', bank='$gold' WHERE name='$soc_name'");
+    mysqli_query($db,"UPDATE Soc SET upgrades='$upgrades_str', bank='$gold' WHERE name='$soc_name'");
     $message = "Clan Upgrade purchased!";
   }
   else
@@ -244,7 +244,7 @@ if ($newtype)
 $message = "Clan Requirements Updated";
 $newtype--;
 $query = "UPDATE Soc SET invite='$newtype' WHERE name='$soc_name' ";
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 $society[invite]=$newtype;
 }
 
@@ -259,8 +259,8 @@ include('header.htm');
 
 // GET ALL SOCIETY MEMBERS
 $query = "SELECT id, name, lastname FROM Users WHERE society='$soc_name' ORDER BY lastname, name";
-$result = mysql_query($query);
-$numpeople = mysql_num_rows($result);
+$result = mysqli_query($db,$query);
+$numpeople = mysqli_num_rows($result);
 ?>
 <table border="0" cellpadding="0" cellspacing="0" width='100%'>
   <tr>
@@ -326,7 +326,7 @@ $numpeople = mysql_num_rows($result);
             $x = 0;
             while ($x < $numpeople)
             { 
-              $charnew = mysql_fetch_array($result);
+              $charnew = mysqli_fetch_array($result);
               if ( strtolower($charnew[name]) != strtolower($char[name]) || strtolower($charnew[lastname]) != strtolower($char[lastname]) )
               {
                 $b=1;
@@ -379,7 +379,7 @@ $numpeople = mysql_num_rows($result);
         if (($numpeople > 1 && ($name == $society[leader] && $lastname == $society[leaderlast] )) || $numpeople > 2) 
         {
           $query = "SELECT id, name, lastname FROM Users WHERE society='$soc_name' ORDER BY lastname, name";
-          $result = mysql_query($query);
+          $result = mysqli_query($db,$query);
       ?>
 <!-- KICK CLAN MEMBER -->
       <form action="clansettings.php" method="post">
@@ -389,7 +389,7 @@ $numpeople = mysql_num_rows($result);
             $y = 0;
             while ($y < $numpeople)
             {
-              $charnew = mysql_fetch_array($result);
+              $charnew = mysqli_fetch_array($result);
               if (( strtolower($charnew[name]) != strtolower($char[name]) || strtolower($charnew[lastname]) != strtolower($char[lastname]) ) && 
                 (strtolower($charnew[name]) != strtolower($society[leader]) && strtolower($charnew[lastname]) != strtolower($society[leaderlast]) ))
               {
@@ -438,9 +438,9 @@ $numpeople = mysql_num_rows($result);
           <option value="0">no one</option>
           <?php
             $query = "SELECT * FROM Soc WHERE 1 ORDER BY score DESC, members DESC";
-            $result2 = mysql_query($query);
+            $result2 = mysqli_query($db,$query);
             $stance = unserialize($society['stance']);
-            while ( $listchar = mysql_fetch_array( $result2 ) )
+            while ( $listchar = mysqli_fetch_array( $result2 ) )
             {
               if ($stance[str_replace(" ","_",$listchar[name])] == 1)
               {
@@ -456,8 +456,8 @@ $numpeople = mysql_num_rows($result);
           <option value="0">no where</option>
           <?php
             $query = "SELECT * FROM Locations WHERE 1";
-            $result2 = mysql_query($query);
-            while ( $listchar = mysql_fetch_array( $result2 ) )
+            $result2 = mysqli_query($db,$query);
+            while ( $listchar = mysqli_fetch_array( $result2 ) )
             {
           ?>
           <option value="<?php echo $listchar[id]; ?>"><?php echo str_replace('-ap-','&#39;',$listchar[name]); ?></option>

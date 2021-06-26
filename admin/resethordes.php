@@ -19,7 +19,7 @@ else
 {
   // Drop Old Table
   $query  = 'DROP TABLE IF EXISTS Hordes';
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<b>Results</b><br><br>Drop Old Table: $result";
 
   // Create New Table
@@ -32,16 +32,16 @@ else
   `ends` int(11) DEFAULT NULL,
   `next` int(11) DEFAULT NULL,
   `army_done` int(11) NOT NULL DEFAULT '0',
-  `defeated` int(11) NOT NULL,
-  `done` int(11) DEFAULT NULL,
-  `finisher` int(11) NOT NULL,
-  `afinisher` int(11) NOT NULL,
+  `defeated` int(11) NOT NULL DEFAULT '0',
+  `done` int(11) DEFAULT NULL DEFAULT '0',
+  `finisher` int(11) NOT NULL DEFAULT '0',
+  `afinisher` int(11) NOT NULL DEFAULT '0',
   `npcs` text,
   `users` text NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1";
 
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<br>Create New Table: $result";
 
 }

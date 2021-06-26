@@ -39,23 +39,23 @@ include('header.htm');
   else if ($sort == 2) $sortBy='myOrder';
   else if ($sort == 3) $sortBy='ruler';
   
-  $result = mysql_query("SELECT id, name, shoplvls, clan_scores, ruler, myOrder, army, isDestroyed FROM Locations ORDER BY $sortBy");  
-  while ($loc = mysql_fetch_array( $result ) )
+  $result = mysqli_query($db,"SELECT id, name, shoplvls, clan_scores, ruler, myOrder, army, isDestroyed FROM Locations ORDER BY $sortBy");  
+  while ($loc = mysqli_fetch_array( $result ) )
   {
-    if (!$loc[isDestroyed])
+    if (!$loc['isDestroyed'])
     {
       $himage = "";
-      $result3 = mysql_query("SELECT id, target, location FROM Hordes WHERE done='0'");
-      while ($myHorde = mysql_fetch_array( $result3 ) )  
+      $result3 = mysqli_query($db,"SELECT id, target, location FROM Hordes WHERE done='0'");
+      while ($myHorde = mysqli_fetch_array( $result3 ) )
       {
-        if ($myHorde[target] == $loc[name]) 
+        if ($myHorde['target'] == $loc['name']) 
         {
-          $himage = "<img src='images/hunt_l.gif' border='0' alt='Horde: ' title='Horde gathering in ".$myHorde[location]."' width='20' style='vertical-align:middle'/> ";
+          $himage = "<img src='images/hunt_l.gif' border='0' alt='Horde: ' title='Horde gathering in ".$myHorde['location']."' width='20' style='vertical-align:middle'/> ";
         }
       }
     
-      $sealid = $loc[id]+50000;
-      $hasSeal = mysql_num_rows(mysql_query("SELECT id FROM Items WHERE type=0 && owner='$sealid'"));
+      $sealid = $loc['id']+50000;
+      $hasSeal = mysqli_num_rows(mysqli_query($db,"SELECT id FROM Items WHERE type=0 && owner='$sealid'"));
 ?>
       <tr>
         <td align='center'>
@@ -64,12 +64,12 @@ include('header.htm');
           if ($hasSeal)
             $sealImg = "&nbsp;<img src='images/classes/4.gif' height=15 width=15/>";
         ?>
-          <a href='#' class='btn btn-xs btn-default btn-block btn-wrap'><?php echo $himage.str_replace('-ap-','&#39;',$loc[name]).$sealImg; ?></a>
+          <a href='#' class='btn btn-xs btn-default btn-block btn-wrap'><?php echo $himage.str_replace('-ap-','&#39;',$loc['name']).$sealImg; ?></a>
         </td>
-        <td align='center'><?php echo $loc[myOrder]; ?></td>
-        <td align='center' class='hidden-xs'><?php echo $loc[army]; ?></td>  
+        <td align='center'><?php echo $loc['myOrder']; ?></td>
+        <td align='center' class='hidden-xs'><?php echo $loc['army']; ?></td>  
         <?php
-          $resultf = mysql_fetch_array(mysql_query("SELECT COUNT(*) FROM Users WHERE location='$loc[name]' "));
+          $resultf = mysqli_fetch_array(mysqli_query($db,"SELECT COUNT(*) FROM Users WHERE location='$loc[name]' "));
           $numchar = $resultf[0];    
         ?>
         <td align='center' class='hidden-xs'><?php echo number_format($numchar); ?></td>          
@@ -81,9 +81,9 @@ include('header.htm');
         ?>
         <td align='center' class='hidden-xs'><?php echo ($total); ?></td>
         <?php
-          $clanscores = unserialize($loc[clan_scores]);
+          $clanscores = unserialize($loc['clan_scores']);
 
-          $ruler=$loc[ruler];
+          $ruler=$loc['ruler'];
           $ruler_wins = 0;
           $rival = "No One";
           $rival_wins = 0;
@@ -91,20 +91,20 @@ include('header.htm');
           {
             foreach ($clanscores as $key => $value)
             {
-              $tsoc = mysql_fetch_array(mysql_query("SELECT id, name FROM `Soc` WHERE id = '$key'"));
+              $tsoc = mysqli_fetch_array(mysqli_query($db,"SELECT id, name FROM `Soc` WHERE id = '$key'"));
               if ($ruler=='No One' && $rival == 'No One')
               { 
                 $ruler_wins = 100;
-                $rival = $tsoc[name];
+                $rival = $tsoc['name'];
                 $rival_wins = $value; 
               }
-              else if ($ruler == $tsoc[name])
+              else if ($ruler == $tsoc['name'])
               {
                 $ruler_wins = $value;
               }
               else if ($rival == "No One")
               {
-                $rival = $tsoc[name];
+                $rival = $tsoc['name'];
                 $rival_wins = $value;
               }
             }
@@ -137,3 +137,4 @@ include('header.htm');
 include('footer.htm');
 
 ?>
+

@@ -99,6 +99,8 @@ array( "pop", "Highest Population","Booming Metropolis",),
 array( "-pop", "Lowest Population","Ghost Town",),
 );
 
+
+
 function getUpgradeBonuses($upgrades, $bonuses, $num)
 {
   $upbonus = "";
@@ -113,8 +115,9 @@ function getUpgradeBonuses($upgrades, $bonuses, $num)
 function getUpgradeBonus($upgrades, $bonuses, $i, $up=0)
 {
   $upbonus = "";
-  if ($upgrades[$i]+$up) $upbonus.= $bonuses[$i][1].($bonuses[$i][2]*($upgrades[$i]+$up))." "; 
- 
+  if(is_numeric($upgrades[$i]+$up)  && is_numeric($bonuses[$i][2]) ){
+	if ($upgrades[$i]+$up) $upbonus.= $bonuses[$i][1].($bonuses[$i][2]*($upgrades[$i]+$up))." "; 
+  }
   return $upbonus;
 }
 
@@ -250,14 +253,14 @@ function ComputeScore($list,$gtype)
   }
   
   $score += $hand;
-  
   return $score;
 }
 
 function updateDice ($curr_dice, $wager, $gtype)
 {
-  $list = '';
-  $p_info = '';
+    global $db;
+  $list = [];
+  $p_info = [];
   $winners = 0;
   $winning_score = 0;
   
@@ -283,14 +286,14 @@ function updateDice ($curr_dice, $wager, $gtype)
 
     if (intval($p_info[$p]) == intval($winning_score) && $username[0] != "NPC")
     {
-      $tresult = mysql_query("SELECT id, gold FROM Users WHERE name='".$username[0]."' AND lastname='".$username[1]."'");
-      $user = mysql_fetch_array($tresult);
-      $user[gold] = $user[gold] + $winnings;
-      mysql_query("UPDATE Users SET gold='$user[gold]' WHERE id='$user[id]'");
-      $ustats = mysql_fetch_array(mysql_query("SELECT * FROM Users_stats WHERE id='".$user[id]."'"));
+      $tresult = mysqli_query($db,"SELECT id, gold FROM Users WHERE name='".$username[0]."' AND lastname='".$username[1]."'");
+      $user = mysqli_fetch_array($tresult);
+      $user['gold'] = $user['gold'] + $winnings;
+      mysqli_query($db,"UPDATE Users SET gold='$user[gold]' WHERE id='$user[id]'");
+      $ustats = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Users_stats WHERE id='".$user['id']."'"));
       $ustats['dice_earn'] += $winnings;
       $ustats['dice_wins']++;
-      $result = mysql_query("UPDATE Users_stats SET dice_earn='".$ustats[dice_earn]."', dice_wins='".$ustats[dice_wins]."' WHERE id='".$user[id]."'");
+      $result = mysqli_query($db,"UPDATE Users_stats SET dice_earn='".$ustats['dice_earn']."', dice_wins='".$ustats['dice_wins']."' WHERE id='".$user['id']."'");
     }
   }
 }
@@ -314,10 +317,10 @@ function wotDate ()
   );
 
   date_default_timezone_set('America/Los_Angeles');
-  $day = date(j);
-  $month = date(n);
-  $year = date(Y);
-  $leap = date(L);
+  $day = date('j');
+  $month = date('n');
+  $year = date('Y');
+  $leap = date('L');
   $souls = 0;
   if ($year%10 ==0)
   { $souls = 1; }
@@ -561,6 +564,7 @@ return $stats;
 function cparse($string,$resolve=0)
 {
   // RESOLVE all common terms and place in array
+  if(!is_array($string)){
   $resolve = explode(" ",$string);
   for ($x=0; $x<count($resolve); $x++)
   {
@@ -578,8 +582,14 @@ function cparse($string,$resolve=0)
     $array['N'] += ($array['G']-75)*2;
     $array['G'] = 75;
   }
-
+	if(!is_null($array)){
   return $array;
+	}else{
+		return "";
+	}
+  }else{
+	return "";
+  }
 }
 
 // ITEM INFO
@@ -914,7 +924,6 @@ function itm_info($char_stats, $old_stats=0)
   {
     $bonuses .= display_stat($sym, $char_stats, $old_stats);
   }
-  
   return $bonuses;
 }
 
@@ -946,7 +955,7 @@ function getMaxHorn($toplevel)
 
 function pruneMsgs($msgs, $max)
 {
-  $newMsg = "";
+  $newMsg = [];
   $numMsgs = count($msgs);
   if ($numMsgs > $max)
   {
@@ -967,6 +976,8 @@ function pruneMsgs($msgs, $max)
 function getAlignment($align)
 {
   $rval = 0;
+  
+
   
   if ($align <= -1000) $rval = -2;
   else if ($align <= -300) $rval = -1;
@@ -1003,54 +1014,56 @@ function inClanBattle($clan_id)
 {
   $inBattle = 0;
   $hour = time()/3600;
-  
-  $cresult=mysql_query("SELECT id, contestants FROM Contests WHERE type = 10 AND starts < '".$hour."' AND ends > '".$hour."'");
-  while ($cb = mysql_fetch_array($cresult))
+  if(!empty($db)){
+  $cresult=mysqli_query($db,"SELECT id, contestants FROM Contests WHERE type = 10 AND starts < '".$hour."' AND ends > '".$hour."'");
+  while ($cb = mysqli_fetch_array($cresult))
   {
-    $contestants = unserialize($cb[contestants]);
+    $contestants = unserialize($cb['contestants']);
     foreach ($contestants as $cid => $cdata)
     {
       if ($cid == $clan_id) $inBattle = 1;
     }
   }
-  
+  }
   return $inBattle;
 }
 
 function isClanLeader($achar, $soc_name, $officer, $loc_id)
 {
-  $society = mysql_fetch_array(mysql_query("SELECT id, subleaders, subs, offices, area_score, leader, leaderlast FROM Soc WHERE name='$soc_name' "));
-  $subleaders = unserialize($society['subleaders']);
-  $subs = $society['subs'];
-  $offices = unserialize($society['offices']);
-  $b = 0; 
-  
-  if (strtolower($achar[name]) == strtolower($society[leader]) && strtolower($achar[lastname]) == strtolower($society[leaderlast]) ) 
-  {
-    $b=1;
+  if(!empty($db)){
+	  $society = mysqli_fetch_array(mysqli_query($db,"SELECT id, subleaders, subs, offices, area_score, leader, leaderlast FROM Soc WHERE name='$soc_name' "));
+	  $subleaders = unserialize($society['subleaders']);
+	  $subs = $society['subs'];
+	  $offices = unserialize($society['offices']);
+	  $b = 0; 
+	  
+	  if (strtolower($achar['name']) == strtolower($society['leader']) && strtolower($achar['lastname']) == strtolower($society['leaderlast']) ) 
+	  {
+		$b=1;
+	  }
+	  if ($subs > 0)
+	  {
+		foreach ($subleaders as $c_n => $c_s)
+		{
+		  if (strtolower($achar['name']) == strtolower($c_s[0]) && strtolower($achar['lastname']) == strtolower($c_s[1]) )
+		  {
+			$b=1;
+		  }
+		}
+	  }    
+	  if ($officer && $offices && $offices[$loc_id])
+	  {
+		if ($offices[$loc_id][0] != '1')
+		{
+		  if (strtolower($achar['name']) == strtolower($offices[$loc_id][0]) && strtolower($achar['lastname']) == strtolower($offices[$loc_id][1]) ) 
+		  {
+			$b=1;  
+		  }
+		}
+	  }
+	  
+	  return $b;
   }
-  if ($subs > 0)
-  {
-    foreach ($subleaders as $c_n => $c_s)
-    {
-      if (strtolower($achar[name]) == strtolower($c_s[0]) && strtolower($achar[lastname]) == strtolower($c_s[1]) )
-      {
-        $b=1;
-      }
-    }
-  }    
-  if ($officer && $offices && $offices[$loc_id])
-  {
-    if ($offices[$loc_id][0] != '1')
-    {
-      if (strtolower($achar[name]) == strtolower($offices[$loc_id][0]) && strtolower($achar[lastname]) == strtolower($offices[$loc_id][1]) ) 
-      {
-        $b=1;  
-      }
-    }
-  }
-  
-  return $b;
 }
 
 ?>

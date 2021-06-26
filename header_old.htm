@@ -210,7 +210,7 @@ echo 'var c17 = new Array("', join($colorArray[17],'","'), '");';
   var index = selElem.selectedIndex; 
   var newElem = document.getElementById('color');
   var tmp = '';
-  var arr = '';
+  var arr = [];
   newElem.options.length = 0;
   if (index == 1) arr = c1;
   else if (index == 2) arr = c2.slice();
@@ -309,8 +309,8 @@ h += 96;
 $n_title = $_COOKIE['name'];
 $nl_title = $_COOKIE['lastname'];
 
-$myresult = mysql_query("SELECT * FROM Users LEFT JOIN Users_data ON Users.id=Users_data.id WHERE Users.id='$id'");
-$char = mysql_fetch_array($myresult);
+$myresult = mysqli_query($db,"SELECT * FROM Users LEFT JOIN Users_data ON Users.id=Users_data.id WHERE Users.id='$id'");
+$char = mysqli_fetch_array($myresult);
 $gold=$char['gold'];
 if ($gold >= $_GET[cost]) $gold = $gold - $_GET[cost];
 $gold = number_format( $gold );
@@ -329,8 +329,8 @@ $proimage="/Professions1.gif";
 
 $percent_up = 100-intval(100*($char[exp_up]-$char[exp])/$char[exp_up_s]);
 if ($percent_up > 99) $percent_up = 99;
-$mylistsize = mysql_num_rows(mysql_query("SELECT * FROM Items WHERE owner='$id' AND type<15"));
-$myclistsize = mysql_num_rows(mysql_query("SELECT * FROM Items WHERE owner='$id' AND type>=19 AND istatus=0"));
+$mylistsize = mysqli_num_rows(mysqli_query($db,"SELECT * FROM Items WHERE owner='$id' AND type<15"));
+$myclistsize = mysqli_num_rows(mysqli_query($db,"SELECT * FROM Items WHERE owner='$id' AND type>=19 AND istatus=0"));
 
 if ($char['travelmode']) {
   if ($travel_mode[$char['travelmode']][1]<=$char['feedneed']) $feedneed = 0;

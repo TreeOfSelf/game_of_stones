@@ -325,7 +325,7 @@ $skill_names = array(
 '162' => "Resilant Fighter",
 '163' => "Fearsome",
 
-'999' => "Go Team",
+'999' => "Lord Ruler",
 );
 
 function level_at($exp,$exp_up,$exp_up_s,$lvl,$pts,$health,$stamaxa,$spts,$jpts,$nskill,$nprof) {
@@ -351,16 +351,23 @@ function level_at($exp,$exp_up,$exp_up_s,$lvl,$pts,$health,$stamaxa,$spts,$jpts,
 
 function getAlts ($ips)
 {
-  $alts = '';
-  for ($i = 0; $i < count($ips); $i++)
-  {
-    $result = mysql_query("SELECT * FROM IP_logs WHERE addy='$ips[$i]'");
-    $ip_log = mysql_fetch_array($result);
-    $users= unserialize($ip_log[users]);
-    for ($j=0; $j < count($users); $j++)
-    {
-      $alts[$users[$j]] = 1;
-    }
+	global $db;
+  $alts = [''];
+  if(is_array($ips)){
+	  for ($i = 0; $i < count($ips); $i++)
+	  {
+		if(!empty($db)){
+			$result = mysqli_query($db,"SELECT * FROM IP_logs WHERE addy='$ips[$i]'");
+			$ip_log = mysqli_fetch_array($result);
+			$users= unserialize($ip_log['users']);
+			if(is_array($users)){
+				for ($j=0; $j < count($users); $j++)
+				{
+				  $alts[$users[$j]] = 1;
+				}
+			}
+		}
+	  }
   }
 
   return $alts;
@@ -389,10 +396,11 @@ function getStrengthLevel ($strength)
 function isChanneler ($types)
 {
   $isChan = 0;
-  
-  for ($t=0; $t < count($types); $t++)
-  {
-    if ($types[$t] == 108) $isChan=1;
+  if(is_array($types)){
+	for ($t=0; $t < count($types); $t++)
+	{
+	if ($types[$t] == 108) $isChan=1;
+	}
   }
   
   return $isChan;
@@ -482,11 +490,12 @@ $achievements = array(
 
 function removeFromClan($rchar)
 {
+    global $db;
   $soc_name = $rchar['society'];
-  $society = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='$soc_name' "));
+  $society = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='$soc_name' "));
 
   // CHECK IF LEADER CHANGES
-  if (strtolower($rchar[name]) == strtolower($society[leader]) && strtolower($rchar[lastname]) == strtolower($society[leaderlast]) )
+  if (strtolower($rchar['name']) == strtolower($society['leader']) && strtolower($rchar['lastname']) == strtolower($society['leaderlast']) )
   {
     //$message = $user['name'];
     if ($society['subs']>0)
@@ -505,9 +514,9 @@ function removeFromClan($rchar)
       {
         if ($c_n == $new_id)
         {
-          $result = mysql_query("UPDATE Soc SET leader='$c_s[0]', leaderlast='$c_s[1]' WHERE name='$soc_name'");
+          $result = mysqli_query($db,"UPDATE Soc SET leader='$c_s[0]', leaderlast='$c_s[1]' WHERE name='$soc_name'");
           --$subs;
-          $subleaders[$new_id][0]=0;
+          $subleaders[$new_id]['0']=0;
           $subleaders=delete_blank($subleaders);
 
           if ($subs > 0)
@@ -518,51 +527,51 @@ function removeFromClan($rchar)
           {
             $query = "UPDATE Soc SET subleaders='', subs='$subs' WHERE name='$soc_name'";
           }
-          $result = mysql_query($query);
+          $result = mysqli_query($db,$query);
         }
       }
     }
     else 
     {
-      $user = mysql_fetch_array(mysql_query("SELECT * FROM Users WHERE society='".$rchar['society']."' ORDER BY exp DESC LIMIT 1"));
-      mysql_query("UPDATE Soc SET leader='".$user['name']."', leaderlast='".$user['lastname']."' WHERE name='".$rchar['society']."'");
+      $user = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Users WHERE society='".$rchar['society']."' ORDER BY exp DESC LIMIT 1"));
+      mysqli_query($db,"UPDATE Soc SET leader='".$user['name']."', leaderlast='".$user['lastname']."' WHERE name='".$rchar['society']."'");
     }
   }
   // SET DATABASE
   $querya = "UPDATE Users SET society='' WHERE id='$rchar[id]'";
-  $result = mysql_query($querya);
+  $result = mysqli_query($db,$querya);
 
   // return all vault items
-  $vid = 10000+$society[id];
-  $iresult=mysql_query("SELECT id, owner FROM Items WHERE owner='$rchar[id]' AND society='".$society[id]."'");
-  while ($qitem = mysql_fetch_array($iresult))
+  $vid = 10000+$society['id'];
+  $iresult=mysqli_query($db,"SELECT id, owner FROM Items WHERE owner='$rchar[id]' AND society='".$society['id']."'");
+  while ($qitem = mysqli_fetch_array($iresult))
   {
-    $result = mysql_query("UPDATE Items SET owner='".$vid."', last_moved='".time()."', istatus='0' WHERE id='".$qitem[id]."'");
+    $result = mysqli_query($db,"UPDATE Items SET owner='".$vid."', last_moved='".time()."', istatus='0' WHERE id='".$qitem['id']."'");
   }
 
   // UPDATE NUMBER OF MEMBERS
-  $result = mysql_query("UPDATE Soc SET members=members-1 WHERE name='$soc_name' ");
+  $result = mysqli_query($db,"UPDATE Soc SET members=members-1 WHERE name='$soc_name' ");
 
-  $numchar = mysql_num_rows(mysql_query("SELECT name, lastname FROM Users WHERE society='$soc_name' ORDER BY exp DESC"));
+  $numchar = mysqli_num_rows(mysqli_query($db,"SELECT name, lastname FROM Users WHERE society='$soc_name' ORDER BY exp DESC"));
   if ($numchar == 0)
   {
-    $stance = unserialize($society[stance]);
+    $stance = unserialize($society['stance']);
     foreach ($stance as $c_n => $c_s)
     {
       if ($c_s != 0)
       {
         $soc_name2 = str_replace("_"," ",$c_n);
-        $society2 = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='$soc_name2' "));
-        $stance2 = unserialize($society2[stance]);
-        $stance2[str_replace(" ","_",$soc_name)] = 0;
+        $society2 = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='$soc_name2' "));
+        $stance2 = unserialize($society2['stance']);
+        $stance2['str_replace(" ","_",$soc_name)'] = 0;
         $changed_stance2 = serialize($stance2);
-        mysql_query("UPDATE Soc SET stance='$changed_stance2' WHERE name='$society2[name]' ");
+        mysqli_query($db,"UPDATE Soc SET stance='$changed_stance2' WHERE name='$society2[name]' ");
       }
     }
   
     // IF THERE IS NO ONE LEFT IN THE CLAN THEN DELETE IT
     $query = "DELETE FROM Soc WHERE name='$soc_name'";
-    $result5 = mysql_query($query);
+    $result5 = mysqli_query($db,$query);
   }
 }
 ?>

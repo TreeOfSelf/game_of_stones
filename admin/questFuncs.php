@@ -32,20 +32,20 @@ function show_quest_reqs($reqs_stats)
 function check_quest_reqs($reqs_stats, $char)
 {
   $reqs_met = 1;
-  $myquests= unserialize($char[quests]);
-  if ($reqs_stats['L'] && $reqs_stats['L'] > $char[level])
+  $myquests= unserialize($char['quests']);
+  if ($reqs_stats['L'] && $reqs_stats['L'] > $char['level'])
   { $reqs_met = 0; }
   if ($reqs_stats['C'])
   {
     if ($reqs_stats['C'] == 1 || $reqs_stats['C']%10 == 0) // generic class
     {
-      if (floor($reqs_stats['C']/10) != floor($char[type]/10))
+      if (floor($reqs_stats['C']/10) != floor($char['type']/10))
       { $reqs_met = 0; }
     }
-    else if (floor($reqs_stats['C']/2) != floor($char[type]/2)) // specific class
+    else if (floor($reqs_stats['C']/2) != floor($char['type']/2)) // specific class
     { $reqs_met = 0; }
   }
-  if (($reqs_stats['S']==1 && $char[sex] != 0) || ($reqs_stats['S']==2 && $char[sex] != 1))
+  if (($reqs_stats['S']==1 && $char['sex'] != 0) || ($reqs_stats['S']==2 && $char['sex'] != 1))
   { $reqs_met = 0; }
   if ($reqs_stats['Q'] && $myquests[$reqs_stats['Q']][0] != 2)
   { $reqs_met = 0; }
@@ -88,7 +88,8 @@ function show_quest_goals($align, $goals, $type, $offerer, $specials)
   {
     $itm = $goals[1];
     $itm_name= "";
-    if (count($goals[1][0]==2))
+	if(is_array($goals[1][0])){
+    if (count($goals[1][0])==2)
     {
       $itm_name=$item_type_pl[$goals[1][0][1]]." ";
       $itype = $goals[1][0][1];
@@ -122,6 +123,7 @@ function show_quest_goals($align, $goals, $type, $offerer, $specials)
     if ($special[9]){
       $rval .= "<a class='btn btn-success btn-xs btn-block' href='http://talij.com/goswiki/index.php?title=".$special[9]."' target='_blank'>Details</a>";
     }
+	}
   }
   elseif ($type == $quest_type_num["NPC"])
   {  
@@ -248,25 +250,25 @@ function check_inventory_items ($item, $inventory, $type=-1, $item_base='')
       {
         if ($itm[0] != '*' && $itm[0] != 'Terangreal')
         {
-          if (strtolower($inv[$i][base]) != strtolower($itm[0])) $found=0;
+          if (strtolower($inv[$i]['base']) != strtolower($itm[0])) $found=0;
         }
         if ($found && $itm[1] != '*')
         {
-          if (strtolower($inv[$i][prefix]) != strtolower($itm[1])) $found=0;
+          if (strtolower($inv[$i]['prefix']) != strtolower($itm[1])) $found=0;
         }
         if ($found && $itm[2] != '*')
         {
-          if (strtolower($inv[$i][suffix]) != strtolower($itm[2])) $found=0;
+          if (strtolower($inv[$i]['suffix']) != strtolower($itm[2])) $found=0;
         }
       }
       else $found=0;
       if ($type >=0 && $type < 12)
       {
-        if ($inv[$i][type] != $type) $found=0;
+        if ($inv[$i]['type'] != $type) $found=0;
       }
       elseif ($type == 12)
       {
-        if ($inv[$i][type] != $type && $inv[$i][type] != ($type+1)) $found=0;
+        if ($inv[$i]['type'] != $type && $inv[$i]['type'] != ($type+1)) $found=0;
       }    
       if ($found) $count++;
     }
@@ -277,6 +279,7 @@ function check_inventory_items ($item, $inventory, $type=-1, $item_base='')
 
 function take_quest_items ($goal, $inventory)
 {
+    global $db;
   $goals = unserialize($goal);
   $itm = $goals[1];
   $inv = unserialize($inventory);
@@ -285,25 +288,25 @@ function take_quest_items ($goal, $inventory)
   for ($i=0; $i < $listsize; ++$i)
   {
     $found = 1;
-    if ($inv[$i][istatus] <= 0)
+    if ($inv[$i]['istatus'] <= 0)
     {
       if ($itm[0] != '*')
       {
-        if (strtolower($inv[$i][base]) != strtolower($itm[0])) $found=0;
+        if (strtolower($inv[$i]['base']) != strtolower($itm[0])) $found=0;
       }
       if ($found && $itm[1] != '*')
       {
-        if (strtolower($inv[$i][prefix]) != strtolower($itm[1])) $found=0;
+        if (strtolower($inv[$i]['prefix']) != strtolower($itm[1])) $found=0;
       }
       if ($found && $itm[2] != '*')
       {
-        if (strtolower($inv[$i][suffix]) != strtolower($itm[2])) $found=0;
+        if (strtolower($inv[$i]['suffix']) != strtolower($itm[2])) $found=0;
       }
     }
     else $found = 0;
     if ($found && $count < $goals[0])
     {
-      $result = mysql_query("DELETE FROM Items WHERE id='".$inv[$i][id]."'");
+      $result = mysqli_query($db,"DELETE FROM Items WHERE id='".$inv[$i]['id']."'");
       $count++;
     }
   }
@@ -316,15 +319,15 @@ function take_quest_items ($goal, $inventory)
 // $loc = location
 function generate_random_quest($loc,$qalign="")
 {
-  global $map_data, $item_type_pl, $horde_types, $npc_plural, $loc_npc_nations, $npc_nation_names, $npc_nation_data, $enemy_list, $quest_type_num;
-  
+  global $db,$map_data, $item_type_pl, $horde_types, $npc_plural, $loc_npc_nations, $npc_nation_names, $npc_nation_data, $enemy_list, $quest_type_num;
+  $special = [];
   $type = intval(rand(0,4));
   $started = time()/3600;
   $expire = $started + intval(rand(48,72));
   $num_avail = -1;
   $num_done = 0;
 
-  $tnamelist='';
+  $tnamelist=[];
   $ncount=0;
   for ($i=0; $i < count($loc_npc_nations[$loc]); $i++)
   {
@@ -349,7 +352,6 @@ function generate_random_quest($loc,$qalign="")
   $special[2] = $npc_nation_data[$nat][0][intval(rand(0,2))];
   $special[3] = $npc_nation_data[$nat][1][intval(rand(0,(count($npc_nation_data[$nat][1])-1)))];
   $special[4] = $npc_nation_data[$nat][2][intval(rand(0,(count($npc_nation_data[$nat][2])-1)))];
-  
   if ($type == $quest_type_num["Items"])
   {
     $goals[0] = intval(rand(1,5));
@@ -439,9 +441,9 @@ function generate_random_quest($loc,$qalign="")
   else if ($type == $quest_type_num["Escort"])
   {
     $goals[0] = rand(1,5)*6;
-    $route = mysql_fetch_array(mysql_query("SELECT * FROM Routes WHERE start='".$loc."' AND length >'".$goals[0]."' ORDER BY rand()"));
-    $goals[1] = $route[id];
-    $path = unserialize($route[path]);
+    $route = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Routes WHERE start='".$loc."' AND length >'".$goals[0]."' ORDER BY rand()"));
+    $goals[1] = $route['id'];
+    $path = unserialize($route['path']);
     $goals[2] = $path[$goals[0]];
 
     $reward[0] = "LG";
@@ -454,18 +456,18 @@ function generate_random_quest($loc,$qalign="")
   if ($qalign != "") $align = $qalign;
   if ($align==3) $align=0;
   
-  $quest[name]=$qname;
-  $quest[type]=$type;
-  $quest[location]= $loc;
-  $quest[offerer] = $special[3]." ".$special[0]." ".$special[4];
-  $quest[num_avail]= $num_avail;
-  $quest[started]= $started;
-  $quest[expire]=$expire;
-  $quest[align]=$align;
-  $quest[goals]=serialize($goals);
-  $quest[reward]=serialize($reward);
-  $quest[special]=serialize($special);
-  $quest[reqs]=0;
+  $quest['name']=$qname;
+  $quest['type']=$type;
+  $quest['location']= $loc;
+  $quest['offerer'] = $special[3]." ".$special[0]." ".$special[4];
+  $quest['num_avail']= $num_avail;
+  $quest['started']= $started;
+  $quest['expire']=$expire;
+  $quest['align']=$align;
+  $quest['goals']=serialize($goals);
+  $quest['reward']=serialize($reward);
+  $quest['special']=serialize($special);
+  $quest['reqs']=0;
 
   return serialize($quest);
 }
@@ -475,17 +477,17 @@ function getQuestInfo ($quest, $goodevil=0)
 {
   global $quest_type, $item_base, $item_type, $item_type_pl, $enemy_list, $npc_nation_data;
   
-  $qtype = $quest_type[$quest[type]];
-  if ($quest[expire] != -1)
+  $qtype = $quest_type[$quest['type']];
+  if ($quest['expire'] != -1)
   {
-    $expire = ($quest[expire]*3600) - time();
+    $expire = ($quest['expire']*3600) - time();
     if ($expire < 3600) $extime= number_format($expire/60)." minutes";
     elseif ($expire < 86400) $extime = number_format($expire/3600)." hours";
     else $extime = number_format($expire/86400)." days";
   }
-  if ($quest[reqs] != "0")
+  if ($quest['reqs'] != "0")
   {
-    $reqs=cparse($quest[reqs],0);
+    $reqs=cparse($quest['reqs'],0);
     $show_reqs=  show_quest_reqs($reqs);
   }
   else 
@@ -493,8 +495,8 @@ function getQuestInfo ($quest, $goodevil=0)
     $show_reqs = "None";
   }
   $goals = unserialize($quest['goals']);
-  $show_goals=  show_quest_goals($quest[align],$goals,$quest['type'], $quest['offerer'], $quest['special']);
-  $qreward= unserialize($quest[reward]);
+  $show_goals=  show_quest_goals($quest['align'],$goals,$quest['type'], $quest['offerer'], $quest['special']);
+  $qreward= unserialize($quest['reward']);
   if ($qreward[0]=="G")
   { $reward = displayGold($qreward[1]); }
   elseif ($qreward[0] == "LI")
@@ -523,7 +525,7 @@ function getQuestInfo ($quest, $goodevil=0)
   {
     $questInfo .= "Available: ".($quest['num_avail']-$quest['num_done'])."<br/>";
   }
-  if ($quest[expire] != -1)
+  if ($quest['expire'] != -1)
   {
     $questInfo .= "Expires: ".$extime."<br/>";
   }
@@ -535,3 +537,7 @@ function getQuestInfo ($quest, $goodevil=0)
   return $questInfo;
 }
 ?>
+
+
+
+

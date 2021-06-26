@@ -16,11 +16,11 @@ else
 {
 
 include("admin/itemFuncs.php");
-$prefix=mysql_real_escape_string($_POST['nqitem_pre']);   
-$finditem=mysql_real_escape_string($_POST['nqitem_base']);   
-$suffix=mysql_real_escape_string($_POST['nqitem_suf']);
-$doGive=mysql_real_escape_string($_POST['giveItem']);
-$giveTo=mysql_real_escape_string($_POST['ito']); 
+$prefix=mysqli_real_escape_string($db,$_POST['nqitem_pre']);   
+$finditem=mysqli_real_escape_string($db,$_POST['nqitem_base']);   
+$suffix=mysqli_real_escape_string($db,$_POST['nqitem_suf']);
+$doGive=mysqli_real_escape_string($db,$_POST['giveItem']);
+$giveTo=mysqli_real_escape_string($db,$_POST['ito']); 
 
 if ($doGive)
 {
@@ -31,7 +31,7 @@ if ($doGive)
       $istats .= getTerMod($ter_bonuses,$ftype,$prefix,$suffix,$item_base[$finditem][2]);
       $ipts= lvl_req($istats,100);
       $itime=time();
-      $result = mysql_query("INSERT INTO Items (owner,    type,    cond, istatus,points, society,last_moved,base,       prefix,   suffix,   stats) 
+      $result = mysqli_query($db,"INSERT INTO Items (owner,    type,    cond, istatus,points, society,last_moved,base,       prefix,   suffix,   stats) 
                                         VALUES ('$giveTo','$ftype','100','0',    '$ipts','',     '$itime',  '$finditem','$prefix','$suffix','$istats')");
       $message = "Item given to player with id ".$giveTo;
   }
@@ -91,7 +91,7 @@ include('header2.htm');
 <?php
 }
 // Close Database
-mysql_close($db);
+mysql_close();
 ?>
 
 </body>

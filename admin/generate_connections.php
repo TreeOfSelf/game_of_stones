@@ -4,14 +4,14 @@
   include_once("mapData.php");
   include_once('locFuncs.php');
   
-  //createRouteTable ();
+  createRouteTable ();
   
   // Find shortest paths
   foreach ($loc_npc_nations as $loc => $value)
   {
-    $found = "";
+    $found = [];
     $found[$loc] = 1;
-    //generateShortestPaths($loc, 1, $found);
+    generateShortestPaths($loc, 1, $found);
   }
   
   // Generate Random routes
@@ -24,6 +24,7 @@
 
 function generateShortestPaths($loc, $level, $found)
 {
+    global $db;
   global $map_data;
   
   if ($level == 1)
@@ -34,10 +35,10 @@ function generateShortestPaths($loc, $level, $found)
   }
   else
   {
-    $lpaths = mysql_query("SELECT * FROM Routes WHERE type='1' AND start='".$loc."' AND length='".$level."'");
-    while ($lpath = mysql_fetch_array($lpaths))
+    $lpaths = mysqli_query($db,"SELECT * FROM Routes WHERE type='1' AND start='".$loc."' AND length='".$level."'");
+    while ($lpath = mysqli_fetch_array($lpaths))
     {
-      $found = genShortPaths(unserialize($lpath[path]), $found);
+      $found = genShortPaths(unserialize($lpath['path']), $found);
     }    
   }
   
@@ -49,13 +50,14 @@ function generateShortestPaths($loc, $level, $found)
   
 function genShortPaths($path, $found)
 {
+    global $db;
   global $map_data;
   $count = count($path);
   $surrounding_area = $map_data[$path[$count-1]];
   for ($i = 0; $i < 4; $i++)
   {
     $next = $surrounding_area[$i];
-    $prevPaths = mysql_num_rows(mysql_query("SELECT * FROM Routes WHERE type='1' AND start='".$path[0]."' AND end='".$next."' AND length < ".$count));
+    $prevPaths = mysqli_num_rows(mysqli_query($db,"SELECT * FROM Routes WHERE type='1' AND start='".$path[0]."' AND end='".$next."' AND length < ".$count));
     if ($prevPaths == 0)
     {
       $found[$surrounding_area[$i]] = 1;
@@ -134,10 +136,11 @@ function printPath ($myPath)
 
 function createRouteTable ()
 {
+    global $db;
   echo "<br><br>::ROUTE TABLE::<br><br>";
   // Drop Old Table
   $query  = 'DROP TABLE IF EXISTS Routes';
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "Drop Old Table: $result";
 
   // Create New Table
@@ -152,19 +155,20 @@ function createRouteTable ()
     PRIMARY KEY (`id`)
   ) ENGINE=MyISAM  DEFAULT CHARSET=latin1";
 
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<br>Create New Table: $result";
 }
 
 function insertRoute ($path, $type)
 {
+    global $db;
   $mystart = $path[0];
   $mynext = $path[1];
   $mylength = count($path);
   $myend = $path[$mylength -1];
   $spath = serialize($path);
 
-  mysql_query("INSERT INTO Routes (start,     end,     next,     type,   length,    path) 
+  mysqli_query($db,"INSERT INTO Routes (start,     end,     next,     type,   length,    path) 
                            VALUES ('$mystart','$myend','$mynext','$type','$mylength','$spath')");
 }
 

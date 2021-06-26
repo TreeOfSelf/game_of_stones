@@ -5,21 +5,32 @@ include_once("admin/connect.php");
 include_once("admin/userdata.php");
 include_once('admin/locFuncs.php');
 
-$wdest=mysql_real_escape_string($_POST['wdest']);
-$gdest=mysql_real_escape_string($_POST['godest']);
 
-$foundPaths = "";
-if ($wdest != "" && $wdest != -1)
+
+$wdest=mysqli_real_escape_string($db,$_POST['wdest']);
+$gdest=mysqli_real_escape_string($db,$_POST['godest']);
+
+echo $wdest;
+
+$foundPaths = [];
+if ( ($wdest != "" && $wdest != -1) || $_GET['area'])
 {
+ 
   $loc = $char['location'];
   $end = $location_list[$wdest];
+  
+   if( !is_null($_GET['area'])){
+	$end = $_GET['area'];
+  }
+  echo $end;
+  
   $x=0;
-  $lpaths = mysql_query("SELECT * FROM Routes WHERE type='1' AND start='".$loc."' AND end='".$end."'");
-  while ($lpath = mysql_fetch_array($lpaths))
+  $lpaths = mysqli_query($db,"SELECT * FROM Routes WHERE type='1' AND start='".$loc."' AND end='".$end."'");
+  while ($lpath = mysqli_fetch_array($lpaths))
   {
-    $myPath = unserialize($lpath[path]);
+    $myPath = unserialize($lpath['path']);
     $foundPaths[$x][0] = "";
-    $foundPaths[$x][1] = $lpath[id];
+    $foundPaths[$x]['1'] = $lpath['id'];
     for ($i=0; $i < count($myPath); $i++)
     {
       if ($i != 0) { $foundPaths[$x][0] = $foundPaths[$x][0]." <font class='text-warning'>></font> "; }
@@ -34,13 +45,13 @@ if ($wdest != "" && $wdest != -1)
 
 if ($gdest != "" && $gdest != -1)
 {
-  $groute = mysql_fetch_array(mysql_query("SELECT * FROM Routes WHERE id='".$gdest."'"));
+  $groute = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Routes WHERE id='".$gdest."'"));
   if ($groute)
   {
-    $char[route] = $gdest;
-    $char[routepoint] = 0;
-    mysql_query("UPDATE Users SET route='".$char[route]."', routepoint='".$char[routepoint]."' WHERE id=".$char[id]);
-    $message =  "Guidings marked to ".$groute[end];
+    $char['route'] = $gdest;
+    $char['routepoint'] = 0;
+    mysqli_query($db,"UPDATE Users SET route='".$char['route']."', routepoint='".$char['routepoint']."' WHERE id=".$char['id']);
+    $message =  "Guidings marked to ".$groute['end'];
   }
   else { $message = "Something happened to destroy the path. Try again."; }
 }
@@ -119,3 +130,5 @@ include('header.htm');
 <?php
   include('footer.htm');
 ?>
+
+

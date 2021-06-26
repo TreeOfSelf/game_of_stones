@@ -7,6 +7,20 @@ include_once("admin/duelFuncs.php");
 include_once('map/mapdata/coordinates.inc');
 include_once("admin/displayFuncs.php");
 
+
+header('Expires: Sun, 01 Jan 2014 00:00:00 GMT');
+header('Cache-Control: no-store, no-cache, must-revalidate');
+header('Cache-Control: post-check=0, pre-check=0', FALSE);
+header('Pragma: no-cache');
+
+function make_seed()
+{
+  list($usec, $sec) = explode(' ', microtime());
+  return $sec + $usec * 1000000;
+}
+srand(make_seed());
+
+
 // Link for the wiki page
 $wikilink = "Battle_Tips";
 
@@ -15,7 +29,7 @@ $redirect=0;
 $rmsg='';
 
 // Check if char has battles to use.
-if ($char[battlestoday] >= $battlelimit)  
+if ($char['battlestoday'] >= $battlelimit)  
 {
   $redirect=1;
   $rmsg="You have reached your battle limit. Please wait for more turns.";
@@ -34,13 +48,13 @@ if ($location_array[$char['location']][2])
 }
 
 // Get Char data
-$stats = mysql_fetch_array(mysql_query("SELECT * FROM Users_stats WHERE id='$char[id]'"));
-$myquests= unserialize($char[quests]);
+$stats = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Users_stats WHERE id='$char[id]'"));
+$myquests= unserialize($char['quests']);
 $qcomp = 0;
 
 // determine wilderness grid cell
-$row = mysql_real_escape_string($_GET[row]);
-$col = mysql_real_escape_string($_GET[col]);
+$row = mysqli_real_escape_string($db,$_GET['row']);
+$col = mysqli_real_escape_string($db,$_GET['col']);
 if ($row == "" || $col == "")
 {
   $row = rand(0,4);
@@ -51,15 +65,15 @@ if ($row == "" || $col == "")
 include('admin/equipped.php');
 
 // Check if battling a horde
-$horde = mysql_real_escape_string($_REQUEST['horde']);
-$army = mysql_real_escape_string($_REQUEST['army']);
+$horde = mysqli_real_escape_string($db,$_REQUEST['horde']);
+$army = mysqli_real_escape_string($db,$_REQUEST['army']);
 $myHorde=0;
 if ($horde)
 {
-  $result = mysql_query("SELECT * FROM Hordes WHERE done='0' AND location='$char[location]'");
-  while ($tHorde = mysql_fetch_array( $result ) )
+  $result = mysqli_query($db,"SELECT * FROM Hordes WHERE done='0' AND location='$char[location]'");
+  while ($tHorde = mysqli_fetch_array( $result ) )
   {
-    if ($tHorde[id]== $horde)
+    if ($tHorde['id']== $horde)
     {
       $myHorde=$tHorde;
     }
@@ -70,8 +84,8 @@ $extraTurns = 0;
 if ($myHorde)
 {
   $extraTurns = 2;
-  if ($myHorde[type] == 3) $extraTurns = 1;
-  if ($char[battlestoday]+$extraTurns >= $battlelimit)  
+  if ($myHorde['type'] == 3) $extraTurns = 1;
+  if ($char['battlestoday']+$extraTurns >= $battlelimit)  
   {
     $redirect=1;
     $rmsg="You don't have enought turns to battle the horde. Please wait for more turns.";
@@ -84,15 +98,18 @@ $warJi = 0;
 
 // Check for quest.
 $qeid_count = 0;
-$qeid = '';
+$qeid = [];
 $qid = 0;
 $found = 0;
 $specific = "a";
 $plural = 0;
 
 // Check quests if hunting and not already on a find quest.
-$hunt = mysql_real_escape_string($_REQUEST['hunt']);
-$escortId = mysql_real_escape_string($_REQUEST['escort']);
+$hunt = mysqli_real_escape_string($db,$_REQUEST['hunt']);
+$escortId = mysqli_real_escape_string($db,$_REQUEST['escort']);
+
+
+
 $rehunt = 0;
 $escorting = 0;
 if ($hunt) $rehunt = 1;
@@ -101,9 +118,9 @@ if ($myquests)
 {
   if ($escortId && $myquests[$escortId][0] == 1)
   {
-    $quest = mysql_fetch_array(mysql_query("SELECT * FROM Quests WHERE id='$escortId'"));
-    $goals = unserialize($quest[goals]);
-    if ($quest[expire] > (time()/3600)|| $quest[expire] == -1)
+    $quest = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Quests WHERE id='$escortId'"));
+    $goals = unserialize($quest['goals']);
+    if ($quest['expire'] > (time()/3600)|| $quest['expire'] == -1)
     {
       $escorting = $escortId;
     }
@@ -112,18 +129,18 @@ if ($myquests)
   {
     if ($c_s[0] == 1)
     {
-      $quest = mysql_fetch_array(mysql_query("SELECT * FROM Quests WHERE id='$c_n'")); 
-      $goals = unserialize($quest[goals]);
-      if (($quest[expire] > (time()/3600) || $quest[expire] == -1)&& strtolower($goals[2]) == strtolower($char[location]))
+      $quest = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Quests WHERE id='$c_n'"));
+      $goals = unserialize($quest['goals']);
+      if (($quest['expire'] > (time()/3600) || $quest['expire'] == -1)&& strtolower($goals[2]) == strtolower($char['location']))
       {
-        if ($quest[type] == $quest_type_num["NPC"] && $hunt)
+        if ($quest['type'] == $quest_type_num["NPC"] && $hunt)
         {
           if ($myquests[$c_n][1]< $goals[0])
           {
             $qeid[$qeid_count++] = $c_n;
           }
         }
-        else if ($quest[type] == $quest_type_num["Find"])
+        else if ($quest['type'] == $quest_type_num["Find"])
         {
           if ($myquests[$c_n][1]< $goals[0] 
            && $myquests[$c_n][2] == $row 
@@ -133,7 +150,7 @@ if ($myquests)
             break;
           }
         } 
-        else if ($quest[type] == $quest_type_num["Horde"] && $hunt)
+        else if ($quest['type'] == $quest_type_num["Horde"] && $hunt)
         {
           if ($myquests[$c_n][1] > 0)
           {
@@ -155,16 +172,16 @@ $doquest = 0;
 $hbattle = 0;
 if ($qid > 0)
 {
-  $doquest = mysql_fetch_array(mysql_query("SELECT * FROM Quests WHERE id='$qid'"));
-  $dqgoals = unserialize($doquest[goals]);
+  $doquest = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Quests WHERE id='$qid'"));
+  $dqgoals = unserialize($doquest['goals']);
   $teid = $dqgoals[1];
-  if ($doquest[type] == $quest_type_num["Find"])
+  if ($doquest['type'] == $quest_type_num["Find"])
   {
-    $char2['name'] = $quest[offerer]."'s";
+    $char2['name'] = $quest['offerer']."'s";
     $specific = $char2['name'];
     $found = 1;
   }
-  else if ($doquest[type] == $quest_type_num["Horde"])
+  else if ($doquest['type'] == $quest_type_num["Horde"])
   {
     $qv = $myquests[$qid][1];
     $char2['name'] = "The ".$horde_types[$enemy_list[$char['location']][$teid]]." of ";
@@ -176,7 +193,6 @@ if ($qid > 0)
 
 // FIND BATTLE
 $enum = intval(rand(0,100));
-
 // if quest, override with correct NPC.
 if ($qid > 0)
 {
@@ -214,24 +230,24 @@ else
   $elvl = intval(rand(0,2));
 }
 if ($found) $elvl += 2;
-$elvl += $char[level];
+$elvl += $char['level'];
 
 // Check for estates with upgrades to raise level of NPCs.
-$result= (mysql_query("SELECT id, upgrades FROM Estates WHERE row='$row' AND col='$col' AND location='$char[location]'"));
+$result= (mysqli_query($db,"SELECT id, upgrades FROM Estates WHERE row='$row' AND col='$col' AND location='$char[location]'"));
 $npcAlign=0;
 $bubble = 0;
-while ($testate = mysql_fetch_array( $result ) )
+while ($testate = mysqli_fetch_array( $result ) )
 {
-  $teups = unserialize($testate[upgrades]);
+  $teups = unserialize($testate['upgrades']);
   if ($teups[4]> $eid)
   {
     $elvl += 1;
   }
 }
-if (!$myHorde[id]) // non-horde battle
+if (!$myHorde['id']) // non-horde battle
 {
   $bubbleNum = rand(1,1000);
-  if ((floor($char[level]/10)) >= $bubbleNum) $bubble = 1;
+  if ((floor($char['level']/10)) >= $bubbleNum) $bubble = 1;
   if (!$bubble)
   {
     $ename = $enemy_list[$char['location']][$eid];
@@ -245,18 +261,18 @@ if (!$myHorde[id]) // non-horde battle
   {
     $doquest = 0;
     $ename = "Bubble of Evil";
-    $evit = $char[vitality]+20;
-    $elvl = $char[level]+2;
+    $evit = $char['vitality']+20;
+    $elvl = $char['level']+2;
   }
 }
 else // horde battle
 {
   $hbattle = 1;
-  $npc_info = unserialize($myHorde[npcs]);
+  $npc_info = unserialize($myHorde['npcs']);
   $target=0;
   if ($army) $target=1;
   $ename = $npc_info[$target][0];
-  $elvl = $char[level];
+  $elvl = $char['level'];
   $char2['name'] = "The ".$horde_types[$npc_info[$target][0]]." of ";
   $specific = $char2['name'];
   $plural = 1;
@@ -267,7 +283,7 @@ else // horde battle
     $rmsg="Your target has already been defeated!";
   }
   if ($target) $npcAlign = 2;
-  else if ($myHorde[type] == 3) $npcAlign = -2;
+  else if ($myHorde['type'] == 3) $npcAlign = -2;
   else $npcAlign = -1;
 }
 
@@ -280,16 +296,16 @@ $nat_bonus = getNatBonuses($nb,$wt_bonuses[$wild_types[$char['location']]],$nt_b
 
 // Estate bonuses
 $est_bonus = "";
-$myEstate= mysql_fetch_array(mysql_query("SELECT * FROM Estates WHERE owner='$id' AND location='$char[location]'"));
+$myEstate= mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Estates WHERE owner='$id' AND location='$char[location]'"));
 $estJiBonus = 1;
 if ($myEstate)
 {
-  $eups = unserialize($myEstate[upgrades]);
+  $eups = unserialize($myEstate['upgrades']);
   $est_stats = cparse(getUpgradeBonuses($eups, $estate_ups, 9));
-  $est_bonus .= "O".$est_stats[zD]." ";
-  $est_bonus .= "N".$est_stats[zE]." ";
-  $est_bonus .= "L".$est_stats[zL]." ";
-  if ($est_stats[nJ]) $estJiBonus = (100+$est_stats[nJ])/100;
+  $est_bonus .= "O".$est_stats['zD']." ";
+  $est_bonus .= "N".$est_stats['zE']." ";
+  $est_bonus .= "L".$est_stats['zL']." ";
+  if ($est_stats['nJ']) $estJiBonus = (100+$est_stats['nJ'])/100;
 }
 
 // Initializze Battle data.
@@ -303,10 +319,10 @@ $char2['itmlist'] = "";
 $char2['stomach'] = "";
 
 $char_attack = array(
-'level' => array($char[level],$char2[level]),
-'max_health' => array($char[vitality],$char2[vitality]),
-'health_limit' => array($char[vitality],$char2[vitality]),
-'health' => array($char[vitality],$char2[vitality]),
+'level' => array($char['level'],$char2['level']),
+'max_health' => array($char['vitality'],$char2['vitality']),
+'health_limit' => array($char['vitality'],$char2['vitality']),
+'health' => array($char['vitality'],$char2['vitality']),
 'def_mult' => array(0,0),
 'def' => array(0,0),
 'speed' => array(20,20), // temp values. Replace based on class
@@ -340,42 +356,42 @@ if ($plural)
 {
   $char2['lastname'] = $npc_plural[$ename];
 }
-if ($char[name] == $char2[name] || ucwords($char[name]) == "The" || ucwords($char2[name]) == "The" || $myHorde[id])
+if ($char['name'] == $char2['name'] || ucwords($char['name']) == "The" || ucwords($char2['name']) == "The" || $myHorde['id'])
 {
-  $name1 = $char[name]." ".$char[lastname];
-  $name2 = $char2[name]." ".$char2[lastname];
+  $name1 = $char['name']." ".$char['lastname'];
+  $name2 = $char2['name']." ".$char2['lastname'];
 } 
 else 
 {
-  $name1 = $char[name]; 
-  $name2 = $char2[name];
+  $name1 = $char['name']; 
+  $name2 = $char2['name'];
 }
 $player_word = array($name1,$name2);
 
 // Do the battle.
 $bresult = doDuel($char_attack, $player_word, $weapon_a, $weapon_b,$hbattle);
 
-$score1 = $bresult[0][score1];
-$score2 = $bresult[0][score2];
-$winner = $bresult[0][winner];
+$score1 = $bresult[0]['score1'];
+$score2 = $bresult[0]['score2'];
+$winner = $bresult[0]['winner'];
 
 $bturns = count($bresult) - 1;
 
-$char_attack[health][0] = $bresult[0][ahpf];
-$char_attack[health][1] = $bresult[0][dhpf];
+$char_attack['health'][0] = $bresult[0]['ahpf'];
+$char_attack['health'][1] = $bresult[0]['dhpf'];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // No Cheating
-if (!$_GET[data]) $battle_view = 600; else $battle_view = intval($_GET[data]+10);
-$time_dif = time()-$char[nextbattle];
+if (!$_GET['data']) $battle_view = 600; else $battle_view = intval($_GET['data']+10);
+$time_dif = time()-$char['nextbattle'];
 $update_battles='';
-if ($time_dif >= 0 && $char[battlestoday] < $battlelimit) 
+if ($time_dif >= 0 && $char['battlestoday'] < $battlelimit) 
 {
-  $char[battlestoday]++;
-  if ($myHorde[type]==1) $char[battlestoday]+= 2;
-  if ($myHorde[type]==3) $char[battlestoday]+= 1;
-  $update_battles="Users.nextbattle='".intval(time()+(($battle_view*0.001)*$bturns))."', Users.battlestoday='".$char[battlestoday]."'";
+  $char['battlestoday']++;
+  if ($myHorde['type']==1) $char['battlestoday']+= 2;
+  if ($myHorde['type']==3) $char['battlestoday']+= 1;
+  $update_battles="Users.nextbattle='".intval(time()+(($battle_view*0.001)*$bturns))."', Users.battlestoday='".$char['battlestoday']."'";
 }
 elseif ($time_dif < 0) 
 {
@@ -395,34 +411,34 @@ if ($g_steal>95) $g_steal=95;
 //$x_gain = intval($char_stats['pX']);
 
 // UPDATE SCORES FOR CLOSE LEVELS
-  $soc_name = $char[society];
-  $society = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='$soc_name' "));
+  $soc_name = $char['society'];
+  $society = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='$soc_name' "));
   $area_score = unserialize($society['area_score']);
-  $username = $char2[name]."_".$char2[lastname];
-  $score_up = number_format(1-.1*($char[level]-$elvl),2,'.','');
+  $username = $char2['name']."_".$char2['lastname'];
+  $score_up = number_format(1-.1*($char['level']-$elvl),2,'.','');
   if ($score1)
   {
-    $surrounding_area = $map_data[$char[location]]; 
-    $area_rep = unserialize($society[area_rep]);
+    $surrounding_area = $map_data[$char['location']]; 
+    $area_rep = unserialize($society['area_rep']);
 
     for ($x=0; $x<4; $x++)
     {
       $loc = $surrounding_area[$x];
-      $loc_query = mysql_fetch_array(mysql_query("SELECT * FROM `Locations` WHERE name = '$loc'"));
+      $loc_query = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM `Locations` WHERE name = '$loc'"));
       $atWar=1;
-      if ($soc_name != "" && $loc_query[last_war])
+      if ($soc_name != "" && $loc_query['last_war'])
       { 
-        $myWar = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE id='$loc_query[last_war]' "));
-        if (!$myWar[done] && !($myWar[starts] > intval(time()/3600)))
+        $myWar = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE id='$loc_query[last_war]' "));
+        if (!$myWar['done'] && !($myWar['starts'] > intval(time()/3600)))
         {
           // Get clan id's that might be involved in war.
-          $wid= $society[id];
+          $wid= $society['id'];
           $support = unserialize($society['support']);
-          if ($support[$loc_query[id]] != 0)
+          if ($support[$loc_query['id']] != 0)
           {
-            $wid = $support[$loc_query[id]];
+            $wid = $support[$loc_query['id']];
           }
-          $wcon = unserialize($myWar[contestants]);
+          $wcon = unserialize($myWar['contestants']);
           if ($wcon[$wid]) 
           {
             $atWar=2;
@@ -430,26 +446,26 @@ if ($g_steal>95) $g_steal=95;
         }
       }      
       
-      if ($myHorde[id])
+      if ($myHorde['id'])
       {
-        if ($myHorde[target]!=$loc)
+        if ($myHorde['target']!=$loc)
         {
           $score_up2 = $score_up*2.5/$atWar;
         }
         else 
         {
           $score_up2 = $score_up*4.5/$atWar;
-          if ($army) { $area_rep[$loc_query[id]] -= 1; }
-          else { $area_rep[$loc_query[id]] += 1;}
-          if ($area_rep[$loc_query[id]] > 500) $area_rep[$loc_query[id]] = 500;
-          else if ($area_rep[$loc_query[id]]< -500) $area_rep[$loc_query[id]] = -500;
+          if ($army) { $area_rep[$loc_query['id']] -= 1; }
+          else { $area_rep[$loc_query['id']] += 1;}
+          if ($area_rep[$loc_query['id']] > 500) $area_rep[$loc_query['id']] = 500;
+          else if ($area_rep[$loc_query['id']]< -500) $area_rep[$loc_query['id']] = -500;
         }
       }
       else
       {
         $score_up2 = $score_up/$atWar;
       }
-      $arep = $area_rep[$loc_query[id]];
+      $arep = $area_rep[$loc_query['id']];
       $score_up3=(1+$arep/1000)*$score_up2;
       $sQuest = 0;
       if ($myquests) 
@@ -458,31 +474,31 @@ if ($g_steal>95) $g_steal=95;
         {
           if ($c_s[0] == 1)
           {
-            $quest = mysql_fetch_array(mysql_query("SELECT * FROM Quests WHERE id='$c_n'")); 
-            $goals = unserialize($quest[goals]);
-            $qreward= unserialize($quest[reward]);
-            if ($quest[type] == $quest_type_num["Support"] && $goals[2] == $loc && $soc_name != $quest[offerer] && $quest[done]==0) 
+            $quest = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Quests WHERE id='$c_n'"));
+            $goals = unserialize($quest['goals']);
+            $qreward= unserialize($quest['reward']);
+            if ($quest['type'] == $quest_type_num["Support"] && $goals[2] == $loc && $soc_name != $quest['offerer'] && $quest['done']==0) 
             {
               $sQuest = 1;
-              $societySup = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='".$quest[offerer]."' "));
+              $societySup = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='".$quest['offerer']."' "));
               $area_score_sup = unserialize($societySup['area_score']);
               if ($atWar==2) $warJi=$score_up3;    
-              $area_score_sup[$loc_query[id]] += $score_up3;
-              $area_score_sup[$loc_query[id]] = number_format($area_score_sup[$loc_query[id]],2,'.','');
+              $area_score_sup[$loc_query['id']] += $score_up3;
+              $area_score_sup[$loc_query['id']] = number_format($area_score_sup[$loc_query['id']],2,'.','');
               $a_ss_str = serialize($area_score_sup);
-              mysql_query("UPDATE Soc SET score=score+($score_up3), area_score='$a_ss_str' WHERE id='".$societySup[id]."' ");
+              mysqli_query($db,"UPDATE Soc SET score=score+($score_up3), area_score='$a_ss_str' WHERE id='".$societySup['id']."' ");
               
               $greward = $score_up3 * $qreward[1];
-              $stats[quest_earn] += $greward;
-              $stats[support_quest_ji] += $score_up3;
-              mysql_query("UPDATE Users SET gold=gold+($greward) WHERE id='".$char[id]."'");
-              mysql_query("UPDATE Users_stats SET quest_earn='".$stats[quest_earn]."', support_quest_ji='".$stats[support_quest_ji]."' WHERE id='".$char[id]."'");
+              $stats['quest_earn'] += $greward;
+              $stats['support_quest_ji'] += $score_up3;
+              mysqli_query($db,"UPDATE Users SET gold=gold+($greward) WHERE id='".$char['id']."'");
+              mysqli_query($db,"UPDATE Users_stats SET quest_earn='".$stats['quest_earn']."', support_quest_ji='".$stats['support_quest_ji']."' WHERE id='".$char['id']."'");
 
               $goals[0] += $score_up3;
               $qdone = 0;
               if ($goals[0] >= $goals[1]) { $qdone = 1;}
               $sgoals = serialize($goals);
-              mysql_query("UPDATE Quests SET goals='$sgoals', done='$qdone' WHERE id='$quest[id]'");
+              mysqli_query($db,"UPDATE Quests SET goals='$sgoals', done='$qdone' WHERE id='$quest[id]'");
               break;
             }
           }
@@ -491,15 +507,15 @@ if ($g_steal>95) $g_steal=95;
       if ($soc_name != "" && $sQuest == 0)
       {
         if ($atWar==2) $warJi=$score_up3;    
-        $area_score[$loc_query[id]] += $score_up3;
-        $area_score[$loc_query[id]] = number_format($area_score[$loc_query[id]],2,'.','');
+        $area_score[$loc_query['id']] += $score_up3;
+        $area_score[$loc_query['id']] = number_format($area_score[$loc_query['id']],2,'.','');
         $a_s_str = serialize($area_score);
         $area_reps = serialize($area_rep);
-        mysql_query("UPDATE Soc SET score=score+($score_up3), area_score='$a_s_str', area_rep='".$area_reps."' WHERE id='".$society[id]."' ");
+        mysqli_query($db,"UPDATE Soc SET score=score+($score_up3), area_score='$a_s_str', area_rep='".$area_reps."' WHERE id='".$society['id']."' ");
       }
-      $stats['loc_ji'.$loc_query[id]]+=$score_up3;
-      $stats['loc_ji'.$loc_query[id]]=number_format($stats['loc_ji'.$loc_query[id]],2,'.','');
-      $result = mysql_query("UPDATE Users_stats SET loc_ji".$loc_query[id]."='".$stats['loc_ji'.$loc_query[id]]."' WHERE id='$id'");
+      $stats['loc_ji'.$loc_query['id']]+=$score_up3;
+      $stats['loc_ji'.$loc_query['id']]=number_format($stats['loc_ji'.$loc_query['id']],2,'.','');
+      $result = mysqli_query($db,"UPDATE Users_stats SET loc_ji".$loc_query['id']."='".$stats['loc_ji'.$loc_query['id']]."' WHERE id='$id'");
     }
   }
   
@@ -510,10 +526,10 @@ if ($g_steal>95) $g_steal=95;
   if (!$score1) {$stamina1++;}
 
   // -1 per 100 damage taken
-  $stamina1 += floor(($char_attack[health_limit][0]-$char_attack[health][0])/100);
+  $stamina1 += floor(($char_attack['health_limit'][0]-$char_attack['health'][0])/100);
 
   // -1 if health == 0
-  if ($char_attack[health][0] == 0) $stamina1++;
+  if ($char_attack['health'][0] == 0) $stamina1++;
 
 // CHECK QUESTS
 if ($myquests)
@@ -522,40 +538,43 @@ if ($myquests)
   {
     if ($c_s[0] == 1)
     {
-      $quest = mysql_fetch_array(mysql_query("SELECT * FROM Quests WHERE id='$c_n'")); 
-      if ($quest[expire] > (time()/3600)|| $quest[expire] == -1)
+      $quest = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Quests WHERE id='$c_n'"));
+      if ($quest['expire'] > (time()/3600)|| $quest['expire'] == -1)
       {
-        if ($quest[type] == $quest_type_num["NPC"])
+        if ($quest['type'] == $quest_type_num["NPC"])
         {
-          $goals = unserialize($quest[goals]);
-          if (strtolower($goals[2]) == strtolower($char[location]) && $goals[1] == $eid)
+          $goals = unserialize($quest['goals']);
+          if (strtolower($goals[2]) == strtolower($char['location']) && $goals[1] == $eid)
           {
             $myquests[$c_n][1] += $score1;
             if ($myquests[$c_n][1]== $goals[0]) $qcomp = 1;
           }
         }
-        else if ($quest[type] == $quest_type_num["Find"])
+        else if ($quest['type'] == $quest_type_num["Find"])
         {
-          if ($quest[id] == $doquest[id])
+          if ($quest['id'] == $doquest['id'])
           {
             $myquests[$c_n][1] += $score1;
             if ($myquests[$c_n][1] >= $goals[0]) $qcomp = 1;
           }
         }
-        else if ($quest[type] == $quest_type_num["Horde"])
+        else if ($quest['type'] == $quest_type_num["Horde"])
         {
-          if ($quest[id] == $doquest[id])
+          if ($quest['id'] == $doquest['id'])
           {
-            $myquests[$c_n][1] = $char_attack[health][1];
+            $myquests[$c_n][1] = $char_attack['health'][1];
             if ($myquests[$c_n][1] <= 0) $qcomp = 1;
           }
         }
-        else if ($quest[type] == $quest_type_num["Escort"])
+        else if ($quest['type'] == $quest_type_num["Escort"])
         {
-          if ($quest[id] == $escorting)
+          if ($quest['id'] == $escorting)
           {
+
             if ($score1) $myquests[$c_n][2] += 1;
             else $myquests[$c_n][2] -= 1;
+
+			
           }
         }  
       }
@@ -567,18 +586,18 @@ $myquests2 = serialize($myquests);
 // CHECK STOMACH
 for ($i = 0; $i < $fullness; $i++)
 {
-  $stomach[$i][istatus] = $stomach[$i][istatus]-1;
-  if ($stomach[$i][istatus] <= 0)
+  $stomach[$i]['istatus'] = $stomach[$i]['istatus']-1;
+  if ($stomach[$i]['istatus'] <= 0)
   {
-    mysql_query("DELETE FROM Items WHERE id='".$stomach[$i][id]."'");
+    mysqli_query($db,"DELETE FROM Items WHERE id='".$stomach[$i]['id']."'");
   }
   else 
   {
-    mysql_query("UPDATE Items SET istatus='".$stomach[$i][istatus]."' WHERE id='".$stomach[$i][id]."'");
+    mysqli_query($db,"UPDATE Items SET istatus='".$stomach[$i]['istatus']."' WHERE id='".$stomach[$i]['id']."'");
   }
 }
 $hmult=1;
-if ($myHorde[id]) 
+if ($myHorde['id']) 
 {
   $hmult=2;
   if ($army) $stats['army_wins'] += $score1;
@@ -594,50 +613,50 @@ if ($npc_types[$ename]==1)
 {
   $stats['shadow_npcs']+= $hmult;
   $stats['shadow_wins'] += $score1;
-  if ($stats[most_npc_wins]< $stats['shadow_wins']) $stats[most_npc_wins] = $stats['shadow_wins'];
+  if ($stats['most_npc_wins']< $stats['shadow_wins']) $stats['most_npc_wins'] = $stats['shadow_wins'];
 } 
 elseif ($npc_types[$ename]==2)
 {
   $stats['military_npcs']+= $hmult;
   $stats['military_wins'] += $score1;
-  if ($stats[most_npc_wins]< $stats['military_wins']) $stats[most_npc_wins] = $stats['military_wins'];
+  if ($stats['most_npc_wins']< $stats['military_wins']) $stats['most_npc_wins'] = $stats['military_wins'];
 } 
 elseif ($npc_types[$ename]==3)
 {
   $stats['ruffian_npcs']+= $hmult;
   $stats['ruffian_wins'] += $score1;
-  if ($stats[most_npc_wins]< $stats['ruffian_wins']) $stats[most_npc_wins] = $stats['ruffian_wins'];
+  if ($stats['most_npc_wins']< $stats['ruffian_wins']) $stats['most_npc_wins'] = $stats['ruffian_wins'];
 } 
 elseif ($npc_types[$ename]==4)
 {
   $stats['channeler_npcs']+= $hmult;
   $stats['channeler_wins'] += $score1;
-  if ($stats[most_npc_wins]< $stats['channeler_wins']) $stats[most_npc_wins] = $stats['channeler_wins'];
+  if ($stats['most_npc_wins']< $stats['channeler_wins']) $stats['most_npc_wins'] = $stats['channeler_wins'];
 } 
 elseif ($npc_types[$ename]==5)
 {
   $stats['animal_npcs']+= $hmult;
   $stats['animal_wins'] += $score1;
-  if ($stats[most_npc_wins]< $stats['animal_wins']) $stats[most_npc_wins] = $stats['animal_wins'];
+  if ($stats['most_npc_wins']< $stats['animal_wins']) $stats['most_npc_wins'] = $stats['animal_wins'];
 } 
 elseif ($npc_types[$ename]==6)
 {
   $stats['exotic_npcs']+= $hmult;
   $stats['exotic_wins'] += $score1;
-  if ($stats[most_npc_wins]< $stats['exotic_wins']) $stats[most_npc_wins] = $stats['exotic_wins'];
+  if ($stats['most_npc_wins']< $stats['exotic_wins']) $stats['most_npc_wins'] = $stats['exotic_wins'];
 } 
  
-  $char[stamina]-=$stamina1;
-  if ($char[stamina]<0) $char[stamina]=0;
+  $char['stamina']-=$stamina1;
+  if ($char['stamina']<0) $char['stamina']=0;
     
   // calculate bonuses
-  $strength = getStrength($char[used_pts], $char[equip_pts], $char[stamina], $char[stamaxa]);
+  $strength = getStrength($char['used_pts'], $char['equip_pts'], $char['stamina'], $char['stamaxa']);
   $equipbonus = floor((90-$strength)/15);
-  $lvlbonus = $char2[level]- $char[level];
+  $lvlbonus = $char2['level']- $char['level'];
   if ($lvlbonus > 5) $lvlbonus =5;
   if ($lvlbonus < -15) $lvlbonus =-15;
   $query = "SELECT id, name, lastname FROM Users WHERE (name!='The' OR lastname!='Creator') ORDER BY level DESC, exp DESC LIMIT 0,10 ";
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   $altpenalty = 1;
   
   $expup = 0;
@@ -663,72 +682,72 @@ elseif ($npc_types[$ename]==6)
       $expup +=round((((17*($extraTurns+1))-1+$lvlbonus)/2)/$altpenalty);
     }
     
-    $husers = unserialize($myHorde[users]);
-    if (!$husers[$char[id]])
+    $husers = unserialize($myHorde['users']);
+    if (!$husers[$char['id']])
     {
-      $husers[$char[id]] = array(0,0,0,0);
+      $husers[$char['id']] = array(0,0,0,0);
     }
 
-    if ($score1) $husers[$char[id]][($target*2)+0] += 1;
-    $husers[$char[id]][($target*2)+1] += ($npc_info[$target][1] - $char_attack[health][1]);
+    if ($score1) $husers[$char['id']][($target*2)+0] += 1;
+    $husers[$char['id']][($target*2)+1] += ($npc_info[$target][1] - $char_attack['health'][1]);
     $shu = serialize($husers);   
   }
   $hordeJiBonus=1;
-  if ($myHorde[id])
+  if ($myHorde['id'])
   {
     $hordeJiBonus=3;
     $lastBattleMult = 1; 
-    if ($myHorde[type] == 3)  $lastBattleMult = 2;
-    $alignUp = $expup/20*($duelAlignment[getAlignment($char[align])][$npcAlign+2])*$lastBattleMult;
-    $char[align] += $alignUp;
-    if ($society[id]) 
+    if ($myHorde['type'] == 3)  $lastBattleMult = 2;
+    $alignUp = $expup/20*($duelAlignment[getAlignment($char['align'])][$npcAlign+2])*$lastBattleMult;
+    $char['align'] += $alignUp;
+    if ($society['id']) 
     {
-      $society[align] += $alignUp;
-      $result = mysql_query("UPDATE Soc SET align = align + ".$alignUp." WHERE id= '$society[id]' ");
+      $society['align'] += $alignUp;
+      $result = mysqli_query($db,"UPDATE Soc SET align = align + ".$alignUp." WHERE id= '$society[id]' ");
     }
   }
-  $stats[ji] += ($expup*$estJiBonus*$hordeJiBonus)/40;
-  $char[exp]+=$expup;
-  $update=level_at($char[exp],$char[exp_up],$char[exp_up_s],$char[level],$char['equip_pts'],$char[vitality],$char['stamaxa'],$char[points],$char[propoints],$char[newskills],$char[newprof]);
+  $stats['ji'] += ($expup*$estJiBonus*$hordeJiBonus)/40;
+  $char['exp']+=$expup;
+  $update=level_at($char['exp'],$char['exp_up'],$char['exp_up_s'],$char['level'],$char['equip_pts'],$char['vitality'],$char['stamaxa'],$char['points'],$char['propoints'],$char['newskills'],$char['newprof']);
 
-  $char[level]=$update[0];
-  $char[exp_up]=$update[1];
-  $char[exp_up_s]=$update[2];
-  $char[equip_pts]=$update[3];
-  $char[vitality]=$update[4];
-  $char[stamaxa]=$update[5];
-  $char[points]=$update[6];
-  $char[propoints]=$update[7];
-  $char[newskills]=$update[8];
-  $char[newprof]=$update[9];
+  $char['level']=$update[0];
+  $char['exp_up']=$update[1];
+  $char['exp_up_s']=$update[2];
+  $char['equip_pts']=$update[3];
+  $char['vitality']=$update[4];
+  $char['stamaxa']=$update[5];
+  $char['points']=$update[6];
+  $char['propoints']=$update[7];
+  $char['newskills']=$update[8];
+  $char['newprof']=$update[9];
 
 // Degrade Equipped Items
 $bturns= array(0,0);
 for ($t=1; $t < count($bresult); $t++)
 {
-  $turn = $bresult[$t][turn];
+  $turn = $bresult[$t]['turn'];
   $bturns[$turn] += 1;
 }
-$iresult=mysql_query("SELECT * FROM Items WHERE owner='$char[id]' AND istatus>0 AND type<15");
-while ($qitem = mysql_fetch_array($iresult))
+$iresult=mysqli_query($db,"SELECT * FROM Items WHERE owner='$char[id]' AND istatus>0 AND type<15");
+while ($qitem = mysqli_fetch_array($iresult))
 {
   $ichange=0;
   // armor or shield
-  if ($qitem[type] > 6 && $qitem[type] < 12 && $qitem[type] != 8)
+  if ($qitem['type'] > 6 && $qitem['type'] < 12 && $qitem['type'] != 8)
   {
-    $qitem[cond] -= 0.1*$bturns[1] + 0.1*(intval(rand(0,$bturns[1])));
-    if ( $qitem[cond] <0) $qitem[cond] = 0;
+    $qitem['cond'] -= 0.1*$bturns[1] + 0.1*(intval(rand(0,$bturns[1])));
+    if ( $qitem['cond'] <0) $qitem['cond'] = 0;
     $ichange=1;
   }
-  elseif ($qitem[type] < 7) // non-weave weapon
+  elseif ($qitem['type'] < 7) // non-weave weapon
   {
-    $qitem[cond] -= 0.1*$bturns[0] + 0.1*(intval(rand(0,$bturns[0])));
-    if ( $qitem[cond] <0) $qitem[cond] = 0;
+    $qitem['cond'] -= 0.1*$bturns[0] + 0.1*(intval(rand(0,$bturns[0])));
+    if ( $qitem['cond'] <0) $qitem['cond'] = 0;
     $ichange=1;
   }
   if ($ichange)
   {
-    mysql_query("UPDATE Items SET cond='".$qitem[cond]."' WHERE id='".$qitem[id]."'");
+    mysqli_query($db,"UPDATE Items SET cond='".$qitem['cond']."' WHERE id='".$qitem['id']."'");
   } 
 }
 
@@ -742,28 +761,28 @@ $finditem="";
 $prefix="";
 $suffix="";
 $wear=100;
-$invsize=mysql_num_rows(mysql_query("SELECT id FROM Items WHERE owner='$char[id]' AND type<15"));
+$invsize=mysqli_num_rows(mysqli_query($db,"SELECT id FROM Items WHERE owner='$char[id]' AND type<15"));
 if (($rand_val >= 50 && $winner == $player_word[0])) 
 {
   // find item
   if ($invsize < $inv_max)  
   {
     // seal find requirements check
-    $topchar = mysql_fetch_array(mysql_query("SELECT id, level FROM Users WHERE 1 ORDER BY level DESC, exp DESC LIMIT 1"));
+    $topchar = mysqli_fetch_array(mysqli_query($db,"SELECT id, level FROM Users WHERE 1 ORDER BY level DESC, exp DESC LIMIT 1"));
     $findseal=0;
-    $availSeals = getMaxSeals($topchar[level]);
+    $availSeals = getMaxSeals($topchar['level']);
     
     if ($availSeals > 0)
     {
-      $numSeals=mysql_num_rows(mysql_query("SELECT id FROM Items WHERE type=0"));
+      $numSeals=mysqli_num_rows(mysqli_query($db,"SELECT id FROM Items WHERE type=0"));
       $sealChance = rand(1,20000);
-      if ($numSeals == 0 && $char[level] >= 50) 
+      if ($numSeals == 0 && $char['level'] >= 50) 
       {
         $findseal = 1; // First Seal
       }
-      else if (($numSeals < $availSeals) && ($sealChance < $char[level])) // Seals 2-6
+      else if (($numSeals < $availSeals) && ($sealChance < $char['level'])) // Seals 2-6
       {
-        $mySeals = mysql_num_rows(mysql_query("SELECT id FROM Items WHERE type<=0 && owner='$char[id]'"));
+        $mySeals = mysqli_num_rows(mysqli_query($db,"SELECT id FROM Items WHERE type<=0 && owner='$char[id]'"));
         if ($mySeals == 0)
         {
           $findseal = 1;
@@ -775,14 +794,14 @@ if (($rand_val >= 50 && $winner == $player_word[0]))
       }
     }
     $findHorn = 0;
-    $availHorn = getMaxHorn($topchar[level]);
-    $numHorn=mysql_num_rows(mysql_query("SELECT id FROM Items WHERE type='-1'"));
-    if ($findseal == 0 && $char[level] >= 20 && $availHorn > $numHorn)
+    $availHorn = getMaxHorn($topchar['level']);
+    $numHorn=mysqli_num_rows(mysqli_query($db,"SELECT id FROM Items WHERE type='-1'"));
+    if ($findseal == 0 && $char['level'] >= 20 && $availHorn > $numHorn)
     {
       $hornChance = rand(1,20000);
-      $bestLevel = $topchar[level] - 10;
-      $myChance = $char[level];
-      if ($myChance > $bestLevel) $myChance = ($bestLevel*2)-$char[level];
+      $bestLevel = $topchar['level'] - 10;
+      $myChance = $char['level'];
+      if ($myChance > $bestLevel) $myChance = ($bestLevel*2)-$char['level'];
       
       if ($hornChance < $myChance)
       {
@@ -818,7 +837,7 @@ if (($rand_val >= 50 && $winner == $player_word[0]))
     $rand_tali = rand(0,3);
     if ($rand_tali < 1 && $ftype > 11) $rand_tali += rand(1,2);
 
-    $max_lvl=intval($char[level]/4+3); 
+    $max_lvl=intval($char['level']/4+3); 
     if ($bubble) $max_level += 2; 
     if ($rand_tali == 1 || $rand_tali == 3)
     {  
@@ -839,13 +858,14 @@ if (($rand_val >= 50 && $winner == $player_word[0]))
     {
       $wear = bell_rand(100,100);
     }
-    if ($pro_stats[eF]) $wear += $pro_stats[eF];
+    if ($pro_stats['eF']) $wear += $pro_stats['eF'];
     if ($wear >100) $wear = 100;
     
-    $bresult[0][iimg] = "items/".str_replace(" ","",$finditem).".gif";
+    $bresult[0]['iimg'] = "items/".str_replace(" ","",$finditem).".gif";
     
     // add item and display message
-    $findnum = count($itmlist);
+	// v v  v why the fuck is this even here it has caused me so much trouble and its never even used 
+    //$findnum = count($itmlist);
     if ($finditem) 
     {
       $itype=$ftype;
@@ -853,7 +873,7 @@ if (($rand_val >= 50 && $winner == $player_word[0]))
       $istats .= getTerMod($ter_bonuses,$itype,$prefix,$suffix,$item_base[$finditem][2]);
       $ipts= lvl_req($istats,100);
       $itime=time();
-      $result = mysql_query("INSERT INTO Items (owner,type,    cond,   istatus,points, society,last_moved,base,       prefix,   suffix,   stats) 
+      $result = mysqli_query($db,"INSERT INTO Items (owner,type,    cond,   istatus,points, society,last_moved,base,       prefix,   suffix,   stats) 
                                         VALUES ('$id','$itype','$wear','0',    '$ipts','',     '$itime',  '$finditem','$prefix','$suffix','$istats')");
       $invsize++;
 
@@ -877,29 +897,29 @@ if (($rand_val >= 50 && $winner == $player_word[0]))
         $popuptext .= $sname;
         
       }
-      $popuptext .= "&lvl=".$char[level]."&gender=".$char[sex]."&cond=".$wear;
+      $popuptext .= "&lvl=".$char['level']."&gender=".$char['sex']."&cond=".$wear;
       
-      $bresult[0][item] = "You found: <a href=javascript:popUp('".$popuptext."')>$linktext</a>! (".$invsize."/".$inv_max.")";
+      $bresult[0]['item'] = "You found: <a href=javascript:popUp('".$popuptext."')>$linktext</a>! (".$invsize."/".$inv_max.")";
 
-      $stats[items_found]++;
+      $stats['items_found']++;
     }
   }
-  else $bresult[0][item] = "You were unable to pick up an item<br>because your inventory is full";
+  else $bresult[0]['item'] = "You were unable to pick up an item<br>because your inventory is full";
 }
-if ($qcomp) $bresult[0][quest] = 1;
+if ($qcomp) $bresult[0]['quest'] = 1;
 
 $array_gen = generate_duel_text($bresult);
 
 // Estate taxes
-$charip = unserialize($char[ip]); 
+$charip = unserialize($char['ip']); 
 $alts = getAlts($charip);
-$result10= mysql_query("SELECT id, owner, upgrades, level, inv FROM Estates WHERE row='$row' AND col='$col' AND location='$char[location]'");
-while ($testate = mysql_fetch_array( $result10 ) )
+$result10= mysqli_query($db,"SELECT id, owner, upgrades, level, inv FROM Estates WHERE row='$row' AND col='$col' AND location='$char[location]'");
+while ($testate = mysqli_fetch_array( $result10 ) )
 {
-  $eowner = mysql_fetch_array(mysql_query("SELECT id, name, lastname, bankgold, society FROM Users WHERE id='$testate[owner]'"));
-  $username = $eowner[name]."_".$eowner[lastname];
+  $eowner = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, lastname, bankgold, society FROM Users WHERE id='$testate[owner]'"));
+  $username = $eowner['name']."_".$eowner['lastname'];
   $ally=0;
-  if ($society[id])
+  if ($society['id'])
   {
     $stance = unserialize($society['stance']);
     foreach ($stance as $c_n => $c_s)
@@ -913,18 +933,18 @@ while ($testate = mysql_fetch_array( $result10 ) )
   
   if (!($ally) && !($alts[$username]))
   {
-    $teups = unserialize($testate[upgrades]);
+    $teups = unserialize($testate['upgrades']);
     $test_stats = cparse(getUpgradeBonuses($teups, $estate_ups, 9));
-    if ($test_stats[wT])
+    if ($test_stats['wT'])
     {
-      $eowner[bankgold] += ($test_stats[wT]*($testate[level]+1))*25;
-      mysql_query("UPDATE Users SET bankgold='".$eowner[bankgold]."' WHERE id='".$eowner[id]."'");
+      $eowner['bankgold'] += ($test_stats['wT']*($testate['level']+1))*25;
+      mysqli_query($db,"UPDATE Users SET bankgold='".$eowner['bankgold']."' WHERE id='".$eowner['id']."'");
     }
-    $eid = (20000+$testate[id]);
-    $ecount = mysql_num_rows(mysql_query("SELECT * FROM Items WHERE owner='".$eid."' AND type<15"));
+    $eid = (20000+$testate['id']);
+    $ecount = mysqli_num_rows(mysqli_query($db,"SELECT * FROM Items WHERE owner='".$eid."' AND type<15"));
     $chance=rand(1,100);
 
-    if ($finditem && ($item_base[$base][1] > 0) && ($test_stats[eT]>=$chance) && ($ecount<($test_stats[zS]+3)))
+    if ($finditem && ($item_base[$base][1] > 0) && ($test_stats[eT]>=$chance) && ($ecount<($test_stats['zS']+3)))
     {
       $base= $finditem;
       $itype=$item_base[$base][1];
@@ -932,54 +952,54 @@ while ($testate = mysql_fetch_array( $result10 ) )
       $ipts= lvl_req($istats,100);
       $itime=time();
 
-      $result = mysql_query("INSERT INTO Items (owner, type,    cond,   istatus,points, society,last_moved,base,   prefix,   suffix,   stats) 
+      $result = mysqli_query($db,"INSERT INTO Items (owner, type,    cond,   istatus,points, society,last_moved,base,   prefix,   suffix,   stats) 
                                         VALUES ('$eid','$itype','$wear','0',    '$ipts','',     '$itime',  '$base','$prefix','$suffix','$istats')");  
     }
   }
 }
 
 // UPDATE WARS
-if (!$myHorde[id])
+if (!$myHorde['id'])
 {
   $tlog = "";
   $lnum=4;
   $dwpts=0;
 
   $lastBattle = 0;
-  $lastBattle = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE type='99' "));
+  $lastBattle = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE type='99' "));
   if ($lastBattle == 0)
   {
     for ($x=0; $x<$lnum; $x++)
     {
       $loc = $surrounding_area[$x];
-      $loc_query = mysql_fetch_array(mysql_query("SELECT * FROM Locations WHERE name = '$loc'"));
-      if ($loc_query[last_war])
+      $loc_query = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Locations WHERE name = '$loc'"));
+      if ($loc_query['last_war'])
       {
         $wpts1 = 0;
-        $myWar = mysql_fetch_array(mysql_query("SELECT * FROM Contests WHERE id='$loc_query[last_war]' "));
-        if (!$myWar[done] && !($myWar[starts] > intval(time()/3600)))
+        $myWar = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Contests WHERE id='$loc_query[last_war]' "));
+        if (!$myWar['done'] && !($myWar['starts'] > intval(time()/3600)))
         {
           // Get clan id's that might be involved in war.
-          $wid= $society[id];
+          $wid= $society['id'];
           $wsupport=1;
           $support = unserialize($society['support']);
   
-          if ($support[$loc_query[id]] != 0 && $support[$loc_query[id]] != $society[id])
+          if ($support[$loc_query['id']] != 0 && $support[$loc_query['id']] != $society['id'])
           {
-            $wid = $support[$loc_query[id]];
+            $wid = $support[$loc_query['id']];
             $wsupport= 2;
           }
         
-          $wresults = unserialize($myWar[results]);       
-          $wcon = unserialize($myWar[contestants]);
+          $wresults = unserialize($myWar['results']);       
+          $wcon = unserialize($myWar['contestants']);
           if ($wcon[$wid]) 
           {
             if (!$wresults[$wid]) $wresults[$wid] = array(0);
             
             $isWinner = 0;
             if ($winner == $player_word[0]) $isWinner = 1;
-            $lvlDiff = ($char2[level]-$char[level]);
-            $str1 = getStrength($char[used_pts], $char[equip_pts], $char[stamina], $char[stamaxa]);
+            $lvlDiff = ($char2['level']-$char['level']);
+            $str1 = getStrength($char['used_pts'], $char['equip_pts'], $char['stamina'], $char['stamaxa']);
             $str2 = 90;
             $wpts1 = getCBPoints($char, $myWar, $isWinner, $lvlDiff, $char_attack, $str1, $str2, 0);
             
@@ -994,36 +1014,36 @@ if (!$myHorde[id])
             $wcon[$wid][1] = $wresults[$wid][0]+$wresults[$wid][1]+$wresults[$wid][2]+$wresults[$wid][3];
             if ($wresults[$wid][2] > $wresults[$wid][0]+$wresults[$wid][1]+$wresults[$wid][3]) { $wcon[$wid][1] = ($wresults[$wid][0]+$wresults[$wid][1]+$wresults[$wid][3])*2;}
 
-            $wreward = unserialize($myWar[reward]);
+            $wreward = unserialize($myWar['reward']);
             $wreward[1] += $warJi;
             $swr=serialize($wresults);
             $swc=serialize($wcon);
             $swp=serialize($wreward);
-            mysql_query("UPDATE Contests SET contestants='$swc', results='$swr', reward='$swp' WHERE id='$myWar[id]'");
+            mysqli_query($db,"UPDATE Contests SET contestants='$swc', results='$swr', reward='$swp' WHERE id='$myWar[id]'");
             $dwpts=$wpts1;
           }
-          if ($dwpts) $tlog .= "<br>".$loc_query[name]." Clan Battle! ".$name1.": ".show_sign1($dwpts);
+          if ($dwpts) $tlog .= "<br>".$loc_query['name']." Clan Battle! ".$name1.": ".show_sign1($dwpts);
         }
       }
     }
   }
   else
   {
-    if (!$lastBattle[done] && ($lastBattle[starts] <= intval(time()/3600)))
+    if (!$lastBattle['done'] && ($lastBattle['starts'] <= intval(time()/3600)))
     {
       $wpts1 = 0;
-      $wresults = unserialize($lastBattle[results]);       
-      $wcon = unserialize($lastBattle[contestants]);       
+      $wresults = unserialize($lastBattle['results']);       
+      $wcon = unserialize($lastBattle['contestants']);       
   
       $isWinner = 0;
       if ($winner == $player_word[0]) $isWinner = 1;
-      $lvlDiff = ($char2[level]-$char[level]);
-      $str1 = getStrength($char[used_pts], $char[equip_pts], $char[stamina], $char[stamaxa]);
+      $lvlDiff = ($char2['level']-$char['level']);
+      $str1 = getStrength($char['used_pts'], $char['equip_pts'], $char['stamina'], $char['stamaxa']);
       $str2 = 90;
       $wpts1 = getCBPoints($char, $myWar, $isWinner, $lvlDiff, $char_attack, $str1, $str2, 0);
       
       // Determine which side you're on
-      $alignnum = getAlignment($char[align]);
+      $alignnum = getAlignment($char['align']);
       $side= 0;
       $nPenalty= 1;
       if ($alignnum > 0)
@@ -1037,7 +1057,7 @@ if (!$myHorde[id])
       else
       {
         $nPenalty = 2;
-        if ($char[align] > 0)
+        if ($char['align'] > 0)
         {
           $side = 1;
         }
@@ -1057,7 +1077,7 @@ if (!$myHorde[id])
       $swr=serialize($wresults);
       $swc=serialize($wcon);
       $swp=serialize($wreward);
-      mysql_query("UPDATE Contests SET contestants='$swc', results='$swr' WHERE id='$lastBattle[id]'");
+      mysqli_query($db,"UPDATE Contests SET contestants='$swc', results='$swr' WHERE id='$lastBattle[id]'");
       $dwpts=$wpts1;      
     }
     if ($dwpts) $tlog .= "<br>Last Battle Results! ".$name1.": ".show_sign1($dwpts); 
@@ -1065,73 +1085,84 @@ if (!$myHorde[id])
 } 
   
 // UPDATE DATABASE
-$result = mysql_query("UPDATE Users LEFT JOIN Users_data ON Users.id=Users_data.id SET ".$update_battles.", Users.awesomeness='".$awesomeness."', Users.stamina='".$char[stamina]."', Users.stamaxa='".$char[stamaxa]."', Users.newskills='".$char[newskills]."', Users.newprof='".$char[newprof]."', Users.exp='".$char[exp]."', Users.level='".$char[level]."', Users.exp_up='".$char[exp_up]."', Users.exp_up_s='".$char[exp_up_s]."', Users.points='".$char[points]."', Users.propoints='".$char[propoints]."', Users_data.quests='".$myquests2."', Users.align='".$char[align]."', Users.vitality='".$char[vitality]."', Users.equip_pts='".$char[equip_pts]."' WHERE Users.id='$id' ");
-$result = mysql_query("UPDATE Users_stats SET wins='".$stats['wins']."', ji='".$stats[ji]."', items_found='".$stats[items_found]."', battles='".$stats['battles']."', most_npc_wins='".$stats[most_npc_wins]."', npc_wins='".$stats['npc_wins']."', horde_wins='".$stats['horde_wins']."', army_wins='".$stats['army_wins']."', tot_npcs='".$stats['tot_npcs']."', shadow_npcs='".$stats['shadow_npcs']."', shadow_wins='".$stats['shadow_wins']."', military_npcs='".$stats['military_npcs']."', military_wins='".$stats['military_wins']."', ruffian_npcs='".$stats['ruffian_npcs']."', ruffian_wins='".$stats['ruffian_wins']."', channeler_npcs='".$stats['channeler_npcs']."', channeler_wins='".$stats['channeler_wins']."', animal_npcs='".$stats['animal_npcs']."', animal_wins='".$stats['animal_wins']."', exotic_npcs='".$stats['exotic_npcs']."', exotic_wins='".$stats['exotic_wins']."' WHERE id='$id'");
+if($char['newskills']==""){
+	$char['newskills']=0;
+}
+
+if($char['newprof']==""){
+	$char['newprof']=0;
+}
+
+$result = mysqli_query($db,"UPDATE Users LEFT JOIN Users_data ON Users.id=Users_data.id SET ".$update_battles.", Users.awesomeness='".$awesomeness."', Users.stamina='".$char['stamina']."', Users.stamaxa='".$char['stamaxa']."', Users.newskills='".$char['newskills']."', Users.newprof='".$char['newprof']."', Users.exp='".$char['exp']."', Users.level='".$char['level']."', Users.exp_up='".$char['exp_up']."', Users.exp_up_s='".$char['exp_up_s']."', Users.points='".$char['points']."', Users.propoints='".$char['propoints']."', Users_data.quests='".$myquests2."', Users.align='".$char['align']."', Users.vitality='".$char['vitality']."', Users.equip_pts='".$char['equip_pts']."' WHERE Users.id='$id' ");
+
+$result = mysqli_query($db,"UPDATE Users_stats SET wins='".$stats['wins']."', ji='".$stats['ji']."', items_found='".$stats['items_found']."', battles='".$stats['battles']."', most_npc_wins='".$stats['most_npc_wins']."', npc_wins='".$stats['npc_wins']."', horde_wins='".$stats['horde_wins']."', army_wins='".$stats['army_wins']."', tot_npcs='".$stats['tot_npcs']."', shadow_npcs='".$stats['shadow_npcs']."', shadow_wins='".$stats['shadow_wins']."', military_npcs='".$stats['military_npcs']."', military_wins='".$stats['military_wins']."', ruffian_npcs='".$stats['ruffian_npcs']."', ruffian_wins='".$stats['ruffian_wins']."', channeler_npcs='".$stats['channeler_npcs']."', channeler_wins='".$stats['channeler_wins']."', animal_npcs='".$stats['animal_npcs']."', animal_wins='".$stats['animal_wins']."', exotic_npcs='".$stats['exotic_npcs']."', exotic_wins='".$stats['exotic_wins']."' WHERE id='$id'");
+
+
 
 if ($myHorde)
 {
-  $npc_info[$target][1] = $char_attack[health][1];
+  $npc_info[$target][1] = $char_attack['health'][1];
   $hdone=0;
   $finisher=0;
   $afinisher=0;
   $defeated=0;
-  $armydone=$myHorde[army_done];
+  $armydone=$myHorde['army_done'];
   
   // Horde defeated!
   if ($npc_info[0][1] <= 0) 
   {
     $hdone=1;
-    $finisher=$char[id];
+    $finisher=$char['id'];
     $defeated=time();
     
-    $stats[horde_finish] += 1;
-    mysql_query("UPDATE Users_stats SET horde_finish='".$stats[horde_finish]."' WHERE id='".$char[id]."'");
+    $stats['horde_finish'] += 1;
+    mysqli_query($db,"UPDATE Users_stats SET horde_finish='".$stats['horde_finish']."' WHERE id='".$char['id']."'");
     
     // All clans gain 3% of their Ji in the city.
-    $attacked = mysql_fetch_array(mysql_query("SELECT id, name, myOrder, chaos, ruler, army FROM Locations WHERE name='$myHorde[target]'"));
-    $sresult = mysql_query("SELECT id, area_score, name FROM Soc WHERE 1");
-    while ($lsoc = mysql_fetch_array($sresult))
+    $attacked = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, myOrder, chaos, ruler, army FROM Locations WHERE name='$myHorde[target]'"));
+    $sresult = mysqli_query($db,"SELECT id, area_score, name FROM Soc WHERE 1");
+    while ($lsoc = mysqli_fetch_array($sresult))
     {
-      $tas = unserialize($lsoc[area_score]);
-      $tas[$attacked[id]] = $tas[$attacked[id]]*1.03;
+      $tas = unserialize($lsoc['area_score']);
+      $tas[$attacked['id']] = $tas[$attacked['id']]*1.03;
       $sas= serialize($tas);
-      mysql_query("UPDATE Soc SET area_score='$sas' WHERE id='$lsoc[id]'");      
+      mysqli_query($db,"UPDATE Soc SET area_score='$sas' WHERE id='$lsoc[id]'");      
     }
     
     // Apply damages to city defenses
-    $armyDmg = $attacked[army]-$npc_info[1][1];
-    $attacked[army] -= round($armyDmg/2);
-    if ($attacked[army] < 1000) $attacked[army] = 1000;
+    $armyDmg = $attacked['army']-$npc_info[1][1];
+    $attacked['army'] -= round($armyDmg/2);
+    if ($attacked['army'] < 1000) $attacked['army'] = 1000;
     
     // Update Order when horde is defeated.
-    mysql_query("UPDATE Locations SET myOrder=myOrder+100, army='$attacked[army]' WHERE id='$attacked[id]'");
+    mysqli_query($db,"UPDATE Locations SET myOrder=myOrder+100, army='$attacked[army]' WHERE id='$attacked[id]'");
   }
   else if ($target==1 && ($npc_info[$target][1] <= 0)) // army defeated
   {
     $npc_info[0][1] = $npc_info[0][1] *2;
     $armydone=1;
-    $afinisher=$char[id];
+    $afinisher=$char['id'];
 
-    $stats[army_finish] += 1;
-    mysql_query("UPDATE Users_stats SET army_finish='".$stats[army_finish]."' WHERE id='".$char[id]."'");
+    $stats['army_finish'] += 1;
+    mysqli_query($db,"UPDATE Users_stats SET army_finish='".$stats['army_finish']."' WHERE id='".$char['id']."'");
     
     // ruling clan's Ji decreased by 3%
-    $attacked = mysql_fetch_array(mysql_query("SELECT id, name, myOrder, ruler FROM Locations WHERE name='$myHorde[target]'"));
-    $ruler = mysql_fetch_array(mysql_query("SELECT id, area_score, name FROM Soc WHERE name='$attacked[ruler]'"));
-    $tas = unserialize($ruler[area_score]);
-    $tas[$attacked[id]] = $tas[$attacked[id]]*0.97;
+    $attacked = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, myOrder, ruler FROM Locations WHERE name='$myHorde[target]'"));
+    $ruler = mysqli_fetch_array(mysqli_query($db,"SELECT id, area_score, name FROM Soc WHERE name='$attacked[ruler]'"));
+    $tas = unserialize($ruler['area_score']);
+    $tas[$attacked['id']] = $tas[$attacked['id']]*0.97;
     $sas= serialize($tas);
-    mysql_query("UPDATE Soc SET area_score='$sas' WHERE id='$ruler[id]'"); 
+    mysqli_query($db,"UPDATE Soc SET area_score='$sas' WHERE id='$ruler[id]'"); 
     
     // Update Chaos when horde is defeated.
-    mysql_query("UPDATE Locations SET chaos=chaos+50 WHERE id='$attacked[id]'"); 
+    mysqli_query($db,"UPDATE Locations SET chaos=chaos+50 WHERE id='$attacked[id]'"); 
   }
   $snpci= serialize($npc_info);
-  $result = mysql_query("UPDATE Hordes SET npcs='$snpci', done='$hdone', users='$shu', finisher='$finisher', afinisher='$afinisher', defeated='$defeated', army_done='$armydone' WHERE id='$myHorde[id]'"); 
+  $result = mysqli_query($db,"UPDATE Hordes SET npcs='$snpci', done='$hdone', users='$shu', finisher='$finisher', afinisher='$afinisher', defeated='$defeated', army_done='$armydone' WHERE id='$myHorde[id]'"); 
 }
 
 // THE ACTUAL PAGE DRAWING
-$message = "<b>".$char[name]." ".$char[lastname]."</b> vs <b>".$specific." Level ".$char2[level]." ".$char2[lastname]."</b> - ".($battlelimit-$char[battlestoday])." / $battlelimit battles remaining";
+$message = "<b>".$char['name']." ".$char['lastname']."</b> vs <b>".$specific." Level ".$char2['level']." ".$char2['lastname']."</b> - ".($battlelimit-$char['battlestoday'])." / $battlelimit battles remaining";
 }
 
 // JAVASCRIPT
@@ -1148,8 +1179,8 @@ echo $array_gen;
 echo "var looping = 1;\n";
 echo "var tlog = '".$tlog."';\n";
 
-echo "var maxHealth0= ".$char[vitality].";\n";
-echo "var maxHealth1= ".$char2[vitality].";\n";
+echo "var maxHealth0= ".$char['vitality'].";\n";
+echo "var maxHealth1= ".$char2['vitality'].";\n";
 
 if ($redirect==0)
 {
@@ -1261,14 +1292,14 @@ redirectMessage('<?php echo $rmsg;?>');
           if ($mode != 1)
           {
         ?>
-          <td align='center' height='37' style='background-image:url(images/BattleBox/botspacerleft.jpg); background-repeat: repeat-x;'><img width='256' src='images/BattleBox/botleft.jpg' class='img hidden-xs'/><a href="npc.php?hunt=<?php echo $rehunt;?>&horde=<?php echo $horde;?>&army=<?php echo $army;?>"><img width='80' src="images/BattleBox/botmid1.jpg" border="0" alt="Again" onMouseover="this.src='images/BattleBox/botmid2.jpg'" onMouseout="this.src='images/BattleBox/botmid1.jpg'"/></a><img width='256' src='images/BattleBox/botright.jpg' class='img hidden-xs'/></td>
+          <td align='center' height='37' style='background-image:url(images/BattleBox/botspacerleft.jpg); background-repeat: repeat-x;'><img width='256' src='images/BattleBox/botleft.jpg' class='img hidden-xs'/><a <a onclick="window.location.reload();" href="#"><img width='80' src="images/BattleBox/botmid1.jpg" border="0" alt="Again" onMouseover="this.src='images/BattleBox/botmid2.jpg'" onMouseout="this.src='images/BattleBox/botmid1.jpg'"/></a><img width='256' src='images/BattleBox/botright.jpg' class='img hidden-xs'/></td>
         <?php
           }
           else
           {
         ?>          
           <td align='center' height='37'>
-            <a href="npc.php?hunt=<?php echo $rehunt;?>&horde=<?php echo $horde;?>&army=<?php echo $army;?>">
+            <a onclick="window.location.reload();" href="#">
               <img width='80' src="images/BattleBox/botmid1.jpg" border="0" alt="Again" onMouseover="this.src='images/BattleBox/botmid2.jpg'" onMouseout="this.src='images/BattleBox/botmid1.jpg'"/>
             </a>
           </td>
@@ -1297,3 +1328,10 @@ $no_show_footer = 1;
 
 include('footer.htm');
 ?>
+
+
+
+
+
+
+

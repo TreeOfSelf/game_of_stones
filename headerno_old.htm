@@ -110,7 +110,7 @@
       <br>
       <?php
         include('admin/connect.php');
-        $result = mysql_query("SELECT COUNT(*) FROM Users WHERE lastcheck='".(intval(time()/3600)-1)."' OR  lastcheck='".intval(time()/3600)."'");
+        $result = mysqli_query($db,"SELECT COUNT(*) FROM Users WHERE lastcheck='".(intval(time()/3600)-1)."' OR  lastcheck='".intval(time()/3600)."'");
         $time_passed = intval((time()-(intval(time()/3600)-1)*3600)/60)-60;
         $users_online = mysql_result($result,0);
         if ($users_online >= 25) echo "<font class='foottext'><center><b>Online in last 1hr ".$time_passed."min</b><br>".$users_online." characters";

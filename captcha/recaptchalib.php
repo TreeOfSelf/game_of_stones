@@ -76,7 +76,7 @@ function _recaptcha_http_post($host, $path, $data, $port = 80) {
         $http_request .= "\r\n";
         $http_request .= $req;
 
-        $response = '';
+        $response = [];
         if( false == ( $fs = @fsockopen($host, $port, $errno, $errstr, 10) ) ) {
                 die ('Could not open socket');
         }
@@ -84,7 +84,7 @@ function _recaptcha_http_post($host, $path, $data, $port = 80) {
         fwrite($fs, $http_request);
 
         while ( !feof($fs) )
-                $response .= fgets($fs, 1160); // One TCP-IP packet
+                $response = fgets($fs, 1160); // One TCP-IP packet
         fclose($fs);
         $response = explode("\r\n\r\n", $response, 2);
 
@@ -178,10 +178,10 @@ function recaptcha_check_answer ($privkey, $remoteip, $challenge, $response, $ex
                                                  ) + $extra_params
                                           );
 
-        $answers = explode ("\n", $response [1]);
+        $answers = explode ("\n", $response[1]);
         $recaptcha_response = new ReCaptchaResponse();
 
-        if (trim ($answers [0]) == 'true') {
+        if (trim ($answers[0]) == 'true') {
                 $recaptcha_response->is_valid = true;
         }
         else {

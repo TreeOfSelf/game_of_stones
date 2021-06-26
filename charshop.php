@@ -10,10 +10,10 @@ $s_costg=abs(intval($_REQUEST['costg']));
 $s_costs=abs(intval($_REQUEST['costs']));
 $s_costc=abs(intval($_REQUEST['costc']));
 $s_cost= $s_costg*10000+$s_costs*100+$s_costc;
-$s_item=mysql_real_escape_string($_REQUEST['itemsell']);
-$s_delete=mysql_real_escape_string($_REQUEST['delete']);
-$s_doit=mysql_real_escape_string($_REQUEST['doit']);
-$s_collect=mysql_real_escape_string($_REQUEST['collect']);
+$s_item=mysqli_real_escape_string($db,$_REQUEST['itemsell']);
+$s_delete=mysqli_real_escape_string($db,$_REQUEST['delete']);
+$s_doit=mysqli_real_escape_string($db,$_REQUEST['doit']);
+$s_collect=mysqli_real_escape_string($db,$_REQUEST['collect']);
 $time=time();
 $itmlist = unserialize($char['itmlist']);
 
@@ -47,7 +47,7 @@ if ($s_collect)
   $id = $char[id];
   $collectgold = $char[gold] + $char[shopgold];
   $querya = "UPDATE Users SET gold='$collectgold', shopgold='0' WHERE id='$id' ";
-  $result = mysql_query($querya);
+  $result = mysqli_query($db,$querya);
   header("Location: $server_name/charshop.php?time=$curtime");
 }
 
@@ -56,12 +56,12 @@ if ($s_collect)
 if ($s_doit)
 {
   $itmlist = unserialize($char['itmlist']);
-  $resultb = mysql_query("SELECT * FROM Market WHERE id='$s_delete' ORDER BY cost DESC", $db);
-  $listchar = mysql_fetch_array($resultb);
+  $resultb = mysqli_query($db,"SELECT * FROM Market WHERE id='$s_delete' ORDER BY cost DESC");
+  $listchar = mysqli_fetch_array($resultb);
   if ($char['location']==$listchar['location'] && $char['name']==$listchar['sname'] && $char['lastname']==$listchar['slastname'])
   {
     $query = "DELETE FROM Market WHERE id='$s_delete'";
-    $result5 = mysql_query($query, $db);
+    $result5 = mysqli_query($db,$query);
     $message = "Offer Removed";
     $z = 0;
     while (($itmlist[$z][0] != $listchar[base] || $itmlist[$z][1] != $listchar[prefix] || $itmlist[$z][2] != $listchar[suffix] || $itmlist[$z][3] != -1) && $z < count($itmlist)) $z++;
@@ -72,14 +72,14 @@ if ($s_doit)
       $id = $char[id];
       $itmlist2 = serialize($itmlist);
       $query = "UPDATE Users_data SET itmlist='$itmlist2' WHERE id='$id' ";
-      $result = mysql_query($query);
+      $result = mysqli_query($db,$query);
     }
   }
 }
 
 $query = "SELECT * FROM Market WHERE sname='$name' AND slastname='$lastname' ORDER BY cost DESC";
-$resultb = mysql_query($query, $db);
-$numchar = mysql_num_rows($resultb);
+$resultb = mysqli_query($db,$query);
+$numchar = mysqli_num_rows($resultb);
 
 // ADD TO SELL LIST
 if ($s_cost && $numchar < 25 && $location_array[$char['location']][2])
@@ -98,12 +98,12 @@ if ($s_cost && $numchar < 25 && $location_array[$char['location']][2])
     $id = $char[id];
     $itmlist2 = serialize($itmlist);
     $query = "UPDATE Users_data SET itmlist='$itmlist2' WHERE id='$id' ";
-    $result = mysql_query($query);
+    $result = mysqli_query($db,$query);
     $query = "INSERT INTO Market (name, base, prefix, suffix, type, bonus, cost, sname, slastname, location) VALUES ('$itmname', '$base', '$prefix', '$suffix', '$itmtype', '$itmbonus', '$s_cost', '$name', '$lastname', '$location')";
-    $result = mysql_query($query, $db);
+    $result = mysqli_query($db,$query);
     $query = "SELECT * FROM Market WHERE sname='$name' AND slastname='$lastname' ORDER BY cost DESC";
-    $resultb = mysql_query($query, $db);
-    $numchar = mysql_num_rows($resultb);
+    $resultb = mysqli_query($db,$query);
+    $numchar = mysqli_num_rows($resultb);
   }
   $message = "Offer Added";
 }
@@ -154,7 +154,7 @@ include('header.htm');
 <?php
   echo $div_img;
   $x=0;
-  while ( $listchar = mysql_fetch_array( $resultb ))
+  while ( $listchar = mysqli_fetch_array( $resultb ))
   {
 ?>
 <table width="550" cellspacing="0" border="0" cellpadding="5" onMouseOver="this.bgColor='#111111';" onMouseOut="this.bgColor='#000000';">

@@ -16,41 +16,41 @@ include_once("admin/charFuncs.php");
 include_once("admin/locFuncs.php");
 
 // Check if city has been destroyed. If so, don't display anything.
-if (!$location[isDestroyed])
+if (!$location['isDestroyed'])
 {
 include_once("map/mapdata/coordinates.inc");
 if ($location_array[$char['location']][2]) $is_town=1;
 
 $loc=$char['location'];
-$s_accept=mysql_real_escape_string($_REQUEST['item4']);
-$s_doit=mysql_real_escape_string($_REQUEST['doit']);
-$s_item=mysql_real_escape_string($_REQUEST['itemname']);
-$s_type=mysql_real_escape_string($_REQUEST['type']);
-$s_bonus=mysql_real_escape_string($_REQUEST['bonus']);
+$s_accept=mysqli_real_escape_string($db,$_REQUEST['item4']);
+$s_doit=mysqli_real_escape_string($db,$_REQUEST['doit']);
+$s_item=mysqli_real_escape_string($db,$_REQUEST['itemname']);
+$s_type=mysqli_real_escape_string($db,$_REQUEST['type']);
+$s_bonus=mysqli_real_escape_string($db,$_REQUEST['bonus']);
 $s_costmin=(10000*intval($_REQUEST['costming']))+(100*intval($_REQUEST['costmins']))+intval($_REQUEST['costminc']);
 $s_costmax=(10000*intval($_REQUEST['costmaxg']))+(100*intval($_REQUEST['costmaxs']))+intval($_REQUEST['costmaxc']);
 $s_eqmin=intval($_REQUEST['eqmin']);
 $s_eqmax=intval($_REQUEST['eqmax']);
-$sortby = mysql_real_escape_string($_REQUEST['sortby']);
-$world=mysql_real_escape_string($_REQUEST['world']);
-$resultnumb=mysql_real_escape_string($_REQUEST['pagenumb']);
-$bizid=mysql_real_escape_string($_REQUEST['bizid']);
-$bizslot=mysql_real_escape_string($_REQUEST['bizslot']);
+$sortby = mysqli_real_escape_string($db,$_REQUEST['sortby']);
+$world=mysqli_real_escape_string($db,$_REQUEST['world']);
+$resultnumb=mysqli_real_escape_string($db,$_REQUEST['pagenumb']);
+$bizid=mysqli_real_escape_string($db,$_REQUEST['bizid']);
+$bizslot=mysqli_real_escape_string($db,$_REQUEST['bizslot']);
 if (!$resultnumb) $resultnumb = 0;
 $numbofresults = 20;
 $time=time();
-$ustats = mysql_fetch_array(mysql_query("SELECT * FROM Users_stats WHERE id='$id'"));
+$ustats = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Users_stats WHERE id='$id'"));
 
 $wikilink = "Market";
 
-$charip = unserialize($char[ip]); 
+$charip = unserialize($char['ip']); 
 $alts = getAlts($charip); 
 
-$soc_name = $char[society];
-$society = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='$soc_name' "));
+$soc_name = $char['society'];
+$society = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='$soc_name' "));
 $stance = unserialize($society['stance']);
 
-$mybq = mysql_fetch_array(mysql_query("SELECT * FROM Profs WHERE owner='$id' AND location='$loc' AND type=0"));
+$mybq = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Profs WHERE owner='$id' AND location='$loc' AND type=0"));
 $allyMult=1;
 if ($mybq)
 {
@@ -69,25 +69,25 @@ if (!$is_market) $message = "There is no Marketplace in ".str_replace('-ap-','&#
 
 if ($bizid != '' && $bizslot != '')
 {
-  $bq = mysql_fetch_array(mysql_query("SELECT * FROM Profs WHERE id='$bizid'"));
-  $tbis = unserialize($bq[status]);
+  $bq = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Profs WHERE id='$bizid'"));
+  $tbis = unserialize($bq['status']);
   
-  if ($bq[location]==$loc)
+  if ($bq['location']==$loc)
   {
     if ($tbis[$bizslot][0]==1) // is offer
     {
-      $owner = mysql_fetch_array(mysql_query("SELECT * FROM Users WHERE id='".$bq[owner]."'"));
-      $username=$owner[name]."_".$owner[lastname];
-      if ($bq[owner] != $id && !$alts[$username])
+      $owner = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Users WHERE id='".$bq['owner']."'"));
+      $username=$owner['name']."_".$owner['lastname'];
+      if ($bq['owner'] != $id && !$alts[$username])
       {
-        $itmsize = mysql_num_rows(mysql_query("SELECT * FROM Items WHERE owner='$id' AND type<15"));
+        $itmsize = mysqli_num_rows(mysqli_query($db,"SELECT * FROM Items WHERE owner='$id' AND type<15"));
         if ($itmsize < $inv_max)
         {
           $costmult = 1;
           $bstance = 0;
-          if ($char[society] != "" && $owner[society] != "")
+          if ($char['society'] != "" && $owner['society'] != "")
           {
-            $oups=unserialize($bq[upgrades]);
+            $oups=unserialize($bq['upgrades']);
             $enemyMult= (100+$oups[1][0]*5 + $oups[1][2]*3)/100;
             
             if ($stance[str_replace(" ","_",$owner['society'])] == 1)
@@ -103,27 +103,28 @@ if ($bizid != '' && $bizslot != '')
           }
           
           $icost = intval($tbis[$bizslot][1][1]*$costmult);
-          if ($icost <= $char[gold])
+          if ($icost <= $char['gold'])
           {
-            $char[gold] -= $icost;
-            $owner[gold] += intval($icost*.2);
-            $owner[bankgold] += $icost - intval($icost*.2);
-            $result = mysql_query("UPDATE Items SET owner='".$id."', istatus='0', last_moved='".time()."' WHERE id='".$tbis[$bizslot][1][0][id]."'");
+			  
+            $char['gold'] -= $icost;
+            $owner['gold'] += intval($icost*.2);
+            $owner['bankgold'] += $icost - intval($icost*.2);
+            $result = mysqli_query($db,"UPDATE Items SET owner='".$id."', istatus='0', last_moved='".time()."' WHERE id='".$tbis[$bizslot]['1']['0']['id']."'");
             $tbis[$bizslot][0]=2;
             $tbis[$bizslot][1][1] = $icost;
             $tbis[$bizslot][2]=time();
             $tbis[$bizslot][3]=$bstance;
             $bqs= serialize($tbis);
             
-            $ustats[items_from_market]++;
-            $ostats = mysql_fetch_array(mysql_query("SELECT * FROM Users_stats WHERE id='$owner[id]'"));
-            $ostats[items_marketed]++;
+            $ustats['items_from_market']++;
+            $ostats = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Users_stats WHERE id='$owner[id]'"));
+            $ostats['items_marketed']++;
             
-            $result = mysql_query("UPDATE Users SET gold='$char[gold]' WHERE id='$id'");
-            $result = mysql_query("UPDATE Users SET gold='$owner[gold]', bankgold='$owner[bankgold]' WHERE id='$owner[id]'");
-            $result = mysql_query("UPDATE Users_stats SET items_from_market='$ustats[items_from_market]' WHERE id='$id'");
-            $result = mysql_query("UPDATE Profs SET status='$bqs' WHERE id='$bizid'");
-            $result = mysql_query("UPDATE Users_stats SET prof_earn=prof_earn+".($icost/2).", items_marketed='$ostats[items_marketed]' WHERE id='".$owner[id]."'");
+            $result = mysqli_query($db,"UPDATE Users SET gold='$char[gold]' WHERE id='$id'");
+            $result = mysqli_query($db,"UPDATE Users SET gold='$owner[gold]', bankgold='$owner[bankgold]' WHERE id='$owner[id]'");
+            $result = mysqli_query($db,"UPDATE Users_stats SET items_from_market='$ustats[items_from_market]' WHERE id='$id'");
+            $result = mysqli_query($db,"UPDATE Profs SET status='$bqs' WHERE id='$bizid'");
+            $result = mysqli_query($db,"UPDATE Users_stats SET prof_earn=prof_earn+".($icost/2).", items_marketed='$ostats[items_marketed]' WHERE id='".$owner['id']."'");
             
             $message = "Item bought for ".displayGold($icost);
           }
@@ -144,11 +145,11 @@ else $loc_search = "";
 if ( $s_costmin && $s_costmax && $is_market)
 {
   $foundnum=0;
-  $farr='';
-  $result = mysql_query("SELECT * FROM Profs WHERE ".$loc_search."type=0");  
-  while ($bq = mysql_fetch_array( $result ) )
+  $farr=[];
+  $result = mysqli_query($db,"SELECT * FROM Profs WHERE ".$loc_search."type=0");  
+  while ($bq = mysqli_fetch_array( $result ) )
   {
-    $tbis = unserialize($bq[status]);
+    $tbis = unserialize($bq['status']);
     for ($i=0; $i <9; $i++)
     {
       if ($tbis[$i][0]==1) // is offer
@@ -156,7 +157,7 @@ if ( $s_costmin && $s_costmax && $is_market)
         $icost = $tbis[$i][1][1];
         if ($icost>= $s_costmin && $icost<= $s_costmax)
         {
-          if ($s_type == "" || ($s_type == $item_base[$tbis[$i][1][0][base]][1]) || ($s_type == 12 && $item_base[$tbis[$i][1][0][base]][1]==13))
+          if ($s_type == "" || ($s_type == $item_base[$tbis[$i]['1']['0']['base']]['1']) || ($s_type == 12 && $item_base[$tbis[$i]['1']['0']['base']]['1']==13))
           {
             $tname = strtolower(iname($tbis[$i][1][0]));
             if ($s_item == "" || preg_match("/".strtolower($s_item)."/",$tname))
@@ -168,12 +169,12 @@ if ( $s_costmin && $s_costmax && $is_market)
                 $tstats = cparse($statstr,0);
                 if ($s_bonus == "" || $tstats[$s_bonus])
                 {
-                  $os = mysql_fetch_array(mysql_query("SELECT society,jobs FROM Users WHERE id='".$bq[owner]."'"));
+                  $os = mysqli_fetch_array(mysqli_query($db,"SELECT society,jobs FROM Users WHERE id='".$bq['owner']."'"));
                   
                   $costmult = 1;
-                  if ($char[society] != "" && $os[society] != "")
+                  if ($char['society'] != "" && $os['society'] != "")
                   {
-                    $oups=unserialize($bq[upgrades]);
+                    $oups=unserialize($bq['upgrades']);
                     $enemyMult= (100+$oups[1][0]*5 + $oups[1][2]*3)/100;
             
                     if ($stance[str_replace(" ","_",$os['society'])] == 1)
@@ -189,10 +190,10 @@ if ( $s_costmin && $s_costmax && $is_market)
                   $farr[$foundnum]=$tbis[$i][1];
                   $farr[$foundnum][3]=$tname;
                   $farr[$foundnum][4]=$tstats;
-                  $farr[$foundnum][5]=$bq[location];
+                  $farr[$foundnum]['5']=$bq['location'];
                   $farr[$foundnum][6]=$teq;
                   $farr[$foundnum][7]=0;
-                  $farr[$foundnum][8]=array($bq[id],$i);
+                  $farr[$foundnum]['8']=array($bq['id'],$i);
                   
                   $farr[$foundnum][1] = intval($farr[$foundnum][1] * $costmult);
                   $foundnum++;
@@ -206,7 +207,7 @@ if ( $s_costmin && $s_costmax && $is_market)
   }
   
   // SORT RESULTS
-  $sarr='';
+  $sarr=[];
   for ($f=0; $f < $foundnum; $f++)
   {
     $tmin = -1;
@@ -285,21 +286,21 @@ include('header.htm');
           $x=0;
           for ($x=0; $x < $foundnum; $x++)
           {
-            $invinfo = "<div class='panel panel-primary' style='width: 150px;'><div class='panel-heading'><h3 class='panel-title'>".ucwords($farr[$sarr[$x]][3])."</h3></div><div class='panel-body abox' align='center'><img class='img-responsive hidden-xs img-optional-nodisplay' border='0' bordercolor='black' src='items/".str_replace(' ','',$farr[$sarr[$x]][0][base]).".gif'/>";
-            $invinfo .= itm_info(cparse($item_base[$farr[$sarr[$x]][0][base]][0]." ".$item_ix[$farr[$sarr[$x]][0][prefix]]." ".$item_ix[$farr[$sarr[$x]][0][suffix]],$item_base[$farr[$sarr[$x]][0][base]][1]));
+            $invinfo = "<div class='panel panel-primary' style='width: 150px;'><div class='panel-heading'><h3 class='panel-title'>".ucwords($farr[$sarr[$x]]['3'])."</h3></div><div class='panel-body abox' align='center'><img class='img-responsive hidden-xs img-optional-nodisplay' border='0' bordercolor='black' src='items/".str_replace(' ','',$farr[$sarr[$x]]['0']['base']).".gif'/>";
+            $invinfo .= itm_info(cparse($item_base[$farr[$sarr[$x]]['0']['base']]['0']." ".$item_ix[$farr[$sarr[$x]]['0']['prefix']]." ".$item_ix[$farr[$sarr[$x]]['0']['suffix']],$item_base[$farr[$sarr[$x]]['0']['base']]['1']));
             $invinfo .= "</div></div>";
         ?>
         <tr>
           <td class="popcenter">
             <button type='button' class='btn btn-primary btn-block btn-xs btn-wrap' data-html='true' data-toggle='popover' data-placement='bottom' data-content="<?php echo $invinfo; ?>"><?php echo ucwords($farr[$sarr[$x]][3]); ?></button>
           </td>
-          <td align='center'><?php echo ucwords($item_type[$item_base[$farr[$sarr[$x]][0][base]][1]]); ?></td>
+          <td align='center'><?php echo ucwords($item_type[$item_base[$farr[$sarr[$x]]['0']['base']]['1']]); ?></td>
           <td align='center'><?php echo $farr[$sarr[$x]][6];?> pts</td>
-          <td align='center'><?php echo $farr[$sarr[$x]][0][cond];?>%</td>          
-          <td align='center'><?php if ($char[gold] < $farr[$sarr[$x]][1]) echo "<font color='ED3915'>"; echo displayGold($farr[$sarr[$x]][1]); ?></td>
+          <td align='center'><?php echo $farr[$sarr[$x]]['0']['cond'];?>%</td>          
+          <td align='center'><?php if ($char['gold'] < $farr[$sarr[$x]]['1']) echo "<font color='ED3915'>"; echo displayGold($farr[$sarr[$x]]['1']); ?></td>
           <td align='center'>
           <?php 
-            if ($char[gold] >= $farr[$sarr[$x]][1] && !($farr[$sarr[$x]][2] == $id) && !$world) 
+            if ($char['gold'] >= $farr[$sarr[$x]]['1'] && !($farr[$sarr[$x]]['2'] == $id) && !$world) 
             { 
               echo "<input type='button' class='btn btn-success btn-block btn-xs btn-wrap' name='buy".$x."' value='Buy' onClick='marketBuy(".$farr[$sarr[$x]][8][0].",".$farr[$sarr[$x]][8][1].");'>";
             } 

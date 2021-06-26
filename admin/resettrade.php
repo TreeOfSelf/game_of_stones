@@ -39,9 +39,9 @@ $query = 'CREATE TABLE Trade( '.
 'PRIMARY KEY (id))';
 if ($_GET['r']==1)
 {
-  $result1 = mysql_query($query1);
+  $result1 = mysqli_query($db,$query1);
   echo "<b>Results</b><br><br>Drop Old Table: $result1";
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<br>Create New Table: $result";
 }
 else echo "THIS <u>ONLY</u> CREATES NEW ENTRIES FOR <u>NEW</u> LOCATIONS<br><i>to reset the whole table go to:</i> <a href='resettrade.php?r=1'>resettrade.php?r=1</a>";
@@ -52,7 +52,7 @@ include($server_name.'/map/mapdata/coordinates.inc');
 echo "<table border='0'>";
 foreach ($location_array as $loc => $coor)
 {
-  $result = mysql_query("INSERT INTO Trade SET location='$loc', own=''");
+  $result = mysqli_query($db,"INSERT INTO Trade SET location='$loc', own=''");
   if ($result) $text="<b><i>updated</i></b>";
   else $text="<i>unaltered</i>";
   echo "<tr><td><b>$loc</b>:</td><td>&nbsp;</td><td>".$text."</tr>";

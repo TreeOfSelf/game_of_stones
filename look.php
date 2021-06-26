@@ -4,12 +4,12 @@
 include_once("admin/connect.php");
 include_once("admin/userdata.php");
 $numbofresults = 25;
-$search=mysql_real_escape_string($_POST['search']);
-$slast=mysql_real_escape_string($_POST['slast']);
-$order=intval(mysql_real_escape_string($_GET['order']));
+$search=mysqli_real_escape_string($db,$_POST['search']);
+$slast=mysqli_real_escape_string($db,$_POST['slast']);
+$order=intval(mysqli_real_escape_string($db,$_GET['order']));
 $time=time();
-$clansearch = mysql_real_escape_string($_GET[clan]);
-$world = mysql_real_escape_string($_GET[world]);
+$clansearch = mysqli_real_escape_string($db,$_GET['clan']);
+$world = mysqli_real_escape_string($db,$_GET['world']);
 include_once("admin/charFuncs.php");
 include_once("admin/locFuncs.php");
 
@@ -17,14 +17,14 @@ $wikilink = "Nearby";
 
 // See if character is in a City
 $isCity = 0;
-$loc = mysql_fetch_array(mysql_query("SELECT id, name FROM Locations WHERE name='$char[location]'"));
-if ($loc[id]) $isCity = 1;
+$loc = mysqli_fetch_array(mysqli_query($db,"SELECT id, name FROM Locations WHERE name='$char[location]'"));
+if ($loc['id']) $isCity = 1;
 
 $dw=0;
 if ($isCity)
 { 
-  $dw= $town_bonuses[dW];
-  $query = "SELECT Users.id, Users.name, Users.lastname, Users.type, Users.level, Users.align, Users.gold, Users.location, Users.goodevil, Users.exp, Users.society, Users.soc_rank, Users.lastonline, Users.used_pts, Users.equip_pts, Users.stamina, Users.stamaxa, Users_stats.loc_ji".$loc[id]." FROM Users LEFT JOIN Users_stats ON Users.id=Users_stats.id";
+  $dw= $town_bonuses['dW'];
+  $query = "SELECT Users.id, Users.name, Users.lastname, Users.type, Users.level, Users.align, Users.gold, Users.location, Users.goodevil, Users.exp, Users.society, Users.soc_rank, Users.lastonline, Users.used_pts, Users.equip_pts, Users.stamina, Users.stamaxa, Users_stats.loc_ji".$loc['id']." FROM Users LEFT JOIN Users_stats ON Users.id=Users_stats.id";
 }
 else
 {
@@ -36,23 +36,23 @@ else $query .= " WHERE Users.location='".$char['location']."'";
 
 // See if character is in a City
 $isCity = 0;
-$loc = mysql_fetch_array(mysql_query("SELECT id, name FROM Locations WHERE name='$char[location]'"));
-if ($loc[id]) $isCity = 1;
+$loc = mysqli_fetch_array(mysqli_query($db,"SELECT id, name FROM Locations WHERE name='$char[location]'"));
+if ($loc['id']) $isCity = 1;
 
 //  HOW TO ORDER
 if ($order==1) $query .= " ORDER BY gold DESC, exp DESC";
 elseif ($order==3) $query .= " ORDER BY lastonline DESC, exp DESC";
-elseif ($order==4 && $isCity)  $query .= " ORDER BY loc_ji".$loc[id]." DESC, exp DESC";
+elseif ($order==4 && $isCity)  $query .= " ORDER BY loc_ji".$loc['id']." DESC, exp DESC";
 else $query .= " ORDER BY level DESC, exp DESC";
 
-$searchpage = mysql_real_escape_string($_POST['pagenumber']);
-$resultnumb = intval(mysql_real_escape_string($_GET['pagenumb']));
+$searchpage = mysqli_real_escape_string($db,$_POST['pagenumber']);
+$resultnumb = intval(mysqli_real_escape_string($db,$_GET['pagenumb']));
 if ($resultnumb == '') $resultnumb = 0;
 
 if (!$clansearch)
 {
-$soc_name = $char[society];
-$society = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='$soc_name'"));
+$soc_name = $char['society'];
+$society = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='$soc_name'"));
 $stance = unserialize($society['stance']);
 }
 
@@ -60,7 +60,7 @@ $searchpage = intval($searchpage);
 if ($searchpage > 0) $resultnumb = ($searchpage - 1) * $numbofresults;
 
 // Unserialize battled array 
-$find_battle = unserialize($char[find_battle]);
+$find_battle = unserialize($char['find_battle']);
 
 // SEARCH FOR CHAR
 
@@ -70,18 +70,18 @@ if ($search || $slast)
 $query1 = "SELECT name, lastname FROM Users WHERE name = '$search' AND lastname = '$slast'";
 
 /* query the database */
-$result5 = mysql_query($query1);
-if (!($searchchar = mysql_fetch_array($result5)))
+$result5 = mysqli_query($db,$query1);
+if (!($searchchar = mysqli_fetch_array($result5)))
 {
 $query1 = "SELECT name, lastname FROM Users WHERE name LIKE '%$search%' AND lastname LIKE '%$slast%'";
-$result5 = mysql_query($query1);
-$searchchar = mysql_fetch_array($result5);
+$result5 = mysqli_query($db,$query1);
+$searchchar = mysqli_fetch_array($result5);
 }
 /* Allow access if a matching record was found*/
 if ($searchchar)
 {
-$search = $searchchar[name];
-$slast = $searchchar[lastname];
+$search = $searchchar['name'];
+$slast = $searchchar['lastname'];
 $message = "Asking around, you hear of someone named <a href='bio.php?name=$search&last=$slast&time=$time'>$search $slast</a>";
 }
 else $message = "Asking around for $search $slast, you are met only by blank stares and muttered curses.";
@@ -90,24 +90,24 @@ else $message = "Asking around for $search $slast, you are met only by blank sta
 // DISPLAY LIST
 
 // FIND WHERE YOU ARE ON LIST
-$resultf = mysql_query($query);
-$numchar2 = mysql_num_rows($resultf);
-if ($resultnumb > $numchar2) {$resultnumb = intval($numchar2/$numbofresults) * $numbofresults; $resultf = mysql_query($query);}
+$resultf = mysqli_query($db,$query);
+$numchar2 = mysqli_num_rows($resultf);
+if ($resultnumb > $numchar2) {$resultnumb = intval($numchar2/$numbofresults) * $numbofresults; $resultf = mysqli_query($db,$query);}
 
 if ($_GET['first'] == 1)
 {
 $y = 0;
-while ($y < $numchar2 && ($thechar[name] != $name || $thechar[lastname] != $lastname) )
+while ($y < $numchar2 && ($thechar['name'] != $name || $thechar['lastname'] != $lastname) )
 {
-$thechar = mysql_fetch_array($resultf);
+$thechar = mysqli_fetch_array($resultf);
 $y++;
 }
 $resultnumb = intval(($y-1)/$numbofresults) * $numbofresults;
 }
 
 $query .= " LIMIT $resultnumb,$numbofresults";
-$result = mysql_query($query);
-$numchar = mysql_num_rows($result);
+$result = mysqli_query($db,$query);
+$numchar = mysqli_num_rows($result);
 
 if ($world) $message = "The World has a population of ".number_format($numchar2);
 
@@ -156,7 +156,7 @@ $style="style='border-width: 0px; border-bottom: 1px solid #333333'";
   $img_ar = Array("s1","w1");
   $x=0;
 
-  while ( $listchar = mysql_fetch_array( $result ) )
+  while ( $listchar = mysqli_fetch_array( $result ) )
   {
     if ($listchar['id'] == $id) $classn="info";
     elseif ($listchar['lastonline'] >= time()-900) $classn="success";
@@ -166,9 +166,9 @@ $style="style='border-width: 0px; border-bottom: 1px solid #333333'";
         <tr>
           <td>
           <?php
-            if ($find_battle[$listchar[id]] <= time()-intval(300*(100+$dw)/100) && !$is_creator && ($listchar[id] != $char[id])) // DUEL FIX: 0->300
+            if ($find_battle[$listchar['id']] <= time()-intval(300*(100+$dw)/100) && !$is_creator && ($listchar['id'] != $char['id'])) // DUEL FIX: 0->300
             {
-              $duel_link = "javascript:submitFormLook(".$listchar[id].")";
+              $duel_link = "javascript:submitFormLook(".$listchar['id'].")";
               echo "<a class='btn btn-danger btn-xs btn-block btn-wrap' href=\"$duel_link\">Duel</a>";
             }
             elseif ($find_battle[$listchar['id']] > time() - intval(300*(100+$dw)/100)) 
@@ -181,30 +181,30 @@ $style="style='border-width: 0px; border-bottom: 1px solid #333333'";
           <td align='center'>
             <a class="btn btn-<?php echo $classn;?> btn-xs btn-block btn-wrap" href="bio.php?name=<?php echo $listchar['name']."&last=".$listchar['lastname']."&time=".time(); ?>">
           <?php
-            $hasSeal = mysql_num_rows(mysql_query("SELECT id FROM Items WHERE type=0 && owner='$listchar[id]'"));
+            $hasSeal = mysqli_num_rows(mysqli_query($db,"SELECT id FROM Items WHERE type=0 && owner='$listchar[id]'"));
             if ($hasSeal)
               echo "<img src='images/classes/4.gif' height=18 width=18/>&nbsp;"; 
-            $lastBattle = mysql_fetch_array(mysql_query("SELECT id, starts, ends, winner FROM Contests WHERE type='99' "));
+            $lastBattle = mysqli_fetch_array(mysqli_query($db,"SELECT id, starts, ends, winner FROM Contests WHERE type='99' "));
             if ($lastBattle != 0)
             {
-              if ($listchar[align] > 0)
+              if ($listchar['align'] > 0)
                 echo "<img src=images/1.gif>&nbsp;";
               else
                 echo "<img src=images/0.gif>&nbsp;";
             }
-            else if ($stance[str_replace(" ","_",$listchar[society])] && $listchar[id] != $id) 
-              echo "<img src=images/".$img_ar[$stance[str_replace(" ","_",$listchar[society])]-1].".gif>&nbsp;"; 
+            else if ($stance[str_replace(" ","_",$listchar['society'])] && $listchar['id'] != $id) 
+              echo "<img src=images/".$img_ar[$stance[str_replace(" ","_",$listchar['society'])]-1].".gif>&nbsp;"; 
             echo $listchar['name']." ".$listchar['lastname']; 
-            if ($listchar[soc_rank] == 1) 
+            if ($listchar['soc_rank'] == 1) 
               echo "<img src='images/SocLead.gif' height=20 width=28/>";
-            elseif ($listchar[soc_rank] == 2) 
+            elseif ($listchar['soc_rank'] == 2) 
               echo "<img src='images/SocSub.gif' height=20 width=28/>";
           ?>
             </a>
           </td>  
           <td class="hidden-xs" align='center'>
             <?php
-              $classes=unserialize($listchar[type]);
+              $classes=unserialize($listchar['type']);
               for ($i = 0; $i<count($classes); $i++)
               {
                 echo "<img src='images/classes/".$classes[$i].".gif' alt='".$classes[$i]."' title='".$char_class[$classes[$i]]."' height='15' width='15'>";
@@ -213,14 +213,14 @@ $style="style='border-width: 0px; border-bottom: 1px solid #333333'";
           </td>          
           <td align='center' class='hidden-xs'>
           <?php
-            $cstr = getStrength($listchar[used_pts], $listchar[equip_pts], $listchar[stamina], $listchar[stamaxa]);
+            $cstr = getStrength($listchar['used_pts'], $listchar['equip_pts'], $listchar['stamina'], $listchar['stamaxa']);
             $slvl = getStrengthLevel($cstr);
             echo $slvl;
           ?>                
           </td>
           <td align='center' class='hidden-xs'>  
           <?php   
-            $alignnum = getAlignment($listchar[align]);
+            $alignnum = getAlignment($listchar['align']);
             $lalign = getAlignmentText($alignnum);
             echo $lalign;
           ?>                
@@ -236,7 +236,7 @@ $style="style='border-width: 0px; border-bottom: 1px solid #333333'";
           ?>
           <td align='center'>  
           <?php
-            $jivar = 'loc_ji'.$loc[id];
+            $jivar = 'loc_ji'.$loc['id'];
             echo $listchar[$jivar];
           ?>                
           </td>
@@ -312,3 +312,5 @@ $style="style='border-width: 0px; border-bottom: 1px solid #333333'";
 <?php
 include('footer.htm');
 ?>
+
+

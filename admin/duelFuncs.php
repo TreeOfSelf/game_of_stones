@@ -95,44 +95,44 @@ function doDuel($char_attack, $player_word, $weapon_a, $weapon_b, $horde=0)
 
   // Player 2 Setup
   $char_stats = cparse($weapon_b,0);
-  if ($char_stats['N']) $char_attack[def_mult][1] = $char_stats['N'];
-  if ($char_stats['D']) $char_attack[def][1] = rand($char_stats['D'],$char_stats['E']);
+  if ($char_stats['N']) $char_attack['def_mult'][1] = $char_stats['N'];
+  if ($char_stats['D']) $char_attack['def'][1] = rand($char_stats['D'],$char_stats['E']);
   if ($char_stats['X'])
   {
-    $char_attack[speed][1] += $char_stats['X'];
+    $char_attack['speed'][1] += $char_stats['X'];
   }
-  $char_attack[move][1] += $char_attack[speed][1];
-  $char_attack[luck][1] = $char_stats['L'];
+  $char_attack['move'][1] += $char_attack['speed'][1];
+  $char_attack['luck'][1] = $char_stats['L'];
   if ($char_stats['F'])
   {
-    $char_attack[move][1] += $char_stats['F'];
+    $char_attack['move'][1] += $char_stats['F'];
   }  
-  if ($char_stats['Y']) $char_attack[accuracy][1] = $char_stats['Y'];
-  if ($char_stats['V']) $char_attack[dodge][1] = $char_stats['V'];
+  if ($char_stats['Y']) $char_attack['accuracy'][1] = $char_stats['Y'];
+  if ($char_stats['V']) $char_attack['dodge'][1] = $char_stats['V'];
   
   // Player 1 Setup
   $char_stats = cparse($weapon_a,0);
-  if ($char_stats['N']) $char_attack[def_mult][0] = $char_stats['N'];
-  if ($char_stats['D']) $char_attack[def][0] = rand($char_stats['D'],$char_stats['E']);
+  if ($char_stats['N']) $char_attack['def_mult'][0] = $char_stats['N'];
+  if ($char_stats['D']) $char_attack['def'][0] = rand($char_stats['D'],$char_stats['E']);
   if ($char_stats['X'])
   {
-    $char_attack[speed][0] += $char_stats['X'];
+    $char_attack['speed'][0] += $char_stats['X'];
   }
-  $char_attack[move][0] += $char_attack[speed][0];
-  $char_attack[luck][0] = $char_stats['L'];
+  $char_attack['move'][0] += $char_attack['speed'][0];
+  $char_attack['luck'][0] = $char_stats['L'];
   if ($char_stats['F'])
   {
-    $char_attack[move][0] += $char_stats['F'];
+    $char_attack['move'][0] += $char_stats['F'];
   }  
-  if ($char_stats['Y']) $char_attack[accuracy][0] = $char_stats['Y'];
-  if ($char_stats['V']) $char_attack[dodge][0] = $char_stats['V'];
+  if ($char_stats['Y']) $char_attack['accuracy'][0] = $char_stats['Y'];
+  if ($char_stats['V']) $char_attack['dodge'][0] = $char_stats['V'];
   
   // Determine First turn
   $z = 0;
   $array_gen = "";
   $turns_row=1;
   //echo "0: A=".$char_attack[move][0]." B=".$char_attack[move][1]." | ";
-  if ($char_attack[move][0] >= $char_attack[move][1])
+  if ($char_attack['move'][0] >= $char_attack['move'][1])
   {
     $turn = 0;
     $turn_n = 1;
@@ -144,25 +144,25 @@ function doDuel($char_attack, $player_word, $weapon_a, $weapon_b, $horde=0)
   }
   
   // Cut movement in half to nerf first strike, then add half one players speed to stager the movements.
-  $char_attack[move][$turn] = floor($char_attack[move][$turn]/2);
-  $char_attack[move][$turn_n] = floor($char_attack[move][$turn_n]/2);
-  $char_attack[move][$turn_n] -= floor($char_attack[speed][$turn_n]/2);
+  $char_attack['move'][$turn] = floor($char_attack['move'][$turn]/2);
+  $char_attack['move'][$turn_n] = floor($char_attack['move'][$turn_n]/2);
+  $char_attack['move'][$turn_n] -= floor($char_attack['speed'][$turn_n]/2);
   //echo " T:".$turn." | 1: A=".$char_attack[move][0]." B=".$char_attack[move][1];
  
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  $bresult[0][ahp] = $char_attack[health][0];
-  $bresult[0][dhp] = $char_attack[health][1];
+  $bresult[0]['ahp'] = $char_attack['health'][0];
+  $bresult[0]['dhp'] = $char_attack['health'][1];
 
-  while ($char_attack[health][$turn] > 0 && $char_attack[health][$turn_n] > 0 && $z < 12)
+  while ($char_attack['health'][$turn] > 0 && $char_attack['health'][$turn_n] > 0 && $z < 12)
   {
     $z++;
     
     if ($z>1)
     {
-      $char_attack[move][$turn_n] += $char_attack[speed][$turn_n]-$char_attack[wound][$turn_n];
+      $char_attack['move'][$turn_n] += $char_attack['speed'][$turn_n]-$char_attack['wound'][$turn_n];
 
-      if ($char_attack[move][$turn] <= $char_attack[move][$turn_n] || $turns_row >=3) 
+      if ($char_attack['move'][$turn] <= $char_attack['move'][$turn_n] || $turns_row >=3) 
       {
         if ($turn) $turn = 0;
         else $turn = 1;
@@ -185,18 +185,18 @@ function doDuel($char_attack, $player_word, $weapon_a, $weapon_b, $horde=0)
 
     // MELEE DAMAGE
     $damage = rand($char_stats['A'],$char_stats['B']);
-    $opponent_defense = $char_attack[def_mult][$turn_n] - round($char_attack[poison][$turn_n]/3);
-    $damage_mult = ((($char_stats['O'] - round($char_attack[poison][$turn]/3)) - $opponent_defense)/100);
-    $char_attack[def][$turn] = 0;
-    if ($char_stats['D']) $char_attack[def][$turn] = rand($char_stats['D'],$char_stats['E']); else $char_attack[def][$turn] = 0;
+    $opponent_defense = $char_attack['def_mult'][$turn_n] - round($char_attack['poison'][$turn_n]/3);
+    $damage_mult = ((($char_stats['O'] - round($char_attack['poison'][$turn]/3)) - $opponent_defense)/100);
+    $char_attack['def'][$turn] = 0;
+    if ($char_stats['D']) $char_attack['def'][$turn] = rand($char_stats['D'],$char_stats['E']); else $char_attack['def'][$turn] = 0;
  
     // Cut opponent's poison by 25%.    
-    $char_attack[poison][$turn_n] = intval($char_attack[poison][$turn_n]*0.75);
+    $char_attack['poison'][$turn_n] = intval($char_attack['poison'][$turn_n]*0.75);
  
     // COMBINE DAMAGES
     if ($damage < 0) $damage = 0;
     $hit_level= 3;
-    $hit_type = intval(rand(0,100)+$char_attack[accuracy][$turn]-$char_attack[dodge][$turn_n]);
+    $hit_type = intval(rand(0,100)+$char_attack['accuracy'][$turn]-$char_attack['dodge'][$turn_n]);
     
     if ($hit_type <= 0) { $hit_level= 0; }
     else if ($hit_type <= 10) { $hit_level= 1;}
@@ -206,53 +206,53 @@ function doDuel($char_attack, $player_word, $weapon_a, $weapon_b, $horde=0)
     else if ($hit_type >= 75) { $hit_level= 4;}
     $damage *= $hlvl_mult[$hit_level]+$damage_mult;
     
-    $damage = round($damage)- $char_attack[def][$turn_n];    
+    $damage = round($damage)- $char_attack['def'][$turn_n];    
     if ($damage < 0) $damage =0;
-    $char_attack[health][$turn_n] -= $damage;
+    $char_attack['health'][$turn_n] -= $damage;
     
-    $bresult[$z][turn] = $turn;
-    $bresult[$z][att] = $player_word[$turn];
-    $bresult[$z][def] = $player_word[$turn_n];
-    $bresult[$z][hlvl] = $hit_level;
-    $bresult[$z][dam] = $damage;
+    $bresult[$z]['turn'] = $turn;
+    $bresult[$z]['att'] = $player_word[$turn];
+    $bresult[$z]['def'] = $player_word[$turn_n];
+    $bresult[$z]['hlvl'] = $hit_level;
+    $bresult[$z]['dam'] = $damage;
 
     // STUN
     $stunned = 0;
-    $bresult[$z][stun] = 0;
+    $bresult[$z]['stun'] = 0;
     if ($char_stats['S'] && rand(0,4))
     {
       $stunned = 1;
       $stun_num = rand(0,$char_stats['S']);
       
-      if ($stun_num > $char_attack[speed][$turn_n]) $stun_num = $char_attack[speed][$turn_n];
-      $char_attack[move][$turn_n] = $char_attack[move][$turn_n] - $stun_num;
-      $bresult[$z][stun] = $stun_num;
+      if ($stun_num > $char_attack['speed'][$turn_n]) $stun_num = $char_attack['speed'][$turn_n];
+      $char_attack['move'][$turn_n] = $char_attack['move'][$turn_n] - $stun_num;
+      $bresult[$z]['stun'] = $stun_num;
     }
     
     // WOUND
-    $bresult[$z][wound] = 0;
+    $bresult[$z]['wound'] = 0;
     if ($char_stats['W'])
     {
       $wound_num = rand(0,$char_stats['W']);
       
-      if ($wound_num > $char_attack[speed][$turn_n]/2) $wound_num = floor($char_attack[speed][$turn_n]/2);
+      if ($wound_num > $char_attack['speed'][$turn_n]/2) $wound_num = floor($char_attack['speed'][$turn_n]/2);
       
       if ($wound_num > 0) 
       {
-        if ($wound_num > $char_attack[wound][$turn_n])
+        if ($wound_num > $char_attack['wound'][$turn_n])
         {
-          $char_attack[wound][$turn_n] = $wound_num;
-          $bresult[$z][wound] = $wound_num; 
+          $char_attack['wound'][$turn_n] = $wound_num;
+          $bresult[$z]['wound'] = $wound_num; 
         }
         $stunned = 1;
-        $char_attack[move][$turn_n] = $char_attack[move][$turn_n] - $wound_num;
-        $bresult[$z][stun] += $wound_num;
+        $char_attack['move'][$turn_n] = $char_attack['move'][$turn_n] - $wound_num;
+        $bresult[$z]['stun'] += $wound_num;
       }
     }
 
     // POISON/TAINT HIT CHANCE
-    $p_chance = round(60 + $char_attack[luck][$turn]/2 - $char_attack[luck][$turn_n]);
-    $t_chance = $p_chance + floor($char_attack[level][$turn]/4) - 13;
+    $p_chance = round(60 + $char_attack['luck'][$turn]/2 - $char_attack['luck'][$turn_n]);
+    $t_chance = $p_chance + floor($char_attack['level'][$turn]/4) - 13;
     //echo $z."(T%: 60+".($char_attack[luck][$turn]/2)."-".($char_attack[luck][$turn_n])."+".floor($char_attack[level][$turn]/4)."-13=".$t_chance.") ";
     if ($p_chance > 75) $p_chance=75;
     if ($p_chance < 40) $p_chance=40;
@@ -265,88 +265,88 @@ function doDuel($char_attack, $player_word, $weapon_a, $weapon_b, $horde=0)
 
     // POISON
     if ($char_stats['P'] && (rand(1,100)<=($p_chance*$p_chance_mult)))
-    { $char_attack[poison][$turn_n] += $char_stats['P']; }
+    { $char_attack['poison'][$turn_n] += $char_stats['P']; }
 
-    $poison_damage = round($char_attack[poison][$turn_n]);
-    $char_attack[health][$turn_n] -= $poison_damage;
-    $bresult[$z][poison]=0;
-    if ($poison_damage) { $bresult[$z][poison] = $poison_damage; }
+    $poison_damage = round($char_attack['poison'][$turn_n]);
+    $char_attack['health'][$turn_n] -= $poison_damage;
+    $bresult[$z]['poison']=0;
+    if ($poison_damage) { $bresult[$z]['poison'] = $poison_damage; }
     
     // Cut your own poison by 25%
-    $char_attack[poison][$turn] = intval($char_attack[poison][$turn]*0.75);
+    $char_attack['poison'][$turn] = intval($char_attack['poison'][$turn]*0.75);
     
     // ADD TAINT TO OPPONENT
-    $bresult[$z][taint] = 0;
+    $bresult[$z]['taint'] = 0;
     if ($char_stats['T'] && (rand(1,100)<=$t_chance)) 
     {
-      $char_attack[taint][$turn_n] += $char_stats['T'];
-      $bresult[$z][taint] = $char_stats['T'];
+      $char_attack['taint'][$turn_n] += $char_stats['T'];
+      $bresult[$z]['taint'] = $char_stats['T'];
     }
     
     // PLAYER TAKES TAINT DAMAGE
-    $bresult[$z][tdmg] = 0;
-    if ($char_attack[taint][$turn]) 
+    $bresult[$z]['tdmg'] = 0;
+    if ($char_attack['taint'][$turn]) 
     {
-      $taint_damage = $char_attack[taint][$turn];
-      $char_attack[health][$turn] -= $taint_damage;
-      $char_attack[max_health][$turn] -= $taint_damage;
-      if ($taint_damage) { $bresult[$z][tdmg] = $taint_damage; } 
+      $taint_damage = $char_attack['taint'][$turn];
+      $char_attack['health'][$turn] -= $taint_damage;
+      $char_attack['max_health'][$turn] -= $taint_damage;
+      if ($taint_damage) { $bresult[$z]['tdmg'] = $taint_damage; } 
     }
 
     // GAIN LIFE
     $health_gain = 0;
-    $bresult[$z][hgain] = 0;
+    $bresult[$z]['hgain'] = 0;
     if ($char_stats['G'])
     {
-      $tomax = ($char_attack[max_health][$turn]-$char_attack[health][$turn]);
+      $tomax = ($char_attack['max_health'][$turn]-$char_attack['health'][$turn]);
       $health_gain = round($tomax * ($char_stats['G']/100)); 
       if ($health_gain > $tomax) $health_gain = $tomax;  
     }
     if ($health_gain)
     {
-      $char_attack[health][$turn] += $health_gain;
-      $bresult[$z][hgain] = $health_gain;
+      $char_attack['health'][$turn] += $health_gain;
+      $bresult[$z]['hgain'] = $health_gain;
     }
-    $char_attack[max_health][$turn] = $char_attack[health][$turn];
+    $char_attack['max_health'][$turn] = $char_attack['health'][$turn];
         
     // HURT SELF
     if ($char_stats['H']) $health_take = intval($damage * ($char_stats['H']/100) + 0.5); else $health_take = 0;
-    $char_attack[health][$turn] -= $health_take;
-    $bresult[$z][sdmg] = 0;
-    if ($health_take) { $bresult[$z][sdmg] = $health_take; }
+    $char_attack['health'][$turn] -= $health_take;
+    $bresult[$z]['sdmg'] = 0;
+    if ($health_take) { $bresult[$z]['sdmg'] = $health_take; }
   
     // DISPLAY RESULTS
     if ($turn) $wide = 30; else $wide = 70;
-    if ($char_attack[health][$turn] < 0) $char_attack[health][$turn] = 0;
-    if ($char_attack[health][$turn_n] < 0) $char_attack[health][$turn_n] = 0;
-    if ($char_attack[health][$turn] <= 0.33*$char_attack[health_limit][$turn]) $h1 = 5; else $h1 = 4;
-    if ($char_attack[health][$turn_n] <= 0.33*$char_attack[health_limit][$turn_n]) $h2 = 5; else $h2 = 4;
-    $bresult[$z][ahp] = $char_attack[health][$turn];
-    $bresult[$z][dhp] = $char_attack[health][$turn_n];
+    if ($char_attack['health'][$turn] < 0) $char_attack['health'][$turn] = 0;
+    if ($char_attack['health'][$turn_n] < 0) $char_attack['health'][$turn_n] = 0;
+    if ($char_attack['health'][$turn] <= 0.33*$char_attack['health_limit'][$turn]) $h1 = 5; else $h1 = 4;
+    if ($char_attack['health'][$turn_n] <= 0.33*$char_attack['health_limit'][$turn_n]) $h2 = 5; else $h2 = 4;
+    $bresult[$z]['ahp'] = $char_attack['health'][$turn];
+    $bresult[$z]['dhp'] = $char_attack['health'][$turn_n];
   }
 
   if (!$horde)
   {
-    if ($char_attack[health][0] == $char_attack[health][1]) {$winner = ""; $score1 = 0; $score2 = 0;} // tie
-    elseif ($char_attack[health][1] > $char_attack[health][0]) {$winner = $player_word[1]; $score1 = 0; $score2 = 1;} // player 2 wins
+    if ($char_attack['health'][0] == $char_attack['health'][1]) {$winner = ""; $score1 = 0; $score2 = 0;} // tie
+    elseif ($char_attack['health'][1] > $char_attack['health'][0]) {$winner = $player_word[1]; $score1 = 0; $score2 = 1;} // player 2 wins
     else {$winner = $player_word[0]; $score1 = 1; $score2 = 0;} // player 1 wins
   }
   else
   {
-    $hdiff0=$char_attack[health_limit][0]-$char_attack[health][0];
-    $hdiff1=$char_attack[health_limit][1]-$char_attack[health][1];
+    $hdiff0=$char_attack['health_limit'][0]-$char_attack['health'][0];
+    $hdiff1=$char_attack['health_limit'][1]-$char_attack['health'][1];
     
-    if ($char_attack[health][1] <= 0) {$winner = $player_word[0]; $score1 = 1; $score2 = 0;} // player 1 wins
-    elseif ($char_attack[health][0] <= 0 || $hdiff1 < $hdiff0) {$winner = $player_word[1]; $score1 = 0; $score2 = 1;} // horde win
+    if ($char_attack['health'][1] <= 0) {$winner = $player_word[0]; $score1 = 1; $score2 = 0;} // player 1 wins
+    elseif ($char_attack['health'][0] <= 0 || $hdiff1 < $hdiff0) {$winner = $player_word[1]; $score1 = 0; $score2 = 1;} // horde win
     elseif ($hdiff1 > $hdiff0) {$winner = $player_word[0]; $score1 = 1; $score2 = 0;} // player 1 wins
     else {$winner = ""; $score1 = 0; $score2 = 0;} // tie
   }
   
-  $bresult[0][ahpf] = $char_attack[health][0];
-  $bresult[0][dhpf] = $char_attack[health][1];
-  $bresult[0][score1] = $score1;
-  $bresult[0][score2] = $score2;
-  $bresult[0][winner] = $winner;
+  $bresult[0]['ahpf'] = $char_attack['health'][0];
+  $bresult[0]['dhpf'] = $char_attack['health'][1];
+  $bresult[0]['score1'] = $score1;
+  $bresult[0]['score2'] = $score2;
+  $bresult[0]['winner'] = $winner;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -357,42 +357,42 @@ function generate_duel_message($bresult)
 {
   global $hlvl_mult;
   
-  if ($bresult[1][turn] == 0)
+  if ($bresult[1]['turn'] == 0)
   {
-    $att = $bresult[1][att];
-    $def = $bresult[1][def];
+    $att = $bresult[1]['att'];
+    $def = $bresult[1]['def'];
   }
   else
   {
-    $def = $bresult[1][att];
-    $att = $bresult[1][def];
+    $def = $bresult[1]['att'];
+    $att = $bresult[1]['def'];
   }
   for ($t=1; $t < count($bresult); $t++)
   {
-    $turn = $bresult[$t][turn];
-    $totals[$turn][turns] += 1;
-    $totals[$turn][dam] += $bresult[$t][dam];
-    $totals[$turn][taint] += $bresult[$t][tdmg];
-    $totals[$turn][poison] += $bresult[$t][poison];
-    $totals[$turn][crit] += $hlvl_mult[$bresult[$t][hlvl]]*100;
+    $turn = $bresult[$t]['turn'];
+    $totals[$turn]['turns'] += 1;
+    $totals[$turn]['dam'] += $bresult[$t]['dam'];
+    $totals[$turn]['taint'] += $bresult[$t]['tdmg'];
+    $totals[$turn]['poison'] += $bresult[$t]['poison'];
+    $totals[$turn]['crit'] += $hlvl_mult[$bresult[$t]['hlvl']]*100;
   }
    
   $lognote = "<table border=0 cellpadding=0 cellspacing=0 width=450>";
   $lognote .= "<tr><td><b>Stat</b></td><td><b>".$att."</b></td><td><b>".$def."</b></td></tr>";
-  $lognote .= "<tr><td>Turns</td><td>".$totals[0][turns]."</td><td>".$totals[1][turns]."</td></tr>";
-  $lognote .= "<tr><td>Stamina %</td><td>".$bresult[0][stam1]."%</td><td>".$bresult[0][stam2]."%</td></tr>";
-  $lognote .= "<tr><td>Damage</td><td>".$totals[0][dam]."</td><td>".$totals[1][dam]."</td></tr>";
-  $lognote .= "<tr><td>Taint</td><td>".$totals[1][taint]."</td><td>".$totals[0][taint]."</td></tr>";
-  $lognote .= "<tr><td>Poison</td><td>".$totals[0][poison]."</td><td>".$totals[1][poison]."</td></tr>";
+  $lognote .= "<tr><td>Turns</td><td>".$totals[0]['turns']."</td><td>".$totals[1]['turns']."</td></tr>";
+  $lognote .= "<tr><td>Stamina %</td><td>".$bresult[0]['stam1']."%</td><td>".$bresult[0]['stam2']."%</td></tr>";
+  $lognote .= "<tr><td>Damage</td><td>".$totals[0]['dam']."</td><td>".$totals[1]['dam']."</td></tr>";
+  $lognote .= "<tr><td>Taint</td><td>".$totals[1]['taint']."</td><td>".$totals[0]['taint']."</td></tr>";
+  $lognote .= "<tr><td>Poison</td><td>".$totals[0]['poison']."</td><td>".$totals[1]['poison']."</td></tr>";
   $lognote .= "<tr><td>Avg. Accuracy</td><td>";
-  if ($totals[0][turns] >0) $lognote .= number_format($totals[0][crit]/$totals[0][turns])."%</td><td>";
+  if ($totals[0]['turns'] >0) $lognote .= number_format($totals[0]['crit']/$totals[0]['turns'])."%</td><td>";
   else $lognote .= "-</td><td>";
-  if ($totals[1][turns] >0) $lognote .= number_format($totals[1][crit]/$totals[1][turns])."%</td></tr>";
+  if ($totals[1]['turns'] >0) $lognote .= number_format($totals[1]['crit']/$totals[1]['turns'])."%</td></tr>";
   else $lognote .= "-</td></tr>";
   $lognote .= "</table><br/><br/>";
   
-  $lognote .= $bresult[0][winner]." took ".displayGold($bresult[0][gold],1)."<br/>";
-  $lognote .= $bresult[0][tlog];
+  $lognote .= $bresult[0]['winner']." took ".displayGold($bresult[0]['gold'],1)."<br/>";
+  $lognote .= $bresult[0]['tlog'];
   
   return $lognote;
 }
@@ -408,84 +408,84 @@ function generate_duel_text($bresult)
   
   for ($t=1; $t< count($bresult); $t++)
   {
-    $turn = $bresult[$t][turn];
+    $turn = $bresult[$t]['turn'];
     $bimage = "attack".$turn;
-    if ($bresult[$t][hlvl]>2)  $bimage = "miss".$turn;
-    $text = "<p align='".$align[$turn]."'><font class='battletext'>".$bresult[$t][att].$duel_text[$bresult[$t][hlvl]][rand(0,2)]."</font>";
-    if ($bresult[$t][dam] > 0) $text .= "<font class='battletext'> ".$bresult[$t][def]." takes <b>".$bresult[$t][dam]."</b> damage</font>";
-    if ($bresult[$t][stun])
+    if ($bresult[$t]['hlvl']>2)  $bimage = "miss".$turn;
+    $text = "<p align='".$align[$turn]."'><font class='battletext'>".$bresult[$t]['att'].$duel_text[$bresult[$t]['hlvl']][rand(0,2)]."</font>";
+    if ($bresult[$t]['dam'] > 0) $text .= "<font class='battletext'> ".$bresult[$t]['def']." takes <b>".$bresult[$t]['dam']."</b> damage</font>";
+    if ($bresult[$t]['stun'])
     {
       if (rand(0,1)) $bimage="stun";
-      $text .= $attach."<font class='battletext'>".$bresult[$t][def]." is stunned for ".$bresult[$t][stun]."</font>";
+      $text .= $attach."<font class='battletext'>".$bresult[$t]['def']." is stunned for ".$bresult[$t]['stun']."</font>";
     }
-    if ($bresult[$t][wound])
+    if ($bresult[$t]['wound'])
     {
       if (rand(0,1)) $bimage="wound";  
-      if ($bresult[$t][stun]) $text .= "<font class='battletext'> and wounded for ".$bresult[$t][wound].".</font>"; 
-      else $text .= $attach."<font class='battletext'>".$bresult[$t][def]." is wounded for ".$bresult[$t][wound].".</font>";
+      if ($bresult[$t]['stun']) $text .= "<font class='battletext'> and wounded for ".$bresult[$t]['wound'].".</font>"; 
+      else $text .= $attach."<font class='battletext'>".$bresult[$t]['def']." is wounded for ".$bresult[$t]['wound'].".</font>";
     }
-    if ($bresult[$t][poison])
+    if ($bresult[$t]['poison'])
     {
       if (rand(0,1)) $bimage="poison";
-      $text .= $attach."<font class='battletext'>Poison wracks ".$bresult[$t][def]."'s body for ".$bresult[$t][poison]." damage</font>";
+      $text .= $attach."<font class='battletext'>Poison wracks ".$bresult[$t]['def']."'s body for ".$bresult[$t]['poison']." damage</font>";
     }
-    if ($bresult[$t][taint])
+    if ($bresult[$t]['taint'])
     {
       if (rand(0,1)) $bimage="taint";
-      $text .= $attach."<font class='battletext'>".$bresult[$t][def]."'s taint increases by ".$bresult[$t][taint]."</font>";
+      $text .= $attach."<font class='battletext'>".$bresult[$t]['def']."'s taint increases by ".$bresult[$t]['taint']."</font>";
     }
-    if ($bresult[$t][tdmg])
+    if ($bresult[$t]['tdmg'])
     {
-      $text .= $attach."<font class='battletext'>".$bresult[$t][att]." takes ".$bresult[$t][tdmg]." taint damage</font>";
+      $text .= $attach."<font class='battletext'>".$bresult[$t]['att']." takes ".$bresult[$t]['tdmg']." taint damage</font>";
     }
-    if ($bresult[$t][hgain])
+    if ($bresult[$t]['hgain'])
     {
       if (rand(0,1)) $bimage="healthgain";
-      $text .= $attach."<font class='battletext'>".$bresult[$t][att]." gains ".$bresult[$t][hgain]." health</font>";
+      $text .= $attach."<font class='battletext'>".$bresult[$t]['att']." gains ".$bresult[$t]['hgain']." health</font>";
     }
-    if ($bresult[$t][sdmg])
+    if ($bresult[$t]['sdmg'])
     {
-      if ($bresult[$t][hgain]) $text .= "<font class='battletext'>, but is injured and takes ".$bresult[$t][sdmg]." damage.</font>";
-      else $text .= $attach."<font class='battletext'>".$bresult[$t][att]." is injured in the attack and takes ".$bresult[$t][sdmg]." damage</font>";
+      if ($bresult[$t]['hgain']) $text .= "<font class='battletext'>, but is injured and takes ".$bresult[$t]['sdmg']." damage.</font>";
+      else $text .= $attach."<font class='battletext'>".$bresult[$t]['att']." is injured in the attack and takes ".$bresult[$t]['sdmg']." damage</font>";
     }
-    if ($bresult[$t][ahp] > $bresult[0][ahp]*0.33) $hcolor1='text-primary'; else $hcolor1='text-danger';
-    if ($bresult[$t][dhp] > $bresult[0][ahp]*0.33) $hcolor2='text-primary'; else $hcolor2='text-danger'; 
+    if ($bresult[$t]['ahp'] > $bresult[0]['ahp']*0.33) $hcolor1='text-primary'; else $hcolor1='text-danger';
+    if ($bresult[$t]['dhp'] > $bresult[0]['ahp']*0.33) $hcolor2='text-primary'; else $hcolor2='text-danger'; 
     
-    $text .= $attach."<font class='battletext'>".$bresult[$t][att]." has </font><font class='".$hcolor1." battletext'><b>".$bresult[$t][ahp]."</b></font>";
-    $text .= "<font class='battletext'> health and ".$bresult[$t][def]." has </font><font class='".$hcolor2." battletext'><b>".$bresult[$t][dhp]."</b></font>";
+    $text .= $attach."<font class='battletext'>".$bresult[$t]['att']." has </font><font class='".$hcolor1." battletext'><b>".$bresult[$t]['ahp']."</b></font>";
+    $text .= "<font class='battletext'> health and ".$bresult[$t]['def']." has </font><font class='".$hcolor2." battletext'><b>".$bresult[$t]['dhp']."</b></font>";
     $text .= "<font class='battletext'> health</font><br/><br/>";
     $bimage ="images/".$bimage.".gif";
     
-    if ($turn ==0) $text = new_bline(0,$text,$bimage,$bresult[$t][ahp],$bresult[$t][dhp]);    
-    else $text = new_bline(0,$text,$bimage,$bresult[$t][dhp],$bresult[$t][ahp]);
+    if ($turn ==0) $text = new_bline(0,$text,$bimage,$bresult[$t]['ahp'],$bresult[$t]['dhp']);    
+    else $text = new_bline(0,$text,$bimage,$bresult[$t]['dhp'],$bresult[$t]['ahp']);
 
     $array_gen .= $text;
   }
       
   $pic_name = 'images/BattleBox/OP.gif';
   $win_thing = "<center>";
-  if ($bresult[0][winner] != "")
-    $win_thing .= "<b>".$bresult[0][winner]." wins</b><br/>";
+  if ($bresult[0]['winner'] != "")
+    $win_thing .= "<b>".$bresult[0]['winner']." wins</b><br/>";
   else
     $win_thing .= "<b>The Duel is a Tie!</b><br/>";
-  if ($bresult[0][gold])
+  if ($bresult[0]['gold'])
   {
-    $win_thing .= "<b>and takes ".displayGold($bresult[0][gold])."</b><br>";
+    $win_thing .= "<b>and takes ".displayGold($bresult[0]['gold'])."</b><br>";
     $pic_name = 'images/marks.gif';    
   }
-  if ($bresult[0][cgold]) $win_thing .= "<b>".displayGold($bresult[0][cgold])." was taken for ".$bresult[0][cwin]."</b><br/><br/>";
-  if ($bresult[0][alt])$win_thing .= "<b>but was compelled to take no gold for winning.</b><br/><br/>";
+  if ($bresult[0]['cgold']) $win_thing .= "<b>".displayGold($bresult[0]['cgold'])." was taken for ".$bresult[0]['cwin']."</b><br/><br/>";
+  if ($bresult[0]['alt'])$win_thing .= "<b>but was compelled to take no gold for winning.</b><br/><br/>";
 
-  if ($bresult[0][item])
+  if ($bresult[0]['item'])
   {
-    $win_thing .= $bresult[0][item];
-    $pic_name = $bresult[0][iimg];
+    $win_thing .= $bresult[0]['item'];
+    $pic_name = $bresult[0]['iimg'];
   }  
-  if ($bresult[0][quest]) $win_thing .= "<br><br><b>Quest Completed!</b>";
+  if ($bresult[0]['quest']) $win_thing .= "<br><br><b>Quest Completed!</b>";
   
   $win_thing .= "</center>";
   
-  $array_gen .= new_bline(0,$win_thing,$pic_name,$bresult[0][ahpf],$bresult[0][dhpf]);
+  $array_gen .= new_bline(0,$win_thing,$pic_name,$bresult[0]['ahpf'],$bresult[0]['dhpf']);
   
   return $array_gen;
 }
@@ -773,18 +773,18 @@ function generateNPC ($name, $lvl)
 function getProfBonuses ($wildType, $proStats)
 {
   $pro_bonus = "";
-  if ($wildType == 1 && $pro_stats[oL])
-    $pro_bonus.= "L".$pro_stats[oL];
-  if ($wildType == 2 && $pro_stats[fL])
-    $pro_bonus.= "L".$pro_stats[fL];
-  if ($wildType == 3 && $pro_stats[mL])
-    $pro_bonus.= "L".$pro_stats[mL];
-  if ($wildType == 4 && $pro_stats[wL])
-    $pro_bonus.= "L".$pro_stats[wL];
-  if ($wildType == 5 && $pro_stats[hL])
-    $pro_bonus.= "L".$pro_stats[hL];
-  if ($wildType == 6 && $pro_stats[pL])
-    $pro_bonus.= "L".$pro_stats[pL];  
+  if ($wildType == 1 && $pro_stats['oL'])
+    $pro_bonus.= "L".$pro_stats['oL'];
+  if ($wildType == 2 && $pro_stats['fL'])
+    $pro_bonus.= "L".$pro_stats['fL'];
+  if ($wildType == 3 && $pro_stats['mL'])
+    $pro_bonus.= "L".$pro_stats['mL'];
+  if ($wildType == 4 && $pro_stats['wL'])
+    $pro_bonus.= "L".$pro_stats['wL'];
+  if ($wildType == 5 && $pro_stats['hL'])
+    $pro_bonus.= "L".$pro_stats['hL'];
+  if ($wildType == 6 && $pro_stats['pL'])
+    $pro_bonus.= "L".$pro_stats['pL'];  
   
   return $pro_bonus;
 }
@@ -795,7 +795,7 @@ function getCBPoints($char, $myWar, $isWinner, $lvlDiff, $char_attack, $str1, $s
   
   // location bonus
   $locmult = 1;
-  if ($char[location]== $myWar[location])
+  if ($char['location']== $myWar['location'])
   {
     $locmult=2;
   }
@@ -820,7 +820,7 @@ function getCBPoints($char, $myWar, $isWinner, $lvlDiff, $char_attack, $str1, $s
   //echo "PostLvl=".$wpts1.":";
             
   // health bonus 
-  $hdiff = (($char_attack[health][0]/$char_attack[health_limit][0])-($char_attack[health][1]/$char_attack[health_limit][1]))*5;
+  $hdiff = (($char_attack['health'][0]/$char_attack['health_limit'][0])-($char_attack['health'][1]/$char_attack['health_limit'][1]))*5;
   $wpts1 += $hdiff;
 //  echo ($char_attack[health][0]/$char_attack[health_limit][0])."-".($char_attack[health][1]/$char_attack[health_limit][1]).":";
   //echo "PostHealth=".$wpts1.":";

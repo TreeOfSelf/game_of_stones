@@ -19,7 +19,7 @@ else
 {
   // Drop Old Table
   $query  = 'DROP TABLE IF EXISTS Contests';
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<b>Results</b><br><br>Drop Old Table: $result";
 
   // Create New Table
@@ -40,7 +40,7 @@ else
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1';
   
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<br>Create New Table: $result";
 
 }

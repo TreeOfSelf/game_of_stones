@@ -19,7 +19,7 @@ else
 {
 // Drop Old Table
 $query  = 'DROP TABLE IF EXISTS Soc';
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 echo "<b>Results</b><br><br>Drop Old Table: $result";
 
 // Create New Table
@@ -43,7 +43,7 @@ $query = 'CREATE TABLE IF NOT EXISTS `Soc` (
   `flag` varchar(30) DEFAULT NULL,
   `sigil` varchar(30) DEFAULT NULL,
   `lastupkeep` int(11) DEFAULT NULL,
-  `ruled` int(11) NOT NULL,
+  `ruled` int(11) DEFAULT NULL,
   `last_war` int(11) DEFAULT NULL,
   `about` text,
   `private_info` text,
@@ -61,46 +61,47 @@ $query = 'CREATE TABLE IF NOT EXISTS `Soc` (
   KEY `name` (`name`(3))
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1';
 
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 echo "<br>Create New Table: $result";
 
 // Table structure for table `Soc_stats`
 
 // Drop Old Table
 $query  = 'DROP TABLE IF EXISTS Soc_stats';
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 echo "<b>Results</b><br><br>Drop Old Table: $result";
 
 // Create New Table
 $query = "CREATE TABLE IF NOT EXISTS `Soc_stats` (
   `id` int(11) NOT NULL,
-  `mostJiId` int(11) NOT NULL,
-  `mostJiNum` int(11) NOT NULL,
-  `mostMembersId` int(11) NOT NULL,
-  `mostMembersNum` int(11) NOT NULL,
-  `mostRuledId` int(11) NOT NULL,
-  `mostRuledNum` int(11) NOT NULL,
-  `mostCoinId` int(11) NOT NULL,
-  `mostCoinNum` int(11) NOT NULL,
-  `highAlignId` int(11) NOT NULL,
-  `highAlignNum` int(11) NOT NULL,
-  `lowAlignId` int(11) NOT NULL,
-  `lowAlignNum` int(11) NOT NULL
+  `mostJiId` int(11) NOT NULL DEFAULT '0',
+  `mostJiNum` int(11) NOT NULL DEFAULT '0',
+  `mostMembersId` int(11) NOT NULL DEFAULT '0',
+  `mostMembersNum` int(11) NOT NULL DEFAULT '0',
+  `mostRuledId` int(11) NOT NULL DEFAULT '0',
+  `mostRuledNum` int(11) NOT NULL DEFAULT '0',
+  `mostCoinId` int(11) NOT NULL DEFAULT '0',
+  `mostCoinNum` int(11) NOT NULL DEFAULT '0',
+  `highAlignId` int(11) NOT NULL DEFAULT '0',
+  `highAlignNum` int(11) NOT NULL DEFAULT '0',
+  `lowAlignId` int(11) NOT NULL DEFAULT '0',
+  `lowAlignNum` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1";
 
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 echo "<br>Create New Table: $result";
 
-if (mysql_num_rows(mysql_query("SELECT id FROM Soc_stats WHERE 1")) ==0)
+if (mysqli_num_rows(mysqli_query($db,"SELECT id FROM Soc_stats WHERE 1")) ==0)
 {
   for ($i=10001; $i<=10010; $i++)
   {
-    mysql_query("INSERT INTO `Soc_stats` (id) VALUES ('$i')");
+    mysqli_query($db,"INSERT INTO `Soc_stats` (id) VALUES ('$i')");
+	echo mysqli_error($db);
   }
 }
 // Drop Old Table
 $query  = 'DROP TABLE IF EXISTS messages';
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 echo "<b>Results</b><br><br>Drop Old Table: $result";
 
 $query = 'CREATE TABLE IF NOT EXISTS `messages` (
@@ -109,16 +110,16 @@ $query = 'CREATE TABLE IF NOT EXISTS `messages` (
   `message` text NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1';
-$result4 = mysql_query($query, $db);
+$result4 = mysqli_query($db,$query);
 
 // CLEAR MESSAGES
-if (mysql_num_rows(mysql_query("SELECT id FROM messages WHERE 1")) ==0)
+if (mysqli_num_rows(mysqli_query($db,"SELECT id FROM messages WHERE 1")) ==0)
 {
 // Set up global chat messages
-mysql_query("INSERT INTO messages (message, checktime, id) 
+mysqli_query($db,"INSERT INTO messages (message, checktime, id) 
                            VALUES ('a:0:{}','0',      '0')");
 // Set up city rumors messages
-mysql_query("INSERT INTO messages (message, checktime, id) 
+mysqli_query($db,"INSERT INTO messages (message, checktime, id) 
                            VALUES ('a:0:{}','0',      '50000')");
 }
 }

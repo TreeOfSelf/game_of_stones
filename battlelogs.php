@@ -18,18 +18,18 @@ include_once("admin/userdata.php");
 include_once("admin/itemFuncs.php");
 include_once("admin/charFuncs.php");
 
-$iresult=mysql_query("SELECT * FROM Notes WHERE to_id='$id' AND del_to='0' AND type = 9 AND sent > '".(time()-432000)."' ORDER BY sent DESC");
-$inbox = "";
+$iresult=mysqli_query($db,"SELECT * FROM Notes WHERE to_id='$id' AND del_to='0' AND type = 9 AND sent > '".(time()-432000)."' ORDER BY sent DESC");
+$inbox = [];
 $in_num = 0;
-while ($inote = mysql_fetch_array($iresult))
+while ($inote = mysqli_fetch_array($iresult))
 {
   $inbox[$in_num++] = $inote;
 }
 
-$oresult=mysql_query("SELECT * FROM Notes WHERE from_id='$id' AND del_from='0' AND type < 9 ORDER BY sent DESC LIMIT 0, 30");
-$outbox = "";
+$oresult=mysqli_query($db,"SELECT * FROM Notes WHERE from_id='$id' AND del_from='0' AND type < 9 ORDER BY sent DESC LIMIT 0, 30");
+$outbox = [];
 $out_num = 0;
-while ($onote = mysql_fetch_array($oresult))
+while ($onote = mysqli_fetch_array($oresult))
 {
   $outbox[$out_num++] = $onote;
 }
@@ -37,9 +37,9 @@ while ($onote = mysql_fetch_array($oresult))
 $wikilink = "Battle+Logs";
 
 // update log check
-mysql_query("UPDATE Users SET newlog=0 WHERE id=$id");
+mysqli_query($db,"UPDATE Users SET newlog=0 WHERE id=$id");
 
-$tab = mysql_real_escape_string($_GET['tab']);
+$tab = mysqli_real_escape_string($db,$_GET['tab']);
 
 // delete selected logs
 if ( $_REQUEST['ifsubmitted'] == 1)
@@ -50,7 +50,7 @@ if ( $_REQUEST['ifsubmitted'] == 1)
     if (isset($_REQUEST[$x]))
     {
       $nid = $_REQUEST[$x];
-      mysql_query("UPDATE Notes SET del_to='1' WHERE id='$nid'");     
+      mysqli_query($db,"UPDATE Notes SET del_to='1' WHERE id='$nid'");     
     }
     $x++;
   }
@@ -63,7 +63,7 @@ if ( $_REQUEST['trashall'] )
   $x=0;
   while ($x < $in_num)
   {
-    mysql_query("UPDATE Notes SET del_to='1' WHERE id='".$inbox[$x][id]."'");
+    mysqli_query($db,"UPDATE Notes SET del_to='1' WHERE id='".$inbox[$x][id]."'");
     $x++;
   }
   $message = "All defense logs deleted";
@@ -78,7 +78,7 @@ if ( $_REQUEST['ifoutsubmitted'] == 1)
     if (isset($_REQUEST[$x]))
     {
       $nid = $_REQUEST[$x];
-      mysql_query("UPDATE Notes SET del_from='1' WHERE id='$nid'");     
+      mysqli_query($db,"UPDATE Notes SET del_from='1' WHERE id='$nid'");     
     }
     $x++;
   }
@@ -91,7 +91,7 @@ if ( $_REQUEST['trashallout'] )
   $x=0;
   while ($x < $out_num)
   {
-    mysql_query("UPDATE Notes SET del_from='1' WHERE id='".$outbox[$x][id]."'");
+    mysqli_query($db,"UPDATE Notes SET del_from='1' WHERE id='".$outbox[$x][id]."'");
     $x++;
   }
   $message = "All offense logs deleted";
@@ -103,18 +103,18 @@ if ($message == '')
 }
 
 // Regrab logs as you may have some new ones depending on your actions
-$iresult=mysql_query("SELECT * FROM Notes WHERE to_id='$id' AND del_to='0' AND type = 9 AND sent > '".(time()-432000)."' ORDER BY sent DESC");
-$inbox = "";
+$iresult=mysqli_query($db,"SELECT * FROM Notes WHERE to_id='$id' AND del_to='0' AND type = 9 AND sent > '".(time()-432000)."' ORDER BY sent DESC");
+$inbox = [];
 $in_num = 0;
-while ($inote = mysql_fetch_array($iresult))
+while ($inote = mysqli_fetch_array($iresult))
 {
   $inbox[$in_num++] = $inote;
 }
 
-$oresult=mysql_query("SELECT * FROM Notes WHERE from_id='$id' AND del_from='0' AND type = 9 ORDER BY sent DESC LIMIT 0, 30");
-$outbox = "";
+$oresult=mysqli_query($db,"SELECT * FROM Notes WHERE from_id='$id' AND del_from='0' AND type = 9 ORDER BY sent DESC LIMIT 0, 30");
+$outbox = [];
 $out_num = 0;
-while ($onote = mysql_fetch_array($oresult))
+while ($onote = mysqli_fetch_array($oresult))
 {
   $outbox[$out_num++] = $onote;
 }
@@ -172,24 +172,24 @@ include('header.htm');
                 while ($x < $in_num)
                 {
                   $y = $x;
-                  if ($inbox[$y][id])
+                  if ($inbox[$y]['id'])
                   {
                     $currid = "div".$y;
-                    $cursub = nl2br($inbox[$y][subject]);
-                    $curnote=nl2br($inbox[$y][body]);
+                    $cursub = nl2br($inbox[$y]['subject']);
+                    $curnote=nl2br($inbox[$y]['body']);
                     $senttime = "Seconds ago";
-                    $minpast = intval((time()-$inbox[$y][sent])/60);
+                    $minpast = intval((time()-$inbox[$y]['sent'])/60);
                     $senttime = displayTime($minpast,1,0);
-                    $sender = mysql_fetch_array(mysql_query("SELECT id,name,lastname FROM Users WHERE id='".$inbox[$y][from_id]."'"));
+                    $sender = mysqli_fetch_array(mysqli_query($db,"SELECT id,name,lastname FROM Users WHERE id='".$inbox[$y]['from_id']."'"));
                     $accord = "collapse".$y;                    
               ?>
                 <div class="panel panel-default">
                   <div class="panel-heading">
                     <div class='row'>
-                      <input class='col-xs-1' type="checkbox" name="<?php echo "$y"; ?>" value="<?php echo $inbox[$y][id];?>"/>
-                      <a class='col-xs-3 btn btn-primary btn-xs btn-wrap' href="bio.php?name=<?php echo $sender[name]."&last=".$sender[lastname]; ?>"><?php echo $sender[name]." ".$sender[lastname]." (".$senttime; ?>)</a>
+                      <input class='col-xs-1' type="checkbox" name="<?php echo "$y"; ?>" value="<?php echo $inbox[$y]['id'];?>"/>
+                      <a class='col-xs-3 btn btn-primary btn-xs btn-wrap' href="bio.php?name=<?php echo $sender['name']."&last=".$sender['lastname']; ?>"><?php echo $sender['name']." ".$sender['lastname']." (".$senttime; ?>)</a>
                       <a class='col-xs-7 btn btn-default btn-xs btn-wrap' data-toggle="collapse" data-parent="#accordion_in" href="#<?php echo $accord;?>"><h4 class="panel-title"><?php echo $cursub; ?></h4></a>
-                      <a class='col-xs-1 btn btn-xs btn-danger' href='replay.php?log=<?php echo $inbox[$y][id];?>&tab=3'>Replay</a>
+                      <a class='col-xs-1 btn btn-xs btn-danger' href='replay.php?log=<?php echo $inbox[$y]['id'];?>&tab=3'>Replay</a>
                     </div>
                   </div>
                   <div id="<?php echo $accord;?>" class="panel-collapse collapse">
@@ -233,24 +233,24 @@ include('header.htm');
                 while ($x < $out_num)
                 {
                   $y = $x;
-                  if ($outbox[$y][id])
+                  if ($outbox[$y]['id'])
                   {
                     $currid = "divo".$y;
-                    $cursub = nl2br($outbox[$y][subject]);
-                    $curnote=nl2br($outbox[$y][body]);
+                    $cursub = nl2br($outbox[$y]['subject']);
+                    $curnote=nl2br($outbox[$y]['body']);
                     $senttime = "Seconds ago";
-                    $minpast = intval((time()-$outbox[$y][sent])/60);
+                    $minpast = intval((time()-$outbox[$y]['sent'])/60);
                     $senttime = displayTime($minpast,1,0);
-                    $receiver = mysql_fetch_array(mysql_query("SELECT id,name,lastname FROM Users WHERE id='".$outbox[$y][to_id]."'"));
+                    $receiver = mysqli_fetch_array(mysqli_query($db,"SELECT id,name,lastname FROM Users WHERE id='".$outbox[$y]['to_id']."'"));
                     $accord = "collapseo".$y;
               ?>
                 <div class="panel panel-default">
                   <div class="panel-heading">
                     <div class='row'>
-                      <input class='col-xs-1' type="checkbox" name="<?php echo "$y"; ?>" value="<?php echo $outbox[$y][id];?>"/>
-                      <a class='col-xs-3 btn btn-primary btn-xs btn-wrap' href="bio.php?name=<?php echo $receiver[name]."&last=".$receiver[lastname]; ?>"><?php echo $receiver[name]." ".$receiver[lastname]." (".$senttime; ?>)</a>
+                      <input class='col-xs-1' type="checkbox" name="<?php echo "$y"; ?>" value="<?php echo $outbox[$y]['id'];?>"/>
+                      <a class='col-xs-3 btn btn-primary btn-xs btn-wrap' href="bio.php?name=<?php echo $receiver['name']."&last=".$receiver['lastname']; ?>"><?php echo $receiver['name']." ".$receiver['lastname']." (".$senttime; ?>)</a>
                       <a class='col-xs-7 btn btn-default btn-xs btn-wrap' data-toggle="collapse" data-parent="#accordion_out" href="#<?php echo $accord;?>"><h4 class="panel-title"><?php echo $cursub; ?></h4></a>
-                      <a class='col-xs-1 btn btn-xs btn-danger' href='replay.php?log=<?php echo $outbox[$y][id];?>&tab=3'>Replay</a>
+                      <a class='col-xs-1 btn btn-xs btn-danger' href='replay.php?log=<?php echo $outbox[$y]['id'];?>&tab=3'>Replay</a>
                     </div>
                   </div>
                   <div id="<?php echo $accord;?>" class="panel-collapse collapse">

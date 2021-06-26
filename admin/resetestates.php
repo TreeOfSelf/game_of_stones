@@ -19,7 +19,7 @@ else
 {
   // Drop Old Table
   $query  = 'DROP TABLE IF EXISTS Estates';
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<b>Results</b><br><br>Drop Old Table: $result";
 
   // Create New Table
@@ -33,15 +33,15 @@ else
   `value` int(11) DEFAULT NULL,
   `num_ups` int(11) DEFAULT NULL,
   `good` int(11) DEFAULT NULL,
-  `trade` int(11) NOT NULL,
-  `name` char(20) NOT NULL,
+  `trade` int(11) DEFAULT NULL,
+  `name` char(20) DEFAULT NULL,
   `supporting` text,
   `upgrades` text,
   `inv` text,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1';
 
-  $result = mysql_query($query);
+  $result = mysqli_query($db,$query);
   echo "<br>Create New Table: $result";
 
 }

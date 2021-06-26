@@ -21,10 +21,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id,name,      type,      cat,      offerer,      num_avail, num_done, started,    expire, align, location,      reqs,      goals,     special, reward,      done) 
                       VALUES (1, '$nqname', '$nqtype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$nqlocation', '$nqreqs', '$nqgoal', '$nqspec','$nqrewards','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);
 
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Recover from Battle";  
   $nqgoals['repair_items']=1;
   $nqgoals['use_consume']=1;
@@ -35,10 +35,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id,name,      type,      cat,      offerer,      num_avail, num_done, started,    expire, align, location,      reqs,      goals,     special, reward,      done) 
                       VALUES (2, '$nqname', '$nqtype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$nqlocation', '$nqreqs', '$nqgoal', '$nqspec','$nqrewards','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);
   
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Intro to NPC Quests";
   $nqgoals[0] = 5;
   $nqgoals[1] = 0;
@@ -58,10 +58,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id,name,      type,     cat,      offerer,      num_avail, num_done, started,    expire, align, location, reqs,      goals,     special,    reward,    done) 
                       VALUES (3, '$nqname', '$stype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$sloc',  '$nqreqs', '$nqgoal', '$sspecial','$sreward','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);
   
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Inventory and Stamina Management";  
   $nqgoals['combine_ter']=1;
   $nqgoals['sell_items']=1;
@@ -74,10 +74,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id,name,      type,      cat,      offerer,      num_avail, num_done, started,    expire, align, location,      reqs,      goals,     special, reward,      done) 
                       VALUES (4, '$nqname', '$nqtype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$nqlocation', '$nqreqs', '$nqgoal', '$nqspec','$nqrewards','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);
     
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Intro to Horde Quests";
   $nqgoals[0] = 10;
   $nqgoals[1] = 0;
@@ -96,16 +96,16 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id,name,      type,     cat,      offerer,      num_avail, num_done, started,    expire, align, location, reqs,      goals,     special,    reward,    done) 
                       VALUES (5, '$nqname', '$stype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$sloc',  '$nqreqs', '$nqgoal', '$sspecial','$sreward','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);
 
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Intro to Escort Quests";
   $sloc = "Mayene";
   $nqgoals[0] = 6;
-  $route = mysql_fetch_array(mysql_query("SELECT * FROM Routes WHERE start='".$sloc."' AND length >'".$goals[0]."' ORDER BY rand()"));
-  $nqgoals[1] = $route[id];
-  $path = unserialize($route[path]);
+  $route = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Routes WHERE start='".$sloc."' AND length >'".$goals[0]."' ORDER BY rand()"));
+  $nqgoals[1] = $route['id'];
+  $path = unserialize($route['path']);
   $nqgoals[2] = $path[$nqgoals[0]];  
   $nqgoal = serialize($nqgoals);
   $nqreq['Q'] = 5;
@@ -119,10 +119,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id,name,      type,     cat,      offerer,      num_avail, num_done, started,    expire, align, location, reqs,      goals,     special,    reward,    done) 
                       VALUES (6, '$nqname', '$stype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$sloc',  '$nqreqs', '$nqgoal', '$sspecial','$sreward','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);
 
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Give Tasks to Others";  
   $nqgoals['create_quests']=1;
   $nqgoal = serialize($nqgoals);
@@ -132,10 +132,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id,name,      type,      cat,      offerer,      num_avail, num_done, started,    expire, align, location,      reqs,      goals,     special, reward,      done) 
                       VALUES (7, '$nqname', '$nqtype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$nqlocation', '$nqreqs', '$nqgoal', '$nqspec','$nqrewards','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);
   
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Intro to Find Quests";
   $nqgoals[0] = 1;
   $nqgoals[1] = 0;
@@ -154,10 +154,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id,name,      type,     cat,      offerer,      num_avail, num_done, started,    expire, align, location, reqs,      goals,     special,    reward,    done) 
                       VALUES (8, '$nqname', '$stype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$sloc',  '$nqreqs', '$nqgoal', '$sspecial','$sreward','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);
   
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Intro to Item Quests";
   $nqgoals[0] = 1;
   $itype = array("T",1);
@@ -179,10 +179,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id,name,      type,     cat,      offerer,      num_avail, num_done, started,    expire, align, location, reqs,      goals,     special,    reward,    done) 
                       VALUES (9, '$nqname', '$stype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$sloc',  '$nqreqs', '$nqgoal', '$sspecial','$sreward','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);
   
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Start your own Business";  
   $nqgoals['prof_points']=1;
   $nqgoals['bank_withdrawl']=1;
@@ -194,10 +194,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id, name,      type,      cat,      offerer,      num_avail, num_done, started,    expire, align, location,      reqs,      goals,     special, reward,      done) 
                       VALUES (21, '$nqname', '$nqtype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$nqlocation', '$nqreqs', '$nqgoal', '$nqspec','$nqrewards','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);
   
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Grow your own Business";  
   $nqgoals['biz_level']=1;
   $nqgoal = serialize($nqgoals);
@@ -207,10 +207,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id, name,      type,      cat,      offerer,      num_avail, num_done, started,    expire, align, location,      reqs,      goals,     special, reward,      done) 
                       VALUES (22, '$nqname', '$nqtype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$nqlocation', '$nqreqs', '$nqgoal', '$nqspec','$nqrewards','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);
   
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Expand your own Business";  
   $nqgoals['biz_same']=1;
   $nqgoal = serialize($nqgoals);
@@ -220,10 +220,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id, name,      type,      cat,      offerer,      num_avail, num_done, started,    expire, align, location,      reqs,      goals,     special, reward,      done) 
                       VALUES (23, '$nqname', '$nqtype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$nqlocation', '$nqreqs', '$nqgoal', '$nqspec','$nqrewards','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);
     
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Diversify your Businesses";  
   $nqgoals['biz_types']=1;
   $nqgoal = serialize($nqgoals);
@@ -233,10 +233,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id, name,      type,      cat,      offerer,      num_avail, num_done, started,    expire, align, location,      reqs,      goals,     special, reward,      done) 
                       VALUES (24, '$nqname', '$nqtype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$nqlocation', '$nqreqs', '$nqgoal', '$nqspec','$nqrewards','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);
   
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Choose a Side";  
   $nqgoals['join_clan']=1;
   $nqgoals['clan_chat']=1;
@@ -246,10 +246,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id, name,      type,      cat,      offerer,      num_avail, num_done, started,    expire, align, location,      reqs,      goals,     special, reward,      done) 
                       VALUES (31, '$nqname', '$nqtype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$nqlocation', '$nqreqs', '$nqgoal', '$nqspec','$nqrewards','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);
   
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Contribute to the Cause";  
   $nqgoals['donate_items']=1;
   $nqgoals['donate_coin']=1;
@@ -260,10 +260,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id, name,      type,      cat,      offerer,      num_avail, num_done, started,    expire, align, location,      reqs,      goals,     special, reward,      done) 
                       VALUES (32, '$nqname', '$nqtype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$nqlocation', '$nqreqs', '$nqgoal', '$nqspec','$nqrewards','0')";
-  $resultt = mysql_query($sql, $db);  
+  $resultt = mysqli_query($db,$sql);
   
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Brave the Ways";  
   $nqgoals['travel_ways']=1;
   $nqgoal = serialize($nqgoals);
@@ -272,10 +272,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id, name,      type,      cat,      offerer,      num_avail, num_done, started,    expire, align, location,      reqs,      goals,     special, reward,      done) 
                       VALUES (41, '$nqname', '$nqtype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$nqlocation', '$nqreqs', '$nqgoal', '$nqspec','$nqrewards','0')";
-  $resultt = mysql_query($sql, $db);  
+  $resultt = mysqli_query($db,$sql);
 
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Time to Toss the Dice";
   $nqgoals['dice_wins']=1;
   $nqgoal = serialize($nqgoals);
@@ -285,10 +285,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id, name,      type,      cat,      offerer,      num_avail, num_done, started,    expire, align, location,      reqs,      goals,     special, reward,      done) 
                       VALUES (42, '$nqname', '$nqtype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$nqlocation', '$nqreqs', '$nqgoal', '$nqspec','$nqrewards','0')";
-  $resultt = mysql_query($sql, $db); 
+  $resultt = mysqli_query($db,$sql);
 
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Prepare for your Journey";
   $nqgoals['upgrade_gear']=1;
   $nqgoal = serialize($nqgoals);
@@ -298,10 +298,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id, name,      type,      cat,      offerer,      num_avail, num_done, started,    expire, align, location,      reqs,      goals,     special, reward,      done) 
                       VALUES (43, '$nqname', '$nqtype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$nqlocation', '$nqreqs', '$nqgoal', '$nqspec','$nqrewards','0')";
-  $resultt = mysql_query($sql, $db); 
+  $resultt = mysqli_query($db,$sql);
 
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Sweet Dreams";
   $nqgoals['use_tar']=1;
   $nqgoal = serialize($nqgoals);
@@ -311,10 +311,10 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id, name,      type,      cat,      offerer,      num_avail, num_done, started,    expire, align, location,      reqs,      goals,     special, reward,      done) 
                       VALUES (44, '$nqname', '$nqtype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$nqlocation', '$nqreqs', '$nqgoal', '$nqspec','$nqrewards','0')";
-  $resultt = mysql_query($sql, $db); 
+  $resultt = mysqli_query($db,$sql);
   
-  $nqgoals="";
-  $nqreq="";
+  $nqgoals=[];
+  $nqreq=[];
   $nqname="Final Test";
   $nqgoals[0] = 1;
   $nqgoals[1] = "Green_Man";
@@ -331,4 +331,4 @@ include_once('questFuncs.php');
 
   $sql = "INSERT INTO Quests (id, name,      type,     cat,      offerer,      num_avail, num_done, started,    expire, align, location, reqs,      goals,     special,    reward,    done) 
                       VALUES (100,'$nqname', '$stype', '$nqcat', '$nqofferer', '-1',      0,        '$nqstart', '-1',   0,     '$sloc',  '$nqreqs', '$nqgoal', '$sspecial','$sreward','0')";
-  $resultt = mysql_query($sql, $db);
+  $resultt = mysqli_query($db,$sql);

@@ -80,11 +80,11 @@ for ($i = 0; $i < $numquests; ++$i)
   echo $i." ";
   $sql = "INSERT INTO Quests (name,        type,         offerer,        num_avail,       num_done, started,        expire,       location,        reqs,        goals,        special,        reward) 
                      VALUES ('$qs[name]', '$qs[type]', '$qs[offerer]', '$qs[num_avail]', 0,         '$qs[started]', '$qs[expire]', '$qs[location]', '$qs[reqs]', '$qs[goals]', '$qs[special]', '$qs[reward]')";
-  $result = mysql_query($sql, $db);
+  $result = mysqli_query($db,$sql);
 }
 
 // Close Database
-mysql_close($db);
+mysql_close();
 ?>
 
 <br><br>

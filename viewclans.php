@@ -11,29 +11,29 @@ $types = array("Any","Shadow","Light","Not Shadow","Not Light","Neutral");
 
 $wikilink = "Controlling+Cities";
 
-$soc_name = $char[society];
-$showloc=mysql_real_escape_string($_GET['loc']);
+$soc_name = $char['society'];
+$showloc=mysqli_real_escape_string($db,$_GET['loc']);
 if ($showloc) $loc = $showloc;
 else $loc = $char['location'];
 
 // ACTUAL SELECT DISPLAYED CLANS
 $query = "SELECT * FROM Soc WHERE 1 ORDER BY score DESC, members DESC";
-$result = mysql_query($query);
-
+$result = mysqli_query($db,$query);
 if ($message == '') $message = "Clan Ranks in ".str_replace('-ap-','&#39;',$loc);
 
 //HEADER
 include('header.htm');
 if ($showloc) $loc = $showloc;
 else $loc = $char['location'];
+
 ?>
 
   <div class="row solid-back">
     <div class="col-sm-12">
       <table class="table table-condensed table-responsive table-hover table-clear small">
         <tr>
-        <?php 
-          if ($location_array[$loc][2]) 
+        <?php
+          if ($location_array[$loc]['2']) 
           {
         ?> 
           <th width="20">&nbsp;</th>
@@ -46,7 +46,7 @@ else $loc = $char['location'];
           <th width="100">Align</th>
           <th width="75">Global Ji</th>
         <?php 
-          if ($location_array[$loc][2]) 
+          if ($location_array[$loc]['2']) 
           {
         ?>
           <th width="75">Ji</th>
@@ -60,14 +60,14 @@ $clans = array();
 $supporting=array();
 
 updateSocScores();
-$loc_query = mysql_fetch_array(mysql_query("SELECT id,clan_scores, clan_support FROM `Locations` WHERE name = '$loc'")); 
+$loc_query = mysqli_fetch_array(mysqli_query($db,"SELECT id,clan_scores, clan_support FROM `Locations` WHERE name = '$loc'"));
 $loco = $loc_query['id'];
-while ($soc = mysql_fetch_array( $result ) )
+while ($soc = mysqli_fetch_array( $result ) )
 {
-  if ($location_array[$loc][2])
+  if ($location_array[$loc]['2'])
   {
-    $clans=unserialize($loc_query[clan_scores]);
-    $supporting=unserialize($loc_query[clan_support]);
+    $clans=unserialize($loc_query['clan_scores']);
+    $supporting=unserialize($loc_query['clan_support']);
   }
   else
   {
@@ -77,22 +77,23 @@ while ($soc = mysql_fetch_array( $result ) )
   }
 }
 
+
 $x=0;
 foreach ($clans as $key => $value)
 {
-  $soc = mysql_fetch_array(mysql_query("SELECT * FROM `Soc` WHERE id = '$key'")); 
-  $soc_offices = unserialize($soc[offices]);
+  $soc = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM `Soc` WHERE id = '$key'"));
+  $soc_offices = unserialize($soc['offices']);
   $area_score = unserialize($soc['area_score']);
 ?>
         <tr>
         <?php 
-          if ($location_array[$loc][2]) 
+          if ($location_array[$loc]['2']) 
           {
         ?>  
           <td><?php if ($soc_offices[$loco]) echo " <img src='images/scale.gif' />";?></td>
         <?php
           }
-          $alignnum = getClanAlignment($soc[align], $soc[members]);
+          $alignnum = getClanAlignment($soc['align'], $soc['members']);
           $alignClass='default';
           if ($alignnum == -2) $alignClass='danger';
           else if ($alignnum == -1) $alignClass='warning';
@@ -100,29 +101,29 @@ foreach ($clans as $key => $value)
           else if ($alignnum == 2) $alignClass='primary';
         ?>    
           <td align='center'>
-            <a href="joinclan.php?name=<?php echo $soc['name'];?>" class='btn btn-block btn-sm btn-wrap btn-<?php echo $alignClass;?>'><?php echo $soc[name]; ?></a>
+            <a href="joinclan.php?name=<?php echo $soc['name'];?>" class='btn btn-block btn-sm btn-wrap btn-<?php echo $alignClass;?>'><?php echo $soc['name']; ?></a>
           </td>
           <td align='center'>
           <?php
-            if ($soc[invite] == 0) echo "Open"; 
-            else if ($soc[invite] == 1 || ($soc[invite] == 2)) echo "Invite Only"; 
-            else if ($soc[invite] == 3) echo "No Shadow";
-            else if ($soc[invite] == 4) echo "No Light";
-            else if ($soc[invite] == 5) echo "Neutral Only";
+            if ($soc['invite'] == 0) echo "Open"; 
+            else if ($soc['invite'] == 1 || ($soc['invite'] == 2)) echo "Invite Only"; 
+            else if ($soc['invite'] == 3) echo "No Shadow";
+            else if ($soc['invite'] == 4) echo "No Light";
+            else if ($soc['invite'] == 5) echo "Neutral Only";
             else echo "Unknown";
           ?>
           </td>
-          <td align='center'><?php echo number_format($soc[members]); ?></td>
+          <td align='center'><?php echo number_format($soc['members']); ?></td>
           <td align='center'>
           <?php   
-            $alignnum = getClanAlignment($soc[align], $soc[members]);
+            $alignnum = getClanAlignment($soc['align'], $soc['members']);
             $lalign = getAlignmentText($alignnum);
-            echo number_format($soc[align])." (".$lalign.")";
+            echo number_format($soc['align'])." (".$lalign.")";
           ?>    
           </td>
-          <td align='center'><?php echo number_format($soc[score]); ?></td>
+          <td align='center'><?php echo number_format($soc['score']); ?></td>
         <?php 
-          if ($location_array[$loc][2]) 
+          if ($location_array[$loc]['2']) 
           {
         ?>
           <td align='center'><?php echo number_format($area_score[$loco]); ?></td>

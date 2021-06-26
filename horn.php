@@ -10,25 +10,25 @@ $time=time();
 $wikilink = "Heroes";
 
 //HEADER
-$tab = mysql_real_escape_string($_GET['tab']);
+$tab = mysqli_real_escape_string($db,$_GET['tab']);
 $message = "View current <a href='viewtowns.php'>City Information</a> of this Age or the <a href='look.php?world=1&amp;first=1&amp;time=".time()."'>Full Rankings</a>";
 if (!$tab) $tab=1;
 include('header.htm');
 
-$soc_name = $char[society];
+$soc_name = $char['society'];
 
 if ($soc_name)
 {
-  $society = mysql_fetch_array(mysql_query("SELECT * FROM Soc WHERE name='$soc_name' ORDER BY id"));
+  $society = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM Soc WHERE name='$soc_name' ORDER BY id"));
   $stance = unserialize($society['stance']);
 }
 
 $query = "SELECT * FROM Users_stats WHERE id>'10000'";
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 $x=0;
-while ( $listchar = mysql_fetch_array( $result ) )
+while ( $listchar = mysqli_fetch_array( $result ) )
 {
-  $x = $listchar[id]-10001;
+  $x = $listchar['id']-10001;
   if ($x<10)
   {
     $heroes[$x][0]=$listchar;
@@ -42,19 +42,19 @@ while ( $listchar = mysql_fetch_array( $result ) )
 }
 
 $query = "SELECT * FROM Soc_stats WHERE id>'10000'";
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 $x=0;
-while ( $listsoc = mysql_fetch_array( $result ) )
+while ( $listsoc = mysqli_fetch_array( $result ) )
 {
-  $x = $listsoc[id]-10000;
+  $x = $listsoc['id']-10000;
   $topClans[$x]=$listsoc;
 }
 
-$result99 = mysql_query("SELECT id, winner FROM Contests WHERE type='99' AND done='1'");
-$lastBattleDone = mysql_num_rows($result99);
+$result99 = mysqli_query($db,"SELECT id, winner FROM Contests WHERE type='99' AND done='1'");
+$lastBattleDone = mysqli_num_rows($result99);
 if ($lastBattleDone)
 {
-  $lb = mysql_fetch_array($result99);
+  $lb = mysqli_fetch_array($result99);
   echo "<center><b>";
   if ($lb[winner] == "Shadow")
   {
@@ -85,7 +85,7 @@ if ($lastBattleDone)
 
         <div class="tab-content">
       <?php
-        $users="";
+        $users=[];
         // START LOOPS
         for ($y = 0; $y < count($rank_data); $y++)
         {
@@ -151,7 +151,7 @@ if ($lastBattleDone)
                     { 
                       if (!$users[$tid])
                       {
-                        $users[$tid] = mysql_fetch_array(mysql_query("SELECT id, name, lastname, goodevil, society FROM Users WHERE id='".$tid."'"));
+                        $users[$tid] = mysqli_fetch_array(mysqli_query($db,"SELECT id, name, lastname, goodevil, society FROM Users WHERE id='".$tid."'"));
                       }
                       $listchar=$users[$tid];
                       if ($listchar['id'] == $id) $classn="btn-info";
@@ -166,7 +166,7 @@ if ($lastBattleDone)
                       </td>
                       <td valign='bottom'>
                         <a class='btn btn-xs btn-block btn-wrap <?php echo $classn; ?>' href="bio.php?name=<?php echo $listchar['name']; echo "&amp;last="; echo $listchar['lastname']; echo "&amp;time="; echo time(); ?>"><?php echo $listchar['name']." ".$listchar['lastname']; ?>
-                          <?php if ($stance[str_replace(" ","_",$listchar[society])] && $listchar[id] != $id) echo "<img src='images/".$img_ar[$stance[str_replace(" ","_",$listchar[society])]-1].".gif'/>"; ?></a>
+                          <?php if ($stance[str_replace(" ","_",$listchar['society'])] && $listchar['id'] != $id) echo "<img src='images/".$img_ar[$stance[str_replace(" ","_",$listchar['society'])]-1].".gif'/>"; ?></a>
                       </td>
                     </tr>
                 <?php
@@ -197,18 +197,18 @@ if ($lastBattleDone)
                 <div class="panel-body solid-back">
                   <table class='table table-responsive table-hover table-condensed table-clear small'>
                 <?php
-                  $result = mysql_query("SELECT id, name, lastname, exp, goodevil, society, level FROM Users WHERE nation='".$i."' ORDER BY exp DESC LIMIT 0,3");
-                  while ($listchar = mysql_fetch_array($result))
+                  $result = mysqli_query($db,"SELECT id, name, lastname, exp, goodevil, society, level FROM Users WHERE nation='".$i."' ORDER BY exp DESC LIMIT 0,3");
+                  while ($listchar = mysqli_fetch_array($result))
                   {
                       if ($listchar['id'] == $id) $classn="btn-info";
                       else $classn="btn-default";
                 ?>
                     <tr>
                       <td width="25" valign='bottom'><?php echo ($x+1)."."; ?></td>
-                      <td valign='bottom' align='center'><?php echo number_format($listchar[exp]); ?></td>
+                      <td valign='bottom' align='center'><?php echo number_format($listchar['exp']); ?></td>
                       <td valign='bottom'>
                         <a class='btn btn-xs btn-block btn-wrap <?php echo $classn; ?>' href="bio.php?name=<?php echo $listchar['name']; echo "&amp;last="; echo $listchar['lastname']; echo "&amp;time="; echo time(); ?>"><?php echo $listchar['name']." ".$listchar['lastname']; ?>
-                          <?php if ($stance[str_replace(" ","_",$listchar[society])] && $listchar[id] != $id) echo "<img src='images/".$img_ar[$stance[str_replace(" ","_",$listchar[society])]-1].".gif'/>"; ?></a>
+                          <?php if ($stance[str_replace(" ","_",$listchar['society'])] && $listchar['id'] != $id) echo "<img src='images/".$img_ar[$stance[str_replace(" ","_",$listchar['society'])]-1].".gif'/>"; ?></a>
                       </td>
                     </tr>
                 <?php
@@ -253,7 +253,7 @@ if ($lastBattleDone)
                     { 
                       if (!$soc[$sid])
                       {
-                        $soc[$sid] = mysql_fetch_array(mysql_query("SELECT id, name FROM Soc WHERE id='".$sid."'"));
+                        $soc[$sid] = mysqli_fetch_array(mysqli_query($db,"SELECT id, name FROM Soc WHERE id='".$sid."'"));
                       }
                       $listsoc=$soc[$sid];
                       if ($listsoc['name'] == $char['society']) $classn="btn-info";
@@ -264,7 +264,7 @@ if ($lastBattleDone)
                       <td valign='bottom' align='center'><?php if ($y < 5) echo number_format($topClans[$x][$numStr]); else echo displayGold($topClans[$x][$numStr]);?></td>
                       <td valign='bottom'>
                         <a class='btn btn-xs btn-block btn-wrap <?php echo $classn; ?>' href="joinclan.php?name=<?php echo $listsoc['name'];?>"><?php echo $listsoc['name'];?>
-                          <?php if ($stance[str_replace(" ","_",$listsoc[name])]) echo "<img src='images/".$img_ar[$stance[str_replace(" ","_",$listsoc[name])]-1].".gif'/>"; ?></a>
+                          <?php if ($stance[str_replace(" ","_",$listsoc['name'])]) echo "<img src='images/".$img_ar[$stance[str_replace(" ","_",$listsoc['name'])]-1].".gif'/>"; ?></a>
                       </td>
                     </tr>
                 <?php
@@ -303,8 +303,8 @@ if ($lastBattleDone)
                     $orderBy =$field." ASC";
                   }
                   $x=0;
-                  $result = mysql_query("SELECT id, myOrder, pop, name FROM Locations WHERE 1 ORDER BY ".$orderBy." LIMIT 0,10");
-                  while ($listloc = mysql_fetch_array($result))
+                  $result = mysqli_query($db,"SELECT id, myOrder, pop, name FROM Locations WHERE 1 ORDER BY ".$orderBy." LIMIT 0,10");
+                  while ($listloc = mysqli_fetch_array($result))
                   {
                       $classn="btn-default";
                 ?>
@@ -336,3 +336,4 @@ if ($lastBattleDone)
 <?php
 include('footer.htm');
 ?>
+

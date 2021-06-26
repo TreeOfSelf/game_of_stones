@@ -11,7 +11,7 @@ include("connect.php");
 
 // Drop Old Table
 $query  = 'DROP TABLE Shop';
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 echo "<b>Results</b><br><br>Drop Old Table: $result";
 
 // Create New Table
@@ -22,7 +22,7 @@ $query = 'CREATE TABLE Shop( '.
 'time int,'.
 'PRIMARY KEY (id),'.
 'UNIQUE id (id))';
-$result = mysql_query($query);
+$result = mysqli_query($db,$query);
 echo "<br>Create New Table: $result";
 
 $list=array (
@@ -45,11 +45,11 @@ array ( "talisman","","of brigands"),
 $list=serialize($list);
 $time = time();
 $sql = "INSERT INTO Shop (inventory,time) VALUES ('$list','$time')";
-$result = mysql_query($sql,$db);
+$result = mysqli_query($db,$sql);
 
 
 // Close Database
-mysql_close($db);
+mysql_close();
 ?>
 
 <br><br>

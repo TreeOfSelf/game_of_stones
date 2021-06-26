@@ -6,8 +6,8 @@ include_once("admin/itemFuncs.php");
 
 $itmlist="";
 $listsize=0;
-$iresult=mysql_query("SELECT * FROM Items WHERE owner='$id' AND type<15 AND type>0");
-while ($qitem = mysql_fetch_array($iresult))
+$iresult=mysqli_query($db,"SELECT * FROM Items WHERE owner='$id' AND type<15 AND type>0");
+while ($qitem = mysqli_fetch_array($iresult))
 {
   $itmlist[$listsize++] = $qitem;
 }
@@ -39,8 +39,8 @@ $namesender = $_COOKIE['name'];
 $lastnamesender = $_COOKIE['lastname'];
 $nameto="";
 $lastnameto="";
-$nameto=mysql_real_escape_string($_GET[name]);
-$lastnameto=mysql_real_escape_string($_GET[lastname]);
+$nameto=mysqli_real_escape_string($db,$_GET[name]);
+$lastnameto=mysqli_real_escape_string($db,$_GET[lastname]);
 if ($nameto=="" || $lastnameto=="" ||
     (strtolower($nameto) == strtolower($namesender) && strtolowerto($lastname) == strtolower($lastnamesender)))
 {
